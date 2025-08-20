@@ -28,5 +28,5 @@ export const questions = [
     ch_ex_statement: "這是一個日文例句。",
     type: "名詞",
     options: generateOptions("日文", "名詞"),
-  },
+  }
 ];

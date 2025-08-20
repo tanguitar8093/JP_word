@@ -1,78 +1,90 @@
 import React, { useState, useEffect } from "react";
+import {
+  CardContainer,
+  HiraganaToggleContainer,
+  HiraganaTextContainer,
+  ToggleButton,
+  HiraganaText,
+  WordContainer,
+  SpeakButton,
+  OptionsContainer,
+  OptionButton,
+  ResultContainer,
+  AnswerText,
+  NextButton,
+  SubCard
+} from "../styled/QuestionCard";
 import ExampleSentence from "./ExampleSentence";
-
+import AnswerSound from "./AnswerSound";
 export default function QuestionCard({
   q,
   onCheckAnswer,
   result,
   onNext,
   speak,
+  selectedAnswer, 
 }) {
   const [showHiragana, setShowHiragana] = useState(false);
 
-  // 每次 q 改變時，重置平假名為隱藏
+
   useEffect(() => {
     setShowHiragana(false);
   }, [q]);
 
   return (
-    <div>
+    <CardContainer>
       {q.kanji_jp_word && (
-        <div style={{ marginBottom: 5 }}>
-          <button
-            onClick={() => setShowHiragana((prev) => !prev)}
-            style={{ fontSize: 14, marginRight: 8 }}
-          >
-            {showHiragana ? "◀️ 平" : "▶️ 平"}
-          </button>
+        <>
+          <HiraganaToggleContainer>
+            <ToggleButton onClick={() => setShowHiragana((prev) => !prev)}>
+              {showHiragana ? "🔽 平" : "▶️ 平"}
+            </ToggleButton>
+          </HiraganaToggleContainer>
           {showHiragana && (
-            <span style={{ fontSize: 20, fontWeight: "bold" }}>
-              {q.jp_word}
-            </span>
+            <HiraganaTextContainer>
+              <HiraganaText>{q.jp_word}</HiraganaText>
+            </HiraganaTextContainer>
           )}
-        </div>
+        </>
       )}
 
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        {q.kanji_jp_word ? (
-          <span style={{ fontSize: 20 }}>{q.kanji_jp_word}</span>
-        ) : (
-          <span style={{ fontSize: 20 }}>{q.jp_word}</span>
-        )}
-        <span
-          onClick={() => speak(q.jp_word)}
-          style={{ cursor: "pointer", fontSize: 20 }}
-        >
-          🔊
-        </span>
-      </div>
+      <WordContainer>
+        <span>{q.kanji_jp_word || q.jp_word}</span>
+        <SpeakButton onClick={() => speak(q.jp_word)}>🔊</SpeakButton>
+      </WordContainer>
 
-      <div>
-        {q.options.map((opt, i) => (
-          <button
-            key={i}
-            onClick={() => onCheckAnswer(opt)}
-            style={{ margin: 5 }}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
-      <hr />
+      {!result && (
+        <OptionsContainer>
+          {q.options.map((opt, i) => (
+            <OptionButton key={i} onClick={() => onCheckAnswer(opt)}>
+              {opt}
+            </OptionButton>
+          ))}
+        </OptionsContainer>
+      )}
+
       {result && (
-        <div style={{ marginTop: 10 }}>
-          <p>{result}</p>
-          <p>詞性：{q.type}</p>
-          <ExampleSentence
-            jp_ex={q.jp_ex_statement}
-            ch_ex={q.ch_ex_statement}
-            speak={speak}
-          />
-          <button onClick={onNext} style={{ marginTop: 10 }}>
-            下一題
-          </button>
-        </div>
+        <ResultContainer>
+          <SubCard>
+            <AnswerText correct={result === "✅"}>
+              {q.ch_word}
+            </AnswerText>
+            <AnswerText correct={result === "✅"}>
+              {selectedAnswer} {result}
+            </AnswerText>
+          </SubCard>
+          <SubCard>
+            <p>詞性：{q.type}</p>
+          </SubCard>
+            <ExampleSentence
+              jp_ex={q.jp_ex_statement}
+              ch_ex={q.ch_ex_statement}
+              speak={speak}
+            />
+          <NextButton onClick={onNext}>下一題</NextButton>
+          <AnswerSound result={result} />
+        </ResultContainer>
       )}
-    </div>
+    </CardContainer>
   );
 }

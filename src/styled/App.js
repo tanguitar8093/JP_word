@@ -1,0 +1,54 @@
+import styled from "styled-components";
+
+// 容器
+export const AppContainer = styled.div`
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative; /* 為懸浮設定定位 */
+`;
+
+// 標題
+export const Title = styled.h2`
+  text-align: center;
+  margin-bottom: 16px;
+`;
+
+// 進度文字
+export const Progress = styled.p`
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 16px;
+  color: #555;
+`;
+
+// 設定按鈕
+export const SettingsToggle = styled.span`
+  cursor: pointer;
+  font-size: 20px;
+  user-select: none;
+  transition: all 0.2s ease;
+  position: absolute;
+  top: 10px;
+  right: 10px;  /* 改成右上角 */
+  z-index: 100;
+
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+// 懸浮設定面板
+export const FloatingSettingsPanel = styled.div`
+  position: absolute;
+  top: 40px;
+  right: 10px;
+  background: #fff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  z-index: 99;
+`;

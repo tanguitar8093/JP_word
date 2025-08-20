@@ -1,4 +1,11 @@
 import React, { useState, useEffect } from "react";
+import {
+  AppContainer,
+  Title,
+  Progress,
+  SettingsToggle,
+  FloatingSettingsPanel
+} from "./styled/App";
 import { questions } from "./data/questions";
 import { speak } from "./services/speechService";
 import QuestionCard from "./components/QuestionCard";
@@ -12,6 +19,7 @@ export default function App() {
   const [voices, setVoices] = useState([]);
   const [selectedVoice, setSelectedVoice] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [answer, setAnswer] = useState("");
 
   const q = questions[current];
 
@@ -20,13 +28,10 @@ export default function App() {
     const synth = window.speechSynthesis;
 
     const loadVoices = () => {
-      const v = synth
-        .getVoices()
-        .filter((voice) => voice.lang.startsWith("ja"));
+      const v = synth.getVoices().filter((voice) => voice.lang.startsWith("ja"));
       if (v.length > 0) {
         setVoices(v);
 
-        // 只在 selectedVoice 為 null 時設定預設
         if (!selectedVoice) {
           const googleVoice = v.find(
             (voice) => voice.name === "Google 日本語" && voice.lang === "ja-JP"
@@ -36,10 +41,7 @@ export default function App() {
       }
     };
 
-    // 嘗試立即加載
     loadVoices();
-
-    // voices 改變事件
     synth.onvoiceschanged = loadVoices;
   }, [selectedVoice]);
 
@@ -49,7 +51,8 @@ export default function App() {
   };
 
   const checkAnswer = (answer) => {
-    setResult(answer === q.ch_word ? "正確 ✅" : "錯誤 ❌");
+    setAnswer(answer);
+    setResult(answer === q.ch_word ? "✅" : "❌");
   };
 
   const next = () => {
@@ -58,29 +61,13 @@ export default function App() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>日文單字小測驗</h2>
-      <p>
-        第 {current + 1} 題 / 共 {questions.length} 題
-      </p>
-      <hr />
-      <QuestionCard
-        q={q}
-        onCheckAnswer={checkAnswer}
-        result={result}
-        onNext={next}
-        speak={handleSpeak}
-      />
-      <hr />
-      <div style={{ marginTop: 20 }}>
-        <span
-          style={{ cursor: "pointer", fontSize: "18px" }}
-          onClick={() => setShowSettings((s) => !s)}
-        >
-          ⚙️ 設定
-        </span>
-
-        {showSettings && voices.length > 0 && (
+    <AppContainer>
+      {/* 設定懸浮視窗 */}
+      <SettingsToggle onClick={() => setShowSettings((s) => !s)}>
+        ⚙️
+      </SettingsToggle>
+      {showSettings && voices.length > 0 && (
+        <FloatingSettingsPanel>
           <SettingsPanel
             rate={rate}
             setRate={setRate}
@@ -90,8 +77,22 @@ export default function App() {
             selectedVoice={selectedVoice}
             setSelectedVoice={setSelectedVoice}
           />
-        )}
-      </div>
-    </div>
+        </FloatingSettingsPanel>
+      )}
+
+      <Title>日文單字測驗</Title>
+      <Progress>
+        第 {current + 1} 題 / 共 {questions.length} 題
+      </Progress>
+
+      <QuestionCard
+        q={q}
+        onCheckAnswer={checkAnswer}
+        result={result}
+        onNext={next}
+        speak={handleSpeak}
+        selectedAnswer={answer}
+      />
+    </AppContainer>
   );
 }
