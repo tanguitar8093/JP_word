@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ExampleSentence from "./ExampleSentence";
 
 export default function QuestionCard({
@@ -8,29 +8,31 @@ export default function QuestionCard({
   onNext,
   speak,
 }) {
-  // 控制平假名是否顯示
   const [showHiragana, setShowHiragana] = useState(false);
+
+  // 每次 q 改變時，重置平假名為隱藏
+  useEffect(() => {
+    setShowHiragana(false);
+  }, [q]);
 
   return (
     <div>
-      {/* 平假名 toggle + 平假名顯示（上一行） */}
       {q.kanji_jp_word && (
         <div style={{ marginBottom: 5 }}>
-          {showHiragana && (
-            <span style={{ fontSize: 20, fontWeight: "bold" }}>
-              {q.jp_word}
-            </span>
-          )}
           <button
             onClick={() => setShowHiragana((prev) => !prev)}
             style={{ fontSize: 14, marginRight: 8 }}
           >
             {showHiragana ? "◀️ 平" : "▶️ 平"}
           </button>
+          {showHiragana && (
+            <span style={{ fontSize: 20, fontWeight: "bold" }}>
+              {q.jp_word}
+            </span>
+          )}
         </div>
       )}
 
-      {/* 漢字 + 播音 icon */}
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         {q.kanji_jp_word ? (
           <span style={{ fontSize: 20 }}>{q.kanji_jp_word}</span>
@@ -45,7 +47,6 @@ export default function QuestionCard({
         </span>
       </div>
 
-      {/* 選項按鈕 */}
       <div>
         {q.options.map((opt, i) => (
           <button
@@ -57,8 +58,7 @@ export default function QuestionCard({
           </button>
         ))}
       </div>
-
-      {/* 結果與例句 */}
+      <hr />
       {result && (
         <div style={{ marginTop: 10 }}>
           <p>{result}</p>

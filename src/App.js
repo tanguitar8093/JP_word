@@ -63,7 +63,7 @@ export default function App() {
       <p>
         第 {current + 1} 題 / 共 {questions.length} 題
       </p>
-
+      <hr />
       <QuestionCard
         q={q}
         onCheckAnswer={checkAnswer}
@@ -71,7 +71,7 @@ export default function App() {
         onNext={next}
         speak={handleSpeak}
       />
-
+      <hr />
       <div style={{ marginTop: 20 }}>
         <span
           style={{ cursor: "pointer", fontSize: "18px" }}

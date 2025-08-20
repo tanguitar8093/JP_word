@@ -1,31 +1,31 @@
 import React from "react";
 import styled from "styled-components";
 
-// 容器
 const OptionsContainer = styled.div`
   margin-top: 10px;
   display: flex;
-  flex-direction: column; /* 每行一個選項 */
-  gap: 8px; /* 每個選項間距 */
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
 `;
 
-// 選項按鈕
 const OptionButton = styled.button`
-  padding: 10px 16px;
+  padding: 12px 20px;
   font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background-color: #f9f9f9;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  background-color: #ffffff;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    background-color: #e0f0ff;
-    border-color: #80c0ff;
+    background-color: #007bff;
+    color: white;
   }
 
   &:active {
-    background-color: #cce6ff;
+    background-color: #0056b3;
+    color: white;
   }
 `;
 
