@@ -5,7 +5,10 @@ const initialState = {
   questions,
   currentQuestionIndex: 0,
   selectedAnswer: "",
-  result: null, // null | '✅' | '❌'
+  result: null, // null | '⭕' | '❌'
+  correctAnswersCount: 0,
+  answeredQuestions: [], // Stores { question, isCorrect } for each answered question
+  quizCompleted: false,
 };
 
 function quizReducer(state, action) {
@@ -13,18 +16,31 @@ function quizReducer(state, action) {
     case "CHECK_ANSWER": {
       const currentQuestion = state.questions[state.currentQuestionIndex];
       const isCorrect = action.payload === currentQuestion.ch_word;
+      const newAnsweredQuestions = [
+        ...state.answeredQuestions,
+        { question: currentQuestion, isCorrect },
+      ];
       return {
         ...state,
         selectedAnswer: action.payload,
-        result: isCorrect ? "✅" : "❌",
+        result: isCorrect ? "⭕" : "❌",
+        correctAnswersCount: isCorrect
+          ? state.correctAnswersCount + 1
+          : state.correctAnswersCount,
+        answeredQuestions: newAnsweredQuestions,
       };
     }
     case "NEXT_QUESTION": {
+      const nextQuestionIndex = state.currentQuestionIndex + 1;
+      const quizCompleted = nextQuestionIndex >= state.questions.length;
       return {
         ...state,
-        currentQuestionIndex: (state.currentQuestionIndex + 1) % state.questions.length,
+        currentQuestionIndex: quizCompleted
+          ? state.currentQuestionIndex
+          : nextQuestionIndex,
         selectedAnswer: "",
         result: null,
+        quizCompleted: quizCompleted,
       };
     }
     default:

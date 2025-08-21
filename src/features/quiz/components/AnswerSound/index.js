@@ -7,7 +7,7 @@ export default function AnswerSound({ result }) {
     if (!result) return;
 
     const audio = new Audio(
-      result === "✅" ? correctAudioFile : wrongAudioFile
+      result === "⭕" ? correctAudioFile : wrongAudioFile
     );
     audio.play();
   }, [result]);

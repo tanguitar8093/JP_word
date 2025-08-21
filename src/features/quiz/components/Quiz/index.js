@@ -5,6 +5,7 @@ import { useQuizGame } from "../../../../hooks/useQuizGame";
 import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
 import QuestionCard from "../QuestionCard";
 import SettingsPanel from "../SettingsPanel";
+import StatisticsPage from '../StatisticsPage'; // Import StatisticsPage
 import {
   AppContainer,
   Title,
@@ -82,6 +83,15 @@ function QuizContent() {
 // The component that provides the context
 export default function Quiz() {
   const { state, dispatch } = useQuizGame();
+
+  if (state.quizCompleted) {
+    return (
+      <StatisticsPage
+        answeredQuestions={state.answeredQuestions}
+        correctAnswersCount={state.correctAnswersCount}
+      />
+    );
+  }
 
   return (
     <QuizContext.Provider value={{ state, dispatch }}>

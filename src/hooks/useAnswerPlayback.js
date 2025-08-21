@@ -26,7 +26,7 @@ export function useAnswerPlayback({
 
   const playSound = (soundResult) =>
     new Promise((resolve) => {
-      const audio = new Audio(soundResult === "✅" ? correctSound : wrongSound);
+      const audio = new Audio(soundResult === "⭕" ? correctSound : wrongSound);
       audio.onended = resolve;
       audio.play();
     });

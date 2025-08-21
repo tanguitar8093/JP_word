@@ -21,12 +21,7 @@ import AnswerSound from "../AnswerSound";
 // Note: This component no longer receives props. It gets everything from context.
 export default function QuestionCard({ speakManually }) {
   const { state, dispatch } = useQuiz();
-  const {
-    questions,
-    currentQuestionIndex,
-    selectedAnswer,
-    result,
-  } = state;
+  const { questions, currentQuestionIndex, selectedAnswer, result } = state;
   const q = questions[currentQuestionIndex];
 
   const [showHiragana, setShowHiragana] = useState(false);
@@ -42,8 +37,6 @@ export default function QuestionCard({ speakManually }) {
   const handleNextQuestion = () => {
     dispatch({ type: "NEXT_QUESTION" });
   };
-
-  
 
   return (
     <CardContainer>
@@ -82,8 +75,8 @@ export default function QuestionCard({ speakManually }) {
       {result && (
         <ResultContainer>
           <SubCard>
-            <AnswerText correct={result === "✅"}>{q.ch_word}</AnswerText>
-            <AnswerText correct={result === "✅"}>
+            <AnswerText correct={result === "⭕"}>{q.ch_word}</AnswerText>
+            <AnswerText correct={result === "⭕"}>
               {selectedAnswer} {result}
             </AnswerText>
           </SubCard>
