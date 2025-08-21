@@ -1,15 +1,16 @@
 import React, { useState, useCallback } from "react";
+import { Link } from "react-router-dom"; // 引入 Link
 import {
   AppContainer,
   Title,
   Progress,
   SettingsToggle,
   FloatingSettingsPanel,
-} from "../App/styles";
+} from "../../../../components/layout/App/styles";
 import QuestionCard from "../QuestionCard";
 import SettingsPanel from "../SettingsPanel";
-import { useAnswerPlayback } from "../../hooks/useAnswerPlayback";
-import { useQuizGame } from "../../hooks/useQuizGame";
+import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
+import { useQuizGame } from "../../../../hooks/useQuizGame";
 
 export default function Quiz() {
   const [rate, setRate] = useState(1.0);
