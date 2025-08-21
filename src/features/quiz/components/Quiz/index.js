@@ -69,9 +69,6 @@ function QuizContent() {
       )}
 
       <Title>日文單字測驗</Title>
-      <div style={{ textAlign: "center", marginBottom: "10px" }}>
-        <Link to="/example">前往範例頁面</Link>
-      </div>
       <Progress>
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
