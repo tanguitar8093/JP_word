@@ -6,9 +6,9 @@ export const Container = styled.div`
   flex-direction: column;
   align-items: center; /* 🔹 全部置中 */
   gap: 4px; /* 🔹 間距稍微小一點 */
-  padding: 12px 16px;
+  padding: 6px 16px;
   border-radius: 8px; /* 🔹 圓角 */
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* 🔹 陰影 */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* 🔹 陰影 */
 `;
 
 export const LabelRow = styled.p`

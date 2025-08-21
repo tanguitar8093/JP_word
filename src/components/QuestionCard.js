@@ -12,7 +12,7 @@ import {
   ResultContainer,
   AnswerText,
   NextButton,
-  SubCard
+  SubCard,
 } from "../styled/QuestionCard";
 import ExampleSentence from "./ExampleSentence";
 import AnswerSound from "./AnswerSound";
@@ -22,10 +22,9 @@ export default function QuestionCard({
   result,
   onNext,
   speak,
-  selectedAnswer, 
+  selectedAnswer,
 }) {
   const [showHiragana, setShowHiragana] = useState(false);
-
 
   useEffect(() => {
     setShowHiragana(false);
@@ -66,21 +65,19 @@ export default function QuestionCard({
       {result && (
         <ResultContainer>
           <SubCard>
-            <AnswerText correct={result === "✅"}>
-              {q.ch_word}
-            </AnswerText>
+            <AnswerText correct={result === "✅"}>{q.ch_word}</AnswerText>
             <AnswerText correct={result === "✅"}>
               {selectedAnswer} {result}
             </AnswerText>
           </SubCard>
           <SubCard>
-            <p>詞性：{q.type}</p>
+            <div>詞性：{q.type}</div>
           </SubCard>
-            <ExampleSentence
-              jp_ex={q.jp_ex_statement}
-              ch_ex={q.ch_ex_statement}
-              speak={speak}
-            />
+          <ExampleSentence
+            jp_ex={q.jp_ex_statement}
+            ch_ex={q.ch_ex_statement}
+            speak={speak}
+          />
           <NextButton onClick={onNext}>下一題</NextButton>
           <AnswerSound result={result} />
         </ResultContainer>

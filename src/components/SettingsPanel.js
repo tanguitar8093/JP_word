@@ -43,7 +43,7 @@ export default function SettingsPanel({
         <ValueText>{pitch}</ValueText>
       </LabelGroup>
 
-      <LabelGroup>
+      {/* <LabelGroup>
         播報員 (Voice):
         <SelectInput
           value={selectedVoice?.name || ""}
@@ -58,7 +58,7 @@ export default function SettingsPanel({
             </option>
           ))}
         </SelectInput>
-      </LabelGroup>
+      </LabelGroup> */}
     </PanelContainer>
   );
 }

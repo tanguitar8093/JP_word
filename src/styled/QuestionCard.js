@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 // 容器
 export const CardContainer = styled.div`
-  padding: 16px;
+  padding: 12px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background: #ffffff;
@@ -88,14 +88,15 @@ export const OptionButton = styled.button`
 // 結果區塊
 export const ResultContainer = styled.div`
   border-top: 1px solid #e0e0e0;
-  text-align:center;
+  text-align: center;
 `;
 
 // 答案文字
-export const AnswerText = styled.p`
-  font-size: 22px;
+export const AnswerText = styled.div`
+  font-size: 20px;
   font-weight: bold;
-  text-align: center; /* 置中 */
+  text-align: center;
+  margin-top: 5px;
   color: ${(props) => (props.correct ? "green" : "red")};
 `;
 
@@ -108,7 +109,7 @@ export const NextButton = styled.button`
   background-color: #f9f9f9;
   cursor: pointer;
   transition: all 0.2s ease;
-  width: 100%; /* 滿寬撐滿父容器 */
+  width: 100%;
 
   &:hover {
     background-color: #007bff;
@@ -122,8 +123,8 @@ export const SubCard = styled.div`
   flex-direction: column;
   align-items: center; /* 🔹 全部置中 */
   gap: 4px; /* 🔹 間距稍微小一點 */
-  padding: 12px 16px;
+  padding: 10px 16px;
   // background-color: #f9f9f9; /* 🔹 淺灰底色 */
   border-radius: 8px; /* 🔹 圓角 */
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* 🔹 陰影 */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* 🔹 陰影 */
 `;
