@@ -15,9 +15,6 @@ export default function App() {
   const [current, setCurrent] = useState(0);
   const [result, setResult] = useState(null);
   const [rate, setRate] = useState(1.0);
-  const [pitch, setPitch] = useState(1.0);
-  const [voices, setVoices] = useState([]);
-  const [selectedVoice, setSelectedVoice] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [answer, setAnswer] = useState("");
 
@@ -31,30 +28,8 @@ export default function App() {
 
   const q = questions[current];
 
-  // 載入 voices
-  useEffect(() => {
-    const synth = window.speechSynthesis;
-    const loadVoices = () => {
-      const v = synth.getVoices();
-      if (v.length > 0) {
-        setVoices(v);
-        if (!selectedVoice) {
-          const googleVoice = v.find(
-            (voice) => voice.name === "Google 日本語" && voice.lang === "ja-JP"
-          );
-          setSelectedVoice(googleVoice || v[0]);
-        }
-      }
-    };
-    loadVoices();
-    synth.onvoiceschanged = loadVoices;
-  }, [selectedVoice]);
-
   const { playAfterResult } = useAnswerPlayback({
     rate,
-    pitch,
-    voice: selectedVoice,
-    voices,
   });
 
   const checkAnswer = (answer) => {
@@ -73,16 +48,11 @@ export default function App() {
       <SettingsToggle onClick={() => setShowSettings((s) => !s)}>
         ⚙️
       </SettingsToggle>
-      {showSettings && voices.length > 0 && (
+      {showSettings && (
         <FloatingSettingsPanel>
           <SettingsPanel
             rate={rate}
             setRate={setRate}
-            pitch={pitch}
-            setPitch={setPitch}
-            voices={voices}
-            selectedVoice={selectedVoice}
-            setSelectedVoice={setSelectedVoice}
             playbackOptions={playbackOptions}
             setPlaybackOptions={setPlaybackOptions}
           />
@@ -102,9 +72,7 @@ export default function App() {
         selectedAnswer={answer}
         autoNext={playbackOptions.autoNext}
         playbackOptions={playbackOptions}
-        selectedVoice={selectedVoice}
         rate={rate}
-        pitch={pitch}
         playAfterResult={playAfterResult}
       />
     </AppContainer>

@@ -1,26 +1,51 @@
-export function speak(text, { rate = 1, pitch = 1, voice, lang } = {}) {
-  if (!text) return;
+let voices = [];
+let onVoicesLoaded = [];
 
-  const msg = new SpeechSynthesisUtterance(text);
+window.speechSynthesis.onvoiceschanged = () => {
+    voices = window.speechSynthesis.getVoices();
+    onVoicesLoaded.forEach(cb => cb());
+    onVoicesLoaded = [];
+};
 
-  // ✅ lang 有指定就用 lang，否則用 voice.lang 或預設日文
-  msg.lang = lang || (voice ? voice.lang : "ja-JP");
-  msg.rate = rate;
-  msg.pitch = pitch;
-  if (voice) msg.voice = voice;
+const getVoices = () => {
+    if (voices.length > 0) {
+        return Promise.resolve(voices);
+    }
+    voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+        return Promise.resolve(voices);
+    }
+    return new Promise(resolve => {
+        onVoicesLoaded.push(() => resolve(window.speechSynthesis.getVoices()));
+    });
+};
 
+
+const getVoice = (lang, loadedVoices) => {
+  if (lang.startsWith("ja")) {
+    return loadedVoices.find(
+      (v) => v.name === "Google 日本語" && v.lang === "ja-JP"
+    );
+  }
+  if (lang.startsWith("zh")) {
+    return loadedVoices.find(
+      (v) => v.name === "Google 國語（臺灣）" && v.lang === "zh-TW"
+    );
+  }
+  return null;
+};
+
+export const speak = async (text, { rate = 1.0, lang }) => {
+  const loadedVoices = await getVoices();
   return new Promise((resolve) => {
+    if (!text) return resolve();
+
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.voice = getVoice(lang, loadedVoices);
+    msg.lang = lang;
+    msg.rate = rate;
     msg.onend = resolve;
-    window.speechSynthesis.cancel();
+
     window.speechSynthesis.speak(msg);
   });
-}
-
-export async function speakSequential(texts, defaultOptions) {
-  for (const t of texts) {
-    if (!t) continue;
-    const { text, options } =
-      typeof t === "string" ? { text: t, options: {} } : t;
-    await speak(text, { ...defaultOptions, ...options });
-  }
-}
+};

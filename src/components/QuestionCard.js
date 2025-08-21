@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   CardContainer,
   HiraganaToggleContainer,
@@ -25,21 +25,26 @@ export default function QuestionCard({
   selectedAnswer,
   autoNext,
   playbackOptions,
-  selectedVoice,
   rate,
-  pitch,
   playAfterResult,
 }) {
   const [showHiragana, setShowHiragana] = useState(false);
-
-  useEffect(() => setShowHiragana(false), [q]);
+  const playedForResult = useRef(false);
 
   useEffect(() => {
-    if (!result || !autoNext) return;
+    setShowHiragana(false);
+    playedForResult.current = false;
+  }, [q]);
+
+  useEffect(() => {
+    if (!result || playedForResult.current) return;
 
     const run = async () => {
+      playedForResult.current = true;
       await playAfterResult(result, q, playbackOptions); // 自動播放結果含音效
-      onNext();
+      if (autoNext) {
+        onNext();
+      }
     };
     run();
   }, [result, autoNext, onNext, q, playAfterResult, playbackOptions]);
@@ -65,13 +70,12 @@ export default function QuestionCard({
         <span>{q.kanji_jp_word || q.jp_word}</span>
         <SpeakButton
           onClick={async () => {
-            if (playbackOptions.jp)
-              await playAfterResult(
-                null,
-                { jp_word: q.jp_word },
-                { jp: true },
-                { skipSound: true } // 單播單字不播音效
-              );
+            await playAfterResult(
+              null,
+              { jp_word: q.jp_word },
+              { jp: true },
+              { skipSound: true } // 單播單字不播音效
+            );
           }}
         >
           🔊
@@ -103,14 +107,14 @@ export default function QuestionCard({
             jp_ex={q.jp_ex_statement}
             ch_ex={q.ch_ex_statement}
             speak={async (text, lang) => {
-              if (lang === "ja" && playbackOptions.jpEx)
+              if (lang === "ja")
                 await playAfterResult(
                   null,
                   { jp_ex_statement: text },
                   { jpEx: true },
                   { skipSound: true }
                 );
-              if (lang === "zh" && playbackOptions.chEx)
+              if (lang === "zh")
                 await playAfterResult(
                   null,
                   { ch_ex_statement: text },

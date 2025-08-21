@@ -2,18 +2,11 @@ import {
   PanelContainer,
   LabelGroup,
   RangeInput,
-  SelectInput,
-  ValueText,
 } from "../styled/SettingsPanel";
 
 export default function SettingsPanel({
   rate,
   setRate,
-  pitch,
-  setPitch,
-  voices,
-  selectedVoice,
-  setSelectedVoice,
   playbackOptions,
   setPlaybackOptions,
 }) {
@@ -29,37 +22,6 @@ export default function SettingsPanel({
           value={rate}
           onChange={(e) => setRate(Number(e.target.value))}
         />
-      </LabelGroup>
-
-      <LabelGroup>
-        音調 (Pitch): {pitch}
-        <RangeInput
-          type="range"
-          min="0"
-          max="2"
-          step="0.1"
-          value={pitch}
-          onChange={(e) => setPitch(Number(e.target.value))}
-        />
-        <ValueText>{pitch}</ValueText>
-      </LabelGroup>
-
-      <LabelGroup>
-        播報員 (Voice):
-        <SelectInput
-          value={selectedVoice?.name || ""}
-          onChange={(e) => {
-            console.log("voices", voices);
-            const v = voices.find((voice) => voice.name === e.target.value);
-            setSelectedVoice(v);
-          }}
-        >
-          {voices.map((v) => (
-            <option key={v.name} value={v.name}>
-              {v.name} ({v.lang})
-            </option>
-          ))}
-        </SelectInput>
       </LabelGroup>
 
       <LabelGroup>
