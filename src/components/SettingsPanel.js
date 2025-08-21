@@ -31,8 +31,8 @@ export default function SettingsPanel({
         />
       </LabelGroup>
 
-      {/* <LabelGroup>
-        音調 (Pitch):
+      <LabelGroup>
+        音調 (Pitch): {pitch}
         <RangeInput
           type="range"
           min="0"
@@ -49,6 +49,7 @@ export default function SettingsPanel({
         <SelectInput
           value={selectedVoice?.name || ""}
           onChange={(e) => {
+            console.log("voices", voices);
             const v = voices.find((voice) => voice.name === e.target.value);
             setSelectedVoice(v);
           }}
@@ -59,7 +60,7 @@ export default function SettingsPanel({
             </option>
           ))}
         </SelectInput>
-      </LabelGroup> */}
+      </LabelGroup>
 
       <LabelGroup>
         播放內容：
@@ -117,6 +118,23 @@ export default function SettingsPanel({
             中文例句
           </label>
         </div>
+      </LabelGroup>
+
+      <LabelGroup>
+        自動下一題：
+        <label>
+          <input
+            type="checkbox"
+            checked={playbackOptions.autoNext}
+            onChange={(e) =>
+              setPlaybackOptions((prev) => ({
+                ...prev,
+                autoNext: e.target.checked,
+              }))
+            }
+          />
+          開啟
+        </label>
       </LabelGroup>
     </PanelContainer>
   );

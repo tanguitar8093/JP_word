@@ -7,7 +7,6 @@ import {
   FloatingSettingsPanel,
 } from "./styled/App";
 import { questions } from "./data/questions";
-import { speakSequential } from "./services/speechService";
 import QuestionCard from "./components/QuestionCard";
 import SettingsPanel from "./components/SettingsPanel";
 import { useAnswerPlayback } from "./hooks/useAnswerPlayback";
@@ -25,8 +24,9 @@ export default function App() {
   const [playbackOptions, setPlaybackOptions] = useState({
     jp: true,
     ch: true,
-    jpEx: true,
-    chEx: true,
+    jpEx: false,
+    chEx: false,
+    autoNext: true,
   });
 
   const q = questions[current];
@@ -35,9 +35,7 @@ export default function App() {
   useEffect(() => {
     const synth = window.speechSynthesis;
     const loadVoices = () => {
-      const v = synth
-        .getVoices()
-        .filter((voice) => voice.lang.startsWith("ja"));
+      const v = synth.getVoices();
       if (v.length > 0) {
         setVoices(v);
         if (!selectedVoice) {
@@ -56,7 +54,7 @@ export default function App() {
     rate,
     pitch,
     voice: selectedVoice,
-    options: playbackOptions,
+    voices,
   });
 
   const checkAnswer = (answer) => {
@@ -64,15 +62,10 @@ export default function App() {
     setResult(answer === q.ch_word ? "✅" : "❌");
   };
 
-  useEffect(() => {
-    if (result) {
-      playAfterResult(result, q);
-    }
-  }, [result]);
-
   const next = () => {
     setResult(null);
     setCurrent((prev) => (prev + 1) % questions.length);
+    setAnswer("");
   };
 
   return (
@@ -106,13 +99,13 @@ export default function App() {
         onCheckAnswer={checkAnswer}
         result={result}
         onNext={next}
-        speak={(t) =>
-          speakSequential(
-            [{ text: t, options: { voice: selectedVoice, lang: "ja-JP" } }],
-            { rate, pitch }
-          )
-        }
         selectedAnswer={answer}
+        autoNext={playbackOptions.autoNext}
+        playbackOptions={playbackOptions}
+        selectedVoice={selectedVoice}
+        rate={rate}
+        pitch={pitch}
+        playAfterResult={playAfterResult}
       />
     </AppContainer>
   );

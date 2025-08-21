@@ -1,57 +1,67 @@
-import { speakSequential } from "../services/speechService";
 import correctSound from "../assets/sounds/correct.mp3";
 import wrongSound from "../assets/sounds/wrong.mp3";
 
-const delay = (ms) => new Promise((res) => setTimeout(res, ms));
-
-export function useAnswerPlayback({ rate, pitch, voice, options }) {
-  const EFFECTS = {
-    correct: correctSound,
-    wrong: wrongSound,
+export function useAnswerPlayback({ rate, pitch, voices }) {
+  // 固定 Google 日文 / 中文
+  const getVoice = (lang) => {
+    if (lang.startsWith("ja")) {
+      return voices.find(
+        (v) => v.name === "Google 日本語" && v.lang === "ja-JP"
+      );
+    }
+    if (lang.startsWith("zh")) {
+      return voices.find(
+        (v) => v.name === "Google 國語（臺灣）" && v.lang === "zh-TW"
+      );
+    }
+    return null;
   };
 
-  const playAnswerEffect = (result) => {
-    const key = result === "✅" ? "correct" : "wrong";
-    const audio = new Audio(EFFECTS[key]);
-    audio.preload = "auto";
+  // 播放單個文字
+  const speakText = (text, lang) =>
+    new Promise((resolve) => {
+      if (!text) return resolve();
 
-    return new Promise((resolve) => {
-      audio.onended = resolve;
-      audio.onerror = resolve;
+      const msg = new SpeechSynthesisUtterance(text);
+      msg.voice = getVoice(lang);
+      msg.lang = lang;
+      msg.rate = rate;
+      msg.pitch = pitch;
+      msg.onend = resolve;
 
-      try {
-        audio.play();
-      } catch {
-        resolve();
-      }
+      speechSynthesis.speak(msg);
     });
+
+  // 播放音效
+  const playSound = (result) =>
+    new Promise((resolve) => {
+      const audio = new Audio(result === "✅" ? correctSound : wrongSound);
+      audio.onended = resolve;
+      audio.play();
+    });
+
+  // 播放結果對應語音
+  const playAfterResult = async (
+    result,
+    q,
+    options,
+    { skipSound = false } = {}
+  ) => {
+    if (!q) return;
+
+    // 先播音效（只有作答結果且 skipSound 為 false 才播）
+    if (!skipSound && result) {
+      await playSound(result);
+    }
+
+    // 依播放選項順序播語音
+    if (options.jp && q.jp_word) await speakText(q.jp_word, "ja-JP");
+    if (options.ch && q.ch_word) await speakText(q.ch_word, "zh-TW");
+    if (options.jpEx && q.jp_ex_statement)
+      await speakText(q.jp_ex_statement, "ja-JP");
+    if (options.chEx && q.ch_ex_statement)
+      await speakText(q.ch_ex_statement, "zh-TW");
   };
 
-  const playAfterResult = async (result, q) => {
-    if (!voice) return;
-
-    // 1) 答題音效
-    await playAnswerEffect(result);
-
-    // 2) 間隔
-    await delay(200);
-
-    // 3) 語音播放
-    const steps = [];
-    if (options?.jp)
-      steps.push({ text: q.jp_word, options: { voice, lang: "ja-JP" } });
-    if (options?.ch)
-      steps.push({ text: q.ch_word, options: { lang: "zh-CN" } });
-    if (options?.jpEx)
-      steps.push({
-        text: q.jp_ex_statement,
-        options: { voice, lang: "ja-JP" },
-      });
-    if (options?.chEx)
-      steps.push({ text: q.ch_ex_statement, options: { lang: "zh-CN" } }); // 新增中文例句
-
-    await speakSequential(steps, { rate, pitch });
-  };
-
-  return { playAfterResult };
+  return { speakText, playAfterResult };
 }
