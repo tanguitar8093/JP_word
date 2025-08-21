@@ -1,9 +1,4 @@
-import {
-  Container,
-  LabelRow,
-  TextRow,
-  SpeakButton,
-} from "../styled/ExampleSentence";
+import { Container, LabelRow, TextRow, SpeakButton } from "./styles";
 
 export default function ExampleSentence({ jp_ex, ch_ex, speak }) {
   return (

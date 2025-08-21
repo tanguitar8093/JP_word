@@ -13,9 +13,9 @@ import {
   AnswerText,
   NextButton,
   SubCard,
-} from "../styled/QuestionCard";
-import ExampleSentence from "./ExampleSentence";
-import AnswerSound from "./AnswerSound";
+} from "./styles";
+import ExampleSentence from "../ExampleSentence";
+import AnswerSound from "../AnswerSound";
 
 export default function QuestionCard({
   q,

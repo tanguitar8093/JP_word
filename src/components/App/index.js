@@ -5,11 +5,11 @@ import {
   Progress,
   SettingsToggle,
   FloatingSettingsPanel,
-} from "./styled/App";
-import QuestionCard from "./components/QuestionCard";
-import SettingsPanel from "./components/SettingsPanel";
-import { useAnswerPlayback } from "./hooks/useAnswerPlayback";
-import { useQuizGame } from "./hooks/useQuizGame";
+} from "./styles";
+import QuestionCard from "../QuestionCard";
+import SettingsPanel from "../SettingsPanel";
+import { useAnswerPlayback } from "../../hooks/useAnswerPlayback";
+import { useQuizGame } from "../../hooks/useQuizGame";
 
 export default function App() {
   const [rate, setRate] = useState(1.0);

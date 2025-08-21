@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import correctAudioFile from "../assets/sounds/correct.mp3";
-import wrongAudioFile from "../assets/sounds/wrong.mp3";
+import correctAudioFile from "../../assets/sounds/correct.mp3";
+import wrongAudioFile from "../../assets/sounds/wrong.mp3";
 
 export default function AnswerSound({ result }) {
   useEffect(() => {
