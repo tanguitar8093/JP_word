@@ -1,34 +1,39 @@
-import { useState, useCallback } from "react";
+import { useReducer } from "react";
 import { questions } from "../data/questions";
 
+const initialState = {
+  questions,
+  currentQuestionIndex: 0,
+  selectedAnswer: "",
+  result: null, // null | '✅' | '❌'
+};
+
+function quizReducer(state, action) {
+  switch (action.type) {
+    case "CHECK_ANSWER": {
+      const currentQuestion = state.questions[state.currentQuestionIndex];
+      const isCorrect = action.payload === currentQuestion.ch_word;
+      return {
+        ...state,
+        selectedAnswer: action.payload,
+        result: isCorrect ? "✅" : "❌",
+      };
+    }
+    case "NEXT_QUESTION": {
+      return {
+        ...state,
+        currentQuestionIndex: (state.currentQuestionIndex + 1) % state.questions.length,
+        selectedAnswer: "",
+        result: null,
+      };
+    }
+    default:
+      throw new Error(`Unhandled action type: ${action.type}`);
+  }
+}
+
 export const useQuizGame = () => {
-  const [current, setCurrent] = useState(0);
-  const [result, setResult] = useState(null);
-  const [answer, setAnswer] = useState("");
+  const [state, dispatch] = useReducer(quizReducer, initialState);
 
-  const q = questions[current];
-
-  const checkAnswer = useCallback(
-    (selectedAnswer) => {
-      setAnswer(selectedAnswer);
-      setResult(selectedAnswer === q.ch_word ? "✅" : "❌");
-    },
-    [q]
-  );
-
-  const next = useCallback(() => {
-    setResult(null);
-    setCurrent((prev) => (prev + 1) % questions.length);
-    setAnswer("");
-  }, []);
-
-  return {
-    current,
-    question: q,
-    result,
-    selectedAnswer: answer,
-    totalQuestions: questions.length,
-    checkAnswer,
-    next,
-  };
+  return { state, dispatch };
 };

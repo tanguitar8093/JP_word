@@ -1,5 +1,10 @@
 import React, { useState, useCallback } from "react";
-import { Link } from "react-router-dom"; // 引入 Link
+import { Link } from "react-router-dom";
+import { QuizContext, useQuiz } from "../../../../contexts/QuizContext";
+import { useQuizGame } from "../../../../hooks/useQuizGame";
+import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
+import QuestionCard from "../QuestionCard";
+import SettingsPanel from "../SettingsPanel";
 import {
   AppContainer,
   Title,
@@ -7,12 +12,9 @@ import {
   SettingsToggle,
   FloatingSettingsPanel,
 } from "../../../../components/layout/App/styles";
-import QuestionCard from "../QuestionCard";
-import SettingsPanel from "../SettingsPanel";
-import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
-import { useQuizGame } from "../../../../hooks/useQuizGame";
 
-export default function Quiz() {
+// The actual UI component that consumes the context
+function QuizContent() {
   const [rate, setRate] = useState(1.0);
   const [showSettings, setShowSettings] = useState(false);
   const [playbackOptions, setPlaybackOptions] = useState({
@@ -23,20 +25,15 @@ export default function Quiz() {
     autoNext: true,
   });
 
-  const {
-    current,
-    question,
-    result,
-    selectedAnswer,
-    totalQuestions,
-    checkAnswer,
-    next,
-  } = useQuizGame();
+  // Correct: Get state and dispatch from the context using useQuiz hook
+  const { state, dispatch } = useQuiz();
+  const { questions, currentQuestionIndex, result } = state;
+  const question = questions[currentQuestionIndex];
 
   const { playSequence } = useAnswerPlayback({
     result,
     question,
-    onNext: next,
+    onNext: () => dispatch({ type: "NEXT_QUESTION" }),
     playbackOptions,
     rate,
   });
@@ -72,18 +69,26 @@ export default function Quiz() {
       )}
 
       <Title>日文單字測驗</Title>
+      <div style={{ textAlign: "center", marginBottom: "10px" }}>
+        <Link to="/example">前往範例頁面</Link>
+      </div>
       <Progress>
-        第 {current + 1} 題 / 共 {totalQuestions} 題
+        第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
 
-      <QuestionCard
-        q={question}
-        onCheckAnswer={checkAnswer}
-        result={result}
-        onNext={next}
-        selectedAnswer={selectedAnswer}
-        speakManually={speakManually}
-      />
+      {/* Pass speakManually down as it's not part of the quiz context */}
+      <QuestionCard speakManually={speakManually} />
     </AppContainer>
+  );
+}
+
+// The component that provides the context
+export default function Quiz() {
+  const { state, dispatch } = useQuizGame();
+
+  return (
+    <QuizContext.Provider value={{ state, dispatch }}>
+      <QuizContent />
+    </QuizContext.Provider>
   );
 }

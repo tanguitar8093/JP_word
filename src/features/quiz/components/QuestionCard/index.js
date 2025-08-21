@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useQuiz } from "../../../../contexts/QuizContext";
 import {
   CardContainer,
   HiraganaToggleContainer,
@@ -17,19 +18,32 @@ import {
 import ExampleSentence from "../ExampleSentence";
 import AnswerSound from "../AnswerSound";
 
-export default function QuestionCard({
-  q,
-  onCheckAnswer,
-  result,
-  onNext,
-  selectedAnswer,
-  speakManually,
-}) {
+// Note: This component no longer receives props. It gets everything from context.
+export default function QuestionCard({ speakManually }) {
+  const { state, dispatch } = useQuiz();
+  const {
+    questions,
+    currentQuestionIndex,
+    selectedAnswer,
+    result,
+  } = state;
+  const q = questions[currentQuestionIndex];
+
   const [showHiragana, setShowHiragana] = useState(false);
 
   useEffect(() => {
     setShowHiragana(false);
   }, [q]);
+
+  const handleCheckAnswer = (answer) => {
+    dispatch({ type: "CHECK_ANSWER", payload: answer });
+  };
+
+  const handleNextQuestion = () => {
+    dispatch({ type: "NEXT_QUESTION" });
+  };
+
+  
 
   return (
     <CardContainer>
@@ -58,7 +72,7 @@ export default function QuestionCard({
       {!result && (
         <OptionsContainer>
           {q.options.map((opt, i) => (
-            <OptionButton key={i} onClick={() => onCheckAnswer(opt)}>
+            <OptionButton key={i} onClick={() => handleCheckAnswer(opt)}>
               {opt}
             </OptionButton>
           ))}
@@ -79,9 +93,9 @@ export default function QuestionCard({
           <ExampleSentence
             jp_ex={q.jp_ex_statement}
             ch_ex={q.ch_ex_statement}
-            speak={async (text, lang) => speakManually(text, lang)}
+            speak={speakManually}
           />
-          <NextButton onClick={onNext}>下一題</NextButton>
+          <NextButton onClick={handleNextQuestion}>下一題</NextButton>
           <AnswerSound result={result} />
         </ResultContainer>
       )}
