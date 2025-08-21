@@ -4,12 +4,13 @@ import {
   Title,
   Progress,
   SettingsToggle,
-  FloatingSettingsPanel
+  FloatingSettingsPanel,
 } from "./styled/App";
 import { questions } from "./data/questions";
-import { speak } from "./services/speechService";
+import { speakSequential } from "./services/speechService";
 import QuestionCard from "./components/QuestionCard";
 import SettingsPanel from "./components/SettingsPanel";
+import { useAnswerPlayback } from "./hooks/useAnswerPlayback";
 
 export default function App() {
   const [current, setCurrent] = useState(0);
@@ -21,17 +22,24 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [answer, setAnswer] = useState("");
 
+  const [playbackOptions, setPlaybackOptions] = useState({
+    jp: true,
+    ch: true,
+    jpEx: true,
+    chEx: true,
+  });
+
   const q = questions[current];
 
-  // 載入 voices，並初始選擇 Google 日本語
+  // 載入 voices
   useEffect(() => {
     const synth = window.speechSynthesis;
-
     const loadVoices = () => {
-      const v = synth.getVoices().filter((voice) => voice.lang.startsWith("ja"));
+      const v = synth
+        .getVoices()
+        .filter((voice) => voice.lang.startsWith("ja"));
       if (v.length > 0) {
         setVoices(v);
-
         if (!selectedVoice) {
           const googleVoice = v.find(
             (voice) => voice.name === "Google 日本語" && voice.lang === "ja-JP"
@@ -40,20 +48,27 @@ export default function App() {
         }
       }
     };
-
     loadVoices();
     synth.onvoiceschanged = loadVoices;
   }, [selectedVoice]);
 
-  const handleSpeak = (text) => {
-    if (!selectedVoice) return;
-    speak(text, { rate, pitch, voice: selectedVoice });
-  };
+  const { playAfterResult } = useAnswerPlayback({
+    rate,
+    pitch,
+    voice: selectedVoice,
+    options: playbackOptions,
+  });
 
   const checkAnswer = (answer) => {
     setAnswer(answer);
     setResult(answer === q.ch_word ? "✅" : "❌");
   };
+
+  useEffect(() => {
+    if (result) {
+      playAfterResult(result, q);
+    }
+  }, [result]);
 
   const next = () => {
     setResult(null);
@@ -62,7 +77,6 @@ export default function App() {
 
   return (
     <AppContainer>
-      {/* 設定懸浮視窗 */}
       <SettingsToggle onClick={() => setShowSettings((s) => !s)}>
         ⚙️
       </SettingsToggle>
@@ -76,6 +90,8 @@ export default function App() {
             voices={voices}
             selectedVoice={selectedVoice}
             setSelectedVoice={setSelectedVoice}
+            playbackOptions={playbackOptions}
+            setPlaybackOptions={setPlaybackOptions}
           />
         </FloatingSettingsPanel>
       )}
@@ -90,7 +106,12 @@ export default function App() {
         onCheckAnswer={checkAnswer}
         result={result}
         onNext={next}
-        speak={handleSpeak}
+        speak={(t) =>
+          speakSequential(
+            [{ text: t, options: { voice: selectedVoice, lang: "ja-JP" } }],
+            { rate, pitch }
+          )
+        }
         selectedAnswer={answer}
       />
     </AppContainer>

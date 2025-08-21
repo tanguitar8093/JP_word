@@ -14,6 +14,8 @@ export default function SettingsPanel({
   voices,
   selectedVoice,
   setSelectedVoice,
+  playbackOptions,
+  setPlaybackOptions,
 }) {
   return (
     <PanelContainer>
@@ -40,9 +42,9 @@ export default function SettingsPanel({
           onChange={(e) => setPitch(Number(e.target.value))}
         />
         <ValueText>{pitch}</ValueText>
-      </LabelGroup> */}
+      </LabelGroup>
 
-      {/* <LabelGroup>
+      <LabelGroup>
         播報員 (Voice):
         <SelectInput
           value={selectedVoice?.name || ""}
@@ -58,6 +60,64 @@ export default function SettingsPanel({
           ))}
         </SelectInput>
       </LabelGroup> */}
+
+      <LabelGroup>
+        播放內容：
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              checked={playbackOptions.jp}
+              onChange={(e) =>
+                setPlaybackOptions((prev) => ({
+                  ...prev,
+                  jp: e.target.checked,
+                }))
+              }
+            />
+            日文
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={playbackOptions.ch}
+              onChange={(e) =>
+                setPlaybackOptions((prev) => ({
+                  ...prev,
+                  ch: e.target.checked,
+                }))
+              }
+            />
+            中文
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={playbackOptions.jpEx}
+              onChange={(e) =>
+                setPlaybackOptions((prev) => ({
+                  ...prev,
+                  jpEx: e.target.checked,
+                }))
+              }
+            />
+            日文例句
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={playbackOptions.chEx}
+              onChange={(e) =>
+                setPlaybackOptions((prev) => ({
+                  ...prev,
+                  chEx: e.target.checked,
+                }))
+              }
+            />
+            中文例句
+          </label>
+        </div>
+      </LabelGroup>
     </PanelContainer>
   );
 }
