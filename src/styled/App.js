@@ -3,7 +3,7 @@ import styled from "styled-components";
 // 容器
 export const AppContainer = styled.div`
   max-width: 600px;
-  margin: 40px auto;
+  margin: 60px auto;
   padding: 20px;
   background: #f8f9fa;
   border-radius: 12px;
@@ -33,7 +33,7 @@ export const SettingsToggle = styled.span`
   transition: all 0.2s ease;
   position: absolute;
   top: 10px;
-  right: 10px;  /* 改成右上角 */
+  right: 10px; /* 改成右上角 */
   z-index: 100;
 
   &:hover {

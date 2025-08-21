@@ -18,7 +18,7 @@ export default function SettingsPanel({
   return (
     <PanelContainer>
       <LabelGroup>
-        速度 (Rate):
+        播放速度 (Rate): {rate}
         <RangeInput
           type="range"
           min="0.5"
@@ -27,10 +27,9 @@ export default function SettingsPanel({
           value={rate}
           onChange={(e) => setRate(Number(e.target.value))}
         />
-        <ValueText>{rate}</ValueText>
       </LabelGroup>
 
-      <LabelGroup>
+      {/* <LabelGroup>
         音調 (Pitch):
         <RangeInput
           type="range"
@@ -41,7 +40,7 @@ export default function SettingsPanel({
           onChange={(e) => setPitch(Number(e.target.value))}
         />
         <ValueText>{pitch}</ValueText>
-      </LabelGroup>
+      </LabelGroup> */}
 
       {/* <LabelGroup>
         播報員 (Voice):
