@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   AppContainer,
   Title,
@@ -6,18 +6,14 @@ import {
   SettingsToggle,
   FloatingSettingsPanel,
 } from "./styled/App";
-import { questions } from "./data/questions";
 import QuestionCard from "./components/QuestionCard";
 import SettingsPanel from "./components/SettingsPanel";
 import { useAnswerPlayback } from "./hooks/useAnswerPlayback";
+import { useQuizGame } from "./hooks/useQuizGame";
 
 export default function App() {
-  const [current, setCurrent] = useState(0);
-  const [result, setResult] = useState(null);
   const [rate, setRate] = useState(1.0);
   const [showSettings, setShowSettings] = useState(false);
-  const [answer, setAnswer] = useState("");
-
   const [playbackOptions, setPlaybackOptions] = useState({
     jp: true,
     ch: true,
@@ -26,22 +22,19 @@ export default function App() {
     autoNext: true,
   });
 
-  const q = questions[current];
+  const {
+    current,
+    question,
+    result,
+    selectedAnswer,
+    totalQuestions,
+    checkAnswer,
+    next,
+  } = useQuizGame();
 
   const { playAfterResult } = useAnswerPlayback({
     rate,
   });
-
-  const checkAnswer = (answer) => {
-    setAnswer(answer);
-    setResult(answer === q.ch_word ? "✅" : "❌");
-  };
-
-  const next = () => {
-    setResult(null);
-    setCurrent((prev) => (prev + 1) % questions.length);
-    setAnswer("");
-  };
 
   return (
     <AppContainer>
@@ -61,15 +54,15 @@ export default function App() {
 
       <Title>日文單字測驗</Title>
       <Progress>
-        第 {current + 1} 題 / 共 {questions.length} 題
+        第 {current + 1} 題 / 共 {totalQuestions} 題
       </Progress>
 
       <QuestionCard
-        q={q}
+        q={question}
         onCheckAnswer={checkAnswer}
         result={result}
         onNext={next}
-        selectedAnswer={answer}
+        selectedAnswer={selectedAnswer}
         autoNext={playbackOptions.autoNext}
         playbackOptions={playbackOptions}
         rate={rate}
