@@ -1,10 +1,11 @@
 - 記憶選項功能 localstorage, 要試手機支援
-
+- bug github page react router
 筆記本功能:
     - storage:
         - beta 離線版本: 使用暫存的 localstorage 管理或用輸出讀取檔案來實現
         - 正式版本: 串接使用 database (firebase)/backend (vercel)
         - 參考 https://codesandbox.io/p/sandbox/react-firebase-authentication-kbn8v
     - feature:
-        - 建立筆記本 (初始會有一本)
-        - 
+        - 筆記本(beta): 筆記本的內容會從測試的
+            - 建立筆記本 (初始會自動建立一本)
+            - 
