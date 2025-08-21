@@ -63,16 +63,5 @@ export function useAnswerPlayback({
     run();
   }, [result, question, playbackOptions, onNext, playSequence]);
 
-  // Returned function for manual speaking (e.g., speaker buttons)
-  const speakManually = useCallback(
-    (text, lang) => {
-      const options = {};
-      if (lang === "ja") options.jp = true;
-      if (lang === "zh") options.ch = true;
-      return playSequence(null, { ["jp_word"]: text }, options, { skipSound: true });
-    },
-    [playSequence]
-  );
-
-  return { speakManually };
+  return { playSequence };
 }
