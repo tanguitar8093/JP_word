@@ -32,7 +32,11 @@ export default function App() {
     next,
   } = useQuizGame();
 
-  const { playAfterResult } = useAnswerPlayback({
+  const { speakManually } = useAnswerPlayback({
+    result,
+    question,
+    onNext: next,
+    playbackOptions,
     rate,
   });
 
@@ -63,10 +67,7 @@ export default function App() {
         result={result}
         onNext={next}
         selectedAnswer={selectedAnswer}
-        autoNext={playbackOptions.autoNext}
-        playbackOptions={playbackOptions}
-        rate={rate}
-        playAfterResult={playAfterResult}
+        speakManually={speakManually}
       />
     </AppContainer>
   );
