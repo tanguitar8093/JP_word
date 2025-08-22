@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
-import { useApp } from "../../../../contexts/AppContext"; // Changed from QuizContext
+import { useApp } from "../../../../store/contexts/AppContext"; // Changed from QuizContext
 import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
 import QuestionCard from "../QuestionCard";
-import SettingsPanel from "../../../../components/common/SettingsPanel";
+import SettingsPanel from "../../../../components/SettingsPanel";
 import StatisticsPage from "../StatisticsPage"; // Import StatisticsPage
 import {
   AppContainer,

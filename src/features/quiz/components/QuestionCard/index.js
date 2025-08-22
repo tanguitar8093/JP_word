@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useApp } from "../../../../contexts/AppContext"; // Changed from useQuiz
-import { checkAnswer, nextQuestionGame } from '../../../../features/quiz/reducer/actions'; // Import quiz actions
+import { useApp } from "../../../../store/contexts/AppContext"; // Changed from useQuiz
+import {
+  checkAnswer,
+  nextQuestionGame,
+} from "../../../../features/quiz/reducer/actions"; // Import quiz actions
 import {
   CardContainer,
   HiraganaToggleContainer,
@@ -22,7 +25,8 @@ import AnswerSound from "../AnswerSound";
 // Note: This component no longer receives props. It gets everything from context.
 export default function QuestionCard({ speakManually }) {
   const { state, dispatch } = useApp(); // Changed from useQuiz
-  const { questions, currentQuestionIndex, selectedAnswer, result } = state.quiz; // Access quiz state
+  const { questions, currentQuestionIndex, selectedAnswer, result } =
+    state.quiz; // Access quiz state
   const q = questions[currentQuestionIndex];
 
   const [showHiragana, setShowHiragana] = useState(false);

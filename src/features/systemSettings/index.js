@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import SettingsPanel from "../../components/common/SettingsPanel/index.js";
+import SettingsPanel from "../../components/SettingsPanel/index.js";
 import {
   AppContainer,
   Title,

@@ -1,11 +1,11 @@
-import { createContext, useContext, useReducer } from 'react';
+import { createContext, useContext, useReducer } from "react";
 
 // Import individual reducers
-import { reducer as quizReducer } from '../features/quiz/reducer';
-import { reducer as wordManagementReducer } from '../features/wordManagement/reducer';
-import { reducer as systemSettingsReducer } from '../features/systemSettings/reducer';
-import { reducer as wordReadingReducer } from '../features/wordReading/reducer';
-import { reducer as sharedReducer } from '../common/reducer';
+import { reducer as quizReducer } from "../../features/quiz/reducer";
+import { reducer as wordManagementReducer } from "../../features/wordManagement/reducer";
+import { reducer as systemSettingsReducer } from "../../features/systemSettings/reducer";
+import { reducer as wordReadingReducer } from "../../features/wordReading/reducer";
+import { reducer as sharedReducer } from "../reducer";
 
 export const AppContext = createContext();
 
@@ -55,7 +55,7 @@ export function AppProvider({ children }) {
 export const useApp = () => {
   const context = useContext(AppContext);
   if (!context) {
-    throw new Error('useApp must be used within an AppProvider');
+    throw new Error("useApp must be used within an AppProvider");
   }
   return context;
 };

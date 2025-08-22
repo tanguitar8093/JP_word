@@ -1,6 +1,6 @@
-import { AppProvider } from "../../contexts/AppContext";
+import { AppProvider } from "../../store/contexts/AppContext";
 import Quiz from "../../features/quiz/components/Quiz";
-import GlobalStyles from "../../GlobalStyles"; // Corrected import path
+import GlobalStyles from "../../common/GlobalStyles"; // Corrected import path
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "../../features/home";
 import WordReadingPage from "../../features/wordReading";
