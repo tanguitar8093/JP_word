@@ -59,6 +59,9 @@ function HomePage() {
           <NavItem>
             <StyledLink to="/settings">系統設定</StyledLink>
           </NavItem>
+          <NavItem>
+            <StyledLink to="/recorder">錄音測試</StyledLink>
+          </NavItem>
         </NavList>
       </nav>
     </AppContainer>

@@ -7,6 +7,7 @@ import WordReadingPage from "../../pages/wordReading";
 import WordManagementPage from "../../pages/wordManagement";
 import SystemSettingsPage from "../../pages/systemSettings";
 import NotebookManagementPage from "../../pages/notebookManagement";
+import AudioRecorderPage from "../../pages/AudioRecorder";
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="/word-management" element={<WordManagementPage />} />
           <Route path="/notebook-management" element={<NotebookManagementPage />} />
           <Route path="/settings" element={<SystemSettingsPage />} />
+          <Route path="/recorder" element={<AudioRecorderPage />} />
         </Routes>
       </AppProvider>
     </BrowserRouter>
