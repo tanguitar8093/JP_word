@@ -19,7 +19,7 @@ import {
   finishQuiz,
   restartQuiz,
   tick,
-} from "../../../../features/quiz/reducer/actions"; // Import quiz actions
+} from "../../../../pages/quiz/reducer/actions"; // Import quiz actions
 
 const IconContainer = styled.div`
   position: absolute;

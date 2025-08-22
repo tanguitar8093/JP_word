@@ -1,11 +1,11 @@
 import { AppProvider } from "../../store/contexts/AppContext";
-import Quiz from "../../features/quiz/components/Quiz";
-import GlobalStyles from "../../common/GlobalStyles"; // Corrected import path
+import Quiz from "../../pages/quiz/components/Quiz";
+import GlobalStyles from "../../styles"; // Corrected import path
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import HomePage from "../../features/home";
-import WordReadingPage from "../../features/wordReading";
-import WordManagementPage from "../../features/wordManagement";
-import SystemSettingsPage from "../../features/systemSettings";
+import HomePage from "../../pages/home";
+import WordReadingPage from "../../pages/wordReading";
+import WordManagementPage from "../../pages/wordManagement";
+import SystemSettingsPage from "../../pages/systemSettings";
 
 export default function App() {
   return (

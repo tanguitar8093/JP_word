@@ -3,7 +3,7 @@ import { useApp } from "../../../../store/contexts/AppContext"; // Changed from 
 import {
   checkAnswer,
   nextQuestionGame,
-} from "../../../../features/quiz/reducer/actions"; // Import quiz actions
+} from "../../../../pages/quiz/reducer/actions"; // Import quiz actions
 import {
   CardContainer,
   HiraganaToggleContainer,

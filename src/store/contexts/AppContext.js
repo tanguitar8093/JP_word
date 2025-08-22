@@ -1,10 +1,10 @@
 import { createContext, useContext, useReducer } from "react";
 
 // Import individual reducers
-import { reducer as quizReducer } from "../../features/quiz/reducer";
-import { reducer as wordManagementReducer } from "../../features/wordManagement/reducer";
-import { reducer as systemSettingsReducer } from "../../features/systemSettings/reducer";
-import { reducer as wordReadingReducer } from "../../features/wordReading/reducer";
+import { reducer as quizReducer } from "../../pages/quiz/reducer";
+import { reducer as wordManagementReducer } from "../../pages/wordManagement/reducer";
+import { reducer as systemSettingsReducer } from "../../pages/systemSettings/reducer";
+import { reducer as wordReadingReducer } from "../../pages/wordReading/reducer";
 import { reducer as sharedReducer } from "../reducer";
 
 export const AppContext = createContext();
