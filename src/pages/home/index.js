@@ -54,6 +54,9 @@ function HomePage() {
             <StyledLink to="/word-management">單字管理</StyledLink>
           </NavItem>
           <NavItem>
+            <StyledLink to="/notebook-management">筆記本 (Beta)</StyledLink>
+          </NavItem>
+          <NavItem>
             <StyledLink to="/settings">系統設定</StyledLink>
           </NavItem>
         </NavList>

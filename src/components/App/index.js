@@ -6,6 +6,7 @@ import HomePage from "../../pages/home";
 import WordReadingPage from "../../pages/wordReading";
 import WordManagementPage from "../../pages/wordManagement";
 import SystemSettingsPage from "../../pages/systemSettings";
+import NotebookManagementPage from "../../pages/notebookManagement";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/word-reading" element={<WordReadingPage />} />
           <Route path="/word-management" element={<WordManagementPage />} />
+          <Route path="/notebook-management" element={<NotebookManagementPage />} />
           <Route path="/settings" element={<SystemSettingsPage />} />
         </Routes>
       </AppProvider>
