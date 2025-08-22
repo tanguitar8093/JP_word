@@ -1,4 +1,4 @@
-import { QuizProvider } from "../../../contexts/QuizContext";
+import { AppProvider } from "../../../contexts/AppContext";
 import Quiz from "../../../features/quiz/components/Quiz";
 import GlobalStyles from "../../../GlobalStyles"; // Corrected import path
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -11,7 +11,7 @@ export default function App() {
   return (
     <BrowserRouter basename={process.env.PUBLIC_URL}>
       <GlobalStyles />
-      <QuizProvider>
+      <AppProvider>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/quiz" element={<Quiz />} />
@@ -19,7 +19,7 @@ export default function App() {
           <Route path="/word-management" element={<WordManagementPage />} />
           <Route path="/settings" element={<SystemSettingsPage />} />
         </Routes>
-      </QuizProvider>
+      </AppProvider>
     </BrowserRouter>
   );
 }

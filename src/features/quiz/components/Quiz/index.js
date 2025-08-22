@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
-import { QuizContext, useQuiz } from "../../../../contexts/QuizContext";
-import { useQuizGame } from "../../../../hooks/useQuizGame";
+import { useApp } from "../../../../contexts/AppContext"; // Changed from QuizContext
 import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
 import QuestionCard from "../QuestionCard";
 import SettingsPanel from "../../../../components/common/SettingsPanel";
@@ -14,6 +13,13 @@ import {
   FloatingSettingsPanel,
 } from "../../../../components/layout/App/styles";
 import styled from "styled-components";
+import {
+  nextQuestionGame, // Changed from NEXT_QUESTION
+  startQuiz,
+  finishQuiz,
+  restartQuiz,
+  tick,
+} from '../../../../features/quiz/reducer/actions'; // Import quiz actions
 
 const IconContainer = styled.div`
   position: absolute;
@@ -46,15 +52,15 @@ function QuizContent() {
 
   const navigate = useNavigate(); // Initialize useNavigate
 
-  // Correct: Get state and dispatch from the context using useQuiz hook
-  const { state, dispatch } = useQuiz();
-  const { questions, currentQuestionIndex, result } = state;
+  // Correct: Get state and dispatch from the context using useApp hook
+  const { state, dispatch } = useApp(); // Changed from useQuiz
+  const { questions, currentQuestionIndex, result, quizCompleted } = state.quiz; // Access quiz state
   const question = questions[currentQuestionIndex];
 
   const { playSequence } = useAnswerPlayback({
     result,
     question,
-    onNext: () => dispatch({ type: "NEXT_QUESTION" }),
+    onNext: () => dispatch(nextQuestionGame()), // Changed dispatch type
     playbackOptions,
     rate,
   });
@@ -107,20 +113,19 @@ function QuizContent() {
 
 // The component that provides the context
 export default function Quiz() {
-  const { state, dispatch } = useQuizGame();
+  const { state } = useApp(); // Get state from global context
+  const { quizCompleted, answeredQuestions, correctAnswersCount } = state.quiz; // Access quiz-specific state
 
-  if (state.quizCompleted) {
+  if (quizCompleted) { // Use quizCompleted from global state
     return (
       <StatisticsPage
-        answeredQuestions={state.answeredQuestions}
-        correctAnswersCount={state.correctAnswersCount}
+        answeredQuestions={answeredQuestions} // Pass from global state
+        correctAnswersCount={correctAnswersCount} // Pass from global state
       />
     );
   }
 
   return (
-    <QuizContext.Provider value={{ state, dispatch }}>
-      <QuizContent />
-    </QuizContext.Provider>
+    <QuizContent /> // No longer wrapping with QuizContext.Provider
   );
 }
