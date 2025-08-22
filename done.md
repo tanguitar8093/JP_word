@@ -4,3 +4,5 @@
     - 每題答對答錯的狀態(用 emoji 表示對錯)
     - 狀態右邊是日文單字 kanji_jp_word | jp_word
     - 日文單字右邊是 收藏 emoji (先不用做功能)
+- 記憶選項功能 localstorage, 要試手機支援
+- bug github page react router
