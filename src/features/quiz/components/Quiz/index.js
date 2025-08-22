@@ -4,7 +4,7 @@ import { QuizContext, useQuiz } from "../../../../contexts/QuizContext";
 import { useQuizGame } from "../../../../hooks/useQuizGame";
 import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
 import QuestionCard from "../QuestionCard";
-import SettingsPanel from "../SettingsPanel";
+import SettingsPanel from "../../../../components/common/SettingsPanel";
 import StatisticsPage from '../StatisticsPage'; // Import StatisticsPage
 import {
   AppContainer,
