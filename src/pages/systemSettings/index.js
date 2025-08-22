@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useReducer } from "react";
 import SettingsPanel from "../../components/SettingsPanel/index.js";
 import {
   AppContainer,
@@ -7,6 +7,7 @@ import {
 } from "../../components/App/styles";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { reducer, initialState, setRate, setPlaybackOptions } from "./reducer";
 
 const HomeIcon = styled(SettingsToggle)`
   position: absolute;
@@ -15,14 +16,8 @@ const HomeIcon = styled(SettingsToggle)`
 `;
 
 function SystemSettingsPage() {
-  const [rate, setRate] = useState(1.0);
-  const [playbackOptions, setPlaybackOptions] = useState({
-    jp: true,
-    ch: true,
-    jpEx: false,
-    chEx: false,
-    autoNext: true,
-  });
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { rate, playbackOptions } = state;
 
   const navigate = useNavigate();
 
@@ -32,9 +27,11 @@ function SystemSettingsPage() {
       <Title>系統設定</Title>
       <SettingsPanel
         rate={rate}
-        setRate={setRate}
+        setRate={(newRate) => dispatch(setRate(newRate))}
         playbackOptions={playbackOptions}
-        setPlaybackOptions={setPlaybackOptions}
+        setPlaybackOptions={(newOptions) =>
+          dispatch(setPlaybackOptions(newOptions))
+        }
       />
     </AppContainer>
   );

@@ -1,9 +1,12 @@
+export const SET_RATE = "systemSettings/SET_RATE";
+export const SET_PLAYBACK_OPTIONS = "systemSettings/SET_PLAYBACK_OPTIONS";
 
-// Placeholder action type
-export const EXAMPLE_ACTION = 'systemSettings/EXAMPLE_ACTION';
+export const setRate = (rate) => ({
+  type: SET_RATE,
+  payload: rate,
+});
 
-// Placeholder action creator
-export const exampleAction = (payload) => ({
-  type: EXAMPLE_ACTION,
-  payload,
+export const setPlaybackOptions = (options) => ({
+  type: SET_PLAYBACK_OPTIONS,
+  payload: options,
 });
