@@ -67,12 +67,13 @@ function QuizContent() {
     }
   }, [blocker, dispatch]);
 
-  const { playSequence } = useAnswerPlayback({
+  const { playSequence, cancelPlayback } = useAnswerPlayback({
     result,
     question,
     onNext: () => dispatch(nextQuestionGame()), // Changed dispatch type
     playbackOptions,
     rate,
+    currentQuestionIndex,
   });
 
   const speakManually = useCallback(
@@ -116,7 +117,7 @@ function QuizContent() {
       </Progress>
 
       {/* Pass speakManually down as it's not part of the quiz context */}
-      <QuestionCard speakManually={speakManually} />
+      <QuestionCard speakManually={speakManually} cancelPlayback={cancelPlayback} />
     </AppContainer>
   );
 }

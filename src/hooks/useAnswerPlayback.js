@@ -9,25 +9,34 @@ export function useAnswerPlayback({
   onNext,
   playbackOptions,
   rate,
+  currentQuestionIndex,
 }) {
   const playedForResult = useRef(false);
+  const playbackRef = useRef(null);
 
   // Reset played flag when question changes
   useEffect(() => {
     playedForResult.current = false;
   }, [question]);
 
+  const cancelPlayback = useCallback(() => {
+    window.speechSynthesis.cancel();
+    if (playbackRef.current) {
+      playbackRef.current.cancelled = true;
+    }
+  }, []);
+
   // Cleanup function for speech synthesis on unmount
   useEffect(() => {
     return () => {
-      window.speechSynthesis.cancel();
+      cancelPlayback();
     };
-  }, []);
+  }, [cancelPlayback]);
 
   // Also cancel speech if result or question changes to prevent overlapping speech
   useEffect(() => {
-    window.speechSynthesis.cancel();
-  }, [result, question]);
+    cancelPlayback();
+  }, [result, question, cancelPlayback]);
 
   const speakText = useCallback(
     (text, lang) => {
@@ -70,13 +79,20 @@ export function useAnswerPlayback({
 
     const run = async () => {
       playedForResult.current = true;
+      const playbackId = { cancelled: false };
+      playbackRef.current = playbackId;
+
       await playSequence(result, question, playbackOptions);
-      if (playbackOptions.autoNext) {
-        onNext();
+
+      if (playbackRef.current === playbackId && !playbackId.cancelled) {
+        if (playbackOptions.autoNext) {
+          onNext();
+        }
       }
+      playbackRef.current = null;
     };
     run();
   }, [result, question, playbackOptions, onNext, playSequence]);
 
-  return { playSequence };
+  return { playSequence, cancelPlayback };
 }
