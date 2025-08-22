@@ -11,7 +11,6 @@ export const StatisticsContainer = styled.div`
   width: 80%;
   max-width: 600px;
   margin: 20px auto;
-  position: relative; /* Added for absolute positioning of children */
 `;
 
 export const ScoreDisplay = styled.h2`
@@ -21,15 +20,28 @@ export const ScoreDisplay = styled.h2`
 
 export const QuestionList = styled.ul`
   list-style: none;
-  padding: 0;
+  padding: 0 10px;
   width: 100%;
+  height: 280px; /* Fixed height for ~7 items */
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 export const QuestionItem = styled.li`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
+  padding: 5px 0;
   border-bottom: 1px solid #eee;
 
   &:last-child {
@@ -50,4 +62,21 @@ export const StatusEmoji = styled.span`
 export const FavoriteMark = styled.span`
   margin-left: 10px;
   cursor: pointer;
+`;
+
+export const EndQuizButton = styled.button`
+  margin-top: 20px;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 1px solid #007bff;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+
+  &:hover {
+    background-color: #007bff;
+    color: white;
+  }
 `;

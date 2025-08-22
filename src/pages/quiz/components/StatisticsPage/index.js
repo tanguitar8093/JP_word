@@ -10,15 +10,8 @@ import {
   QuestionText,
   StatusEmoji,
   FavoriteMark,
+  EndQuizButton,
 } from "./styles"; // Import styled components from styles.js
-import { SettingsToggle } from "../../../../components/App/styles";
-import styled from "styled-components";
-
-const HomeIcon = styled(SettingsToggle)`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-`;
 
 const StatisticsPage = ({ answeredQuestions, correctAnswersCount }) => {
   const navigate = useNavigate();
@@ -27,14 +20,13 @@ const StatisticsPage = ({ answeredQuestions, correctAnswersCount }) => {
   const score =
     totalQuestions > 0 ? (correctAnswersCount / totalQuestions) * 100 : 0;
 
-  const handleGoHome = () => {
+  const handleEndQuiz = () => {
     dispatch(restartQuiz()); // Dispatch restartQuiz before navigating
     navigate("/");
   };
 
   return (
     <StatisticsContainer>
-      <HomeIcon onClick={handleGoHome}>↩️</HomeIcon>
       <ScoreDisplay>分數: {score.toFixed(0)} / 100</ScoreDisplay>
       <QuestionList>
         {answeredQuestions.map((item, index) => (
@@ -49,6 +41,7 @@ const StatisticsPage = ({ answeredQuestions, correctAnswersCount }) => {
           </QuestionItem>
         ))}
       </QuestionList>
+      <EndQuizButton onClick={handleEndQuiz}>結束測驗</EndQuizButton>
     </StatisticsContainer>
   );
 };
