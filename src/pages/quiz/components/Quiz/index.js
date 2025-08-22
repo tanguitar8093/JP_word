@@ -111,7 +111,7 @@ function QuizContent() {
         </FloatingSettingsPanel>
       )}
 
-      <Title>日文單字測驗</Title>
+      <Title>日文單字測驗1</Title>
       <Progress>
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
