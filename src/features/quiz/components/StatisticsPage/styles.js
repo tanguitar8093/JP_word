@@ -11,6 +11,7 @@ export const StatisticsContainer = styled.div`
   width: 80%;
   max-width: 600px;
   margin: 20px auto;
+  position: relative; /* Added for absolute positioning of children */
 `;
 
 export const ScoreDisplay = styled.h2`

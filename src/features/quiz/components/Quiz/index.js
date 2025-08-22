@@ -1,11 +1,11 @@
 import React, { useState, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import { QuizContext, useQuiz } from "../../../../contexts/QuizContext";
 import { useQuizGame } from "../../../../hooks/useQuizGame";
 import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
 import QuestionCard from "../QuestionCard";
 import SettingsPanel from "../../../../components/common/SettingsPanel";
-import StatisticsPage from '../StatisticsPage'; // Import StatisticsPage
+import StatisticsPage from "../StatisticsPage"; // Import StatisticsPage
 import {
   AppContainer,
   Title,
@@ -13,6 +13,24 @@ import {
   SettingsToggle,
   FloatingSettingsPanel,
 } from "../../../../components/layout/App/styles";
+import styled from "styled-components";
+
+const IconContainer = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px; /* Keep it on the right side */
+  z-index: 100;
+`;
+
+const IconGroup = styled.div`
+  display: flex;
+  gap: 10px; /* Adjust gap between icons */
+  flex-direction: row-reverse; /* Reverse the order to put HomeIcon on the right */
+`;
+
+const HomeIcon = styled(SettingsToggle)`
+  right: 5px;
+`;
 
 // The actual UI component that consumes the context
 function QuizContent() {
@@ -25,6 +43,8 @@ function QuizContent() {
     chEx: false,
     autoNext: true,
   });
+
+  const navigate = useNavigate(); // Initialize useNavigate
 
   // Correct: Get state and dispatch from the context using useQuiz hook
   const { state, dispatch } = useQuiz();
@@ -55,9 +75,14 @@ function QuizContent() {
 
   return (
     <AppContainer>
-      <SettingsToggle onClick={() => setShowSettings((s) => !s)}>
-        ⚙️
-      </SettingsToggle>
+      <IconContainer>
+        <IconGroup>
+          <SettingsToggle onClick={() => setShowSettings((s) => !s)}>
+            ⚙️
+          </SettingsToggle>
+          <HomeIcon onClick={() => navigate("/")}>↩️</HomeIcon>
+        </IconGroup>
+      </IconContainer>
       {showSettings && (
         <FloatingSettingsPanel>
           <SettingsPanel

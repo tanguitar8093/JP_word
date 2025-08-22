@@ -33,7 +33,7 @@ export const SettingsToggle = styled.span`
   transition: all 0.2s ease;
   position: absolute;
   top: 10px;
-  right: 10px; /* 改成右上角 */
+  right: 30px; /* 改成右上角 */
   z-index: 100;
 
   &:hover {
