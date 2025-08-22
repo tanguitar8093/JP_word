@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import SettingsPanel from '../../components/common/SettingsPanel/index.js';
+import React, { useState } from "react";
+import SettingsPanel from "../../components/common/SettingsPanel/index.js";
 import {
   AppContainer,
   Title,
   SettingsToggle,
-} from "../../components/layout/App/styles";
+} from "../../components/App/styles";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
@@ -28,7 +28,7 @@ function SystemSettingsPage() {
 
   return (
     <AppContainer>
-      <HomeIcon onClick={() => navigate('/')}>↩️</HomeIcon>
+      <HomeIcon onClick={() => navigate("/")}>↩️</HomeIcon>
       <Title>系統設定</Title>
       <SettingsPanel
         rate={rate}

@@ -9,7 +9,7 @@ import {
   StatusEmoji,
   FavoriteMark,
 } from "./styles"; // Import styled components from styles.js
-import { SettingsToggle } from "../../../../components/layout/App/styles";
+import { SettingsToggle } from "../../../../components/App/styles";
 import styled from "styled-components";
 
 const HomeIcon = styled(SettingsToggle)`

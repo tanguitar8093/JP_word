@@ -11,7 +11,7 @@ import {
   Progress,
   SettingsToggle,
   FloatingSettingsPanel,
-} from "../../../../components/layout/App/styles";
+} from "../../../../components/App/styles";
 import styled from "styled-components";
 import {
   nextQuestionGame, // Changed from NEXT_QUESTION
@@ -19,7 +19,7 @@ import {
   finishQuiz,
   restartQuiz,
   tick,
-} from '../../../../features/quiz/reducer/actions'; // Import quiz actions
+} from "../../../../features/quiz/reducer/actions"; // Import quiz actions
 
 const IconContainer = styled.div`
   position: absolute;
@@ -116,7 +116,8 @@ export default function Quiz() {
   const { state } = useApp(); // Get state from global context
   const { quizCompleted, answeredQuestions, correctAnswersCount } = state.quiz; // Access quiz-specific state
 
-  if (quizCompleted) { // Use quizCompleted from global state
+  if (quizCompleted) {
+    // Use quizCompleted from global state
     return (
       <StatisticsPage
         answeredQuestions={answeredQuestions} // Pass from global state
