@@ -5,6 +5,7 @@ import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
 import QuestionCard from "../QuestionCard";
 import SettingsPanel from "../../../../components/SettingsPanel";
 import StatisticsPage from "../StatisticsPage"; // Import StatisticsPage
+import Modal from "../../../../components/Modal"; // Import the new Modal component
 import {
   AppContainer,
   Title,
@@ -46,6 +47,7 @@ function QuizContent() {
     chEx: false,
     autoNext: true,
   });
+  const [showExitConfirmModal, setShowExitConfirmModal] = useState(false); // State for modal visibility
 
   const navigate = useNavigate(); // Initialize useNavigate
 
@@ -56,16 +58,22 @@ function QuizContent() {
 
   const blocker = useBlocker(!quizCompleted);
 
+  const handleConfirmExit = useCallback(() => {
+    dispatch(restartQuiz());
+    blocker.proceed();
+    setShowExitConfirmModal(false);
+  }, [blocker, dispatch]);
+
+  const handleCancelExit = useCallback(() => {
+    blocker.reset();
+    setShowExitConfirmModal(false);
+  }, [blocker]);
+
   useEffect(() => {
     if (blocker.state === "blocked") {
-      if (window.confirm("測驗尚未完成，確定要離開嗎？")) {
-        dispatch(restartQuiz());
-        blocker.proceed();
-      } else {
-        blocker.reset();
-      }
+      setShowExitConfirmModal(true); // Show modal instead of alert
     }
-  }, [blocker, dispatch]);
+  }, [blocker]);
 
   const { playSequence, cancelPlayback } = useAnswerPlayback({
     result,
@@ -111,13 +119,20 @@ function QuizContent() {
         </FloatingSettingsPanel>
       )}
 
-      <Title>日文單字測驗1</Title>
+      <Title>日文單字測驗</Title>
       <Progress>
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
 
       {/* Pass speakManually down as it's not part of the quiz context */}
       <QuestionCard speakManually={speakManually} cancelPlayback={cancelPlayback} />
+
+      <Modal
+        message="測驗尚未完成，確定要離開嗎？"
+        onConfirm={handleConfirmExit}
+        onCancel={handleCancelExit}
+        isVisible={showExitConfirmModal}
+      />
     </AppContainer>
   );
 }

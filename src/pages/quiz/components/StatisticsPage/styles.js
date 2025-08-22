@@ -22,7 +22,7 @@ export const QuestionList = styled.ul`
   list-style: none;
   padding: 0 10px;
   width: 100%;
-  height: 280px; /* Fixed height for ~7 items */
+  height: 400px; /* Fixed height for ~10 items */
   overflow-y: auto;
   border: 1px solid #ddd;
   border-radius: 5px;
