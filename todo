@@ -24,3 +24,24 @@
             - 方法: 讀取筆記本列表: 列出所有筆記本
             - 私有方法: 建立 context id 索引, 會遍歷 context, 檢查沒有 id key 時,會加入 id: uuid
             - 私有方法: 型別轉換: 因為是 localstorage,會有字串轉 object 和 object 轉字串需求
+            - 私有方法: 驗證資料型別: 匯入的資料必須符合這個規範, 沒有的話會有錯誤警告,所以 init 內容也要修正
+            ```
+                {
+                    jp_word: string,
+                    kanji_jp_word: string,
+                    ch_word: string,
+                    jp_ex_statement: string,
+                    ch_ex_statement: string,
+                    type: string,
+                    options: [string,string,...],
+                },
+            ```
+    - 通用功能
+        - 收藏功能:by record id,[high] 
+        - 擴充例句:limit 3, str-> array [normal] 
+        - 顯示卡片內容: 例句
+        - 熟練度功能
+    - 填空遊戲
+    - 選擇遊戲
+        - 發音提示設定[normal] 
+        - 語言互換[low]
