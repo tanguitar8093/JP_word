@@ -17,6 +17,18 @@ export function useAnswerPlayback({
     playedForResult.current = false;
   }, [question]);
 
+  // Cleanup function for speech synthesis on unmount
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis.cancel();
+    };
+  }, []);
+
+  // Also cancel speech if result or question changes to prevent overlapping speech
+  useEffect(() => {
+    window.speechSynthesis.cancel();
+  }, [result, question]);
+
   const speakText = useCallback(
     (text, lang) => {
       return speak(text, { rate, lang });
@@ -34,6 +46,9 @@ export function useAnswerPlayback({
   const playSequence = useCallback(
     async (soundResult, q, options, { skipSound = false } = {}) => {
       if (!q) return;
+
+      // Cancel any ongoing speech before starting a new sequence
+      window.speechSynthesis.cancel();
 
       if (!skipSound && soundResult) {
         await playSound(soundResult);

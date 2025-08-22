@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
+import React, { useState, useCallback, useEffect } from "react";
+import { useNavigate, useBlocker } from "react-router-dom"; // Import useBlocker
 import { useApp } from "../../../../store/contexts/AppContext"; // Changed from QuizContext
 import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
 import QuestionCard from "../QuestionCard";
@@ -15,10 +15,7 @@ import {
 import styled from "styled-components";
 import {
   nextQuestionGame, // Changed from NEXT_QUESTION
-  startQuiz,
-  finishQuiz,
   restartQuiz,
-  tick,
 } from "../../../../pages/quiz/reducer/actions"; // Import quiz actions
 
 const IconContainer = styled.div`
@@ -56,6 +53,19 @@ function QuizContent() {
   const { state, dispatch } = useApp(); // Changed from useQuiz
   const { questions, currentQuestionIndex, result, quizCompleted } = state.quiz; // Access quiz state
   const question = questions[currentQuestionIndex];
+
+  const blocker = useBlocker(!quizCompleted);
+
+  useEffect(() => {
+    if (blocker.state === "blocked") {
+      if (window.confirm("測驗尚未完成，確定要離開嗎？")) {
+        dispatch(restartQuiz());
+        blocker.proceed();
+      } else {
+        blocker.reset();
+      }
+    }
+  }, [blocker, dispatch]);
 
   const { playSequence } = useAnswerPlayback({
     result,
