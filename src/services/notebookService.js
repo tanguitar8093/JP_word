@@ -23,11 +23,39 @@ const _saveNotebooksToStorage = (notebooks) => {
   }
 };
 
+// Private method for validating the context structure
+const _validateContext = (context) => {
+    if (!Array.isArray(context)) {
+        throw new Error("Context must be an array.");
+    }
+
+    for (const word of context) {
+        // Allow empty objects for new notebooks
+        if (Object.keys(word).length === 0) continue;
+
+        const requiredKeys = [
+            'jp_word', 'kanji_jp_word', 'ch_word', 
+            'jp_ex_statement', 'ch_ex_statement', 'type', 'options'
+        ];
+        for (const key of requiredKeys) {
+            if (!(key in word)) {
+                throw new Error(`Invalid word object: missing key \"${key}\".`);
+            }
+        }
+        if (!Array.isArray(word.options)) {
+            throw new Error('Invalid word object: "options" must be an array.');
+        }
+    }
+    return true;
+};
+
+
 // Private method to ensure all words in a context have an ID
 const _ensureContextIds = (context) => {
   if (!Array.isArray(context)) return [];
   return context.map(word => {
-    if (!word.id) {
+    // also check for empty object
+    if (!word.id && Object.keys(word).length > 0) {
       return { ...word, id: uuidv4() };
     }
     return word;
@@ -45,14 +73,14 @@ const notebookService = {
           id,
           name: "Hello JP word",
           context: [{
-            "id": uuidv4(),
-            "jp": "こんにちは",
-            "pronunciation": "konnichiwa",
-            "en": "Hello",
-            "zh": "你好",
-            "sentence": "こんにちは、良い一日を！",
-            "sentenceEn": "Hello, have a nice day!",
-            "sentenceZh": "你好，祝你有美好的一天！"
+            id: uuidv4(),
+            jp_word: "こんにちは",
+            kanji_jp_word: "今日は",
+            ch_word: "你好",
+            jp_ex_statement: "こんにちは、良い一日を！",
+            ch_ex_statement: "你好，祝你有美好的一天！",
+            type: "greeting",
+            options: ["a", "b", "c"],
           }]
         }
       };
@@ -99,6 +127,7 @@ const notebookService = {
     }
 
     if (context) {
+        _validateContext(context);
         notebooks[id].context = _ensureContextIds(context);
     }
 
@@ -145,7 +174,7 @@ const notebookService = {
           const updatedNotebook = notebookService.updateNotebook(newNotebook.id, { context: json.context });
           resolve(updatedNotebook);
         } catch (error) {
-          reject(new Error("Failed to parse JSON file."));
+          reject(new Error(`Failed to import notebook: ${error.message}`))
         }
       };
       reader.onerror = (error) => {

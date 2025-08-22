@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import notebookService from '../../services/notebookService';
 
 const NotebookManagementPage = ({ onExit }) => {
@@ -7,26 +7,35 @@ const NotebookManagementPage = ({ onExit }) => {
   const [newNotebookName, setNewNotebookName] = useState('');
   const [selectedNotebook, setSelectedNotebook] = useState(null);
   const [editingName, setEditingName] = useState('');
+  const [editingContext, setEditingContext] = useState('');
 
-  const loadNotebooks = useCallback(() => {
-    const allNotebooks = notebookService.getNotebooks();
-    setNotebooks(allNotebooks);
-    if (selectedNotebook) {
-        const updatedSelected = allNotebooks.find(n => n.id === selectedNotebook.id);
-        setSelectedNotebook(updatedSelected || null);
-    }
-  }, [selectedNotebook]);
-
+  // Load initial notebooks on mount
   useEffect(() => {
     notebookService.init();
-    loadNotebooks();
-  }, [loadNotebooks]);
+    setNotebooks(notebookService.getNotebooks());
+  }, []);
+
+  // Function to refresh notebook list and update selection
+  const refreshNotebooks = (currentId) => {
+    const allNotebooks = notebookService.getNotebooks();
+    setNotebooks(allNotebooks);
+    if (currentId) {
+        const updatedSelected = allNotebooks.find(n => n.id === currentId);
+        setSelectedNotebook(updatedSelected || null);
+    }
+  };
+
+  const handleSelectNotebook = (notebook) => {
+    setSelectedNotebook(notebook);
+    setEditingName(notebook.name);
+    setEditingContext(JSON.stringify(notebook.context, null, 2));
+  };
 
   const handleCreateNotebook = () => {
     try {
-      notebookService.createNotebook(newNotebookName);
+      const newNotebook = notebookService.createNotebook(newNotebookName);
       setNewNotebookName('');
-      loadNotebooks();
+      refreshNotebooks(newNotebook.id); // Select the new notebook
     } catch (error) {
       alert(error.message);
     }
@@ -35,21 +44,44 @@ const NotebookManagementPage = ({ onExit }) => {
   const handleDeleteNotebook = (id) => {
     if (window.confirm('Are you sure you want to delete this notebook?')) {
       notebookService.deleteNotebook(id);
-      loadNotebooks();
+      refreshNotebooks(null); // Deselect
     }
-  };
-
-  const handleSelectNotebook = (notebook) => {
-    setSelectedNotebook(notebook);
-    setEditingName(notebook.name);
   };
 
   const handleUpdateName = () => {
     try {
         notebookService.updateNotebook(selectedNotebook.id, { name: editingName });
-        loadNotebooks();
+        refreshNotebooks(selectedNotebook.id);
     } catch (error) {
         alert(error.message);
+    }
+  };
+
+  const handleUpdateContext = () => {
+    try {
+        const newContextData = JSON.parse(editingContext);
+        const originalContext = selectedNotebook.context;
+        const contextMap = new Map(originalContext.map(word => [word.id, word]));
+
+        const itemsToUpdate = Array.isArray(newContextData) ? newContextData : [newContextData];
+
+        for (const item of itemsToUpdate) {
+            if (item && typeof item === 'object' && item.id) {
+                contextMap.set(item.id, item);
+            } else if (item && typeof item === 'object' && !item.id) {
+                // Optional: handle adding new words that don't have an ID yet
+                // For now, we only update existing ones based on ID.
+            }
+        }
+
+        const finalContext = Array.from(contextMap.values());
+        notebookService.updateNotebook(selectedNotebook.id, { context: finalContext });
+        refreshNotebooks(selectedNotebook.id);
+        // also update the textarea to reflect the formatted, saved data
+        setEditingContext(JSON.stringify(finalContext, null, 2));
+        alert('Context updated successfully!');
+    } catch (error) {
+        alert(`Error updating context: ${error.message}`);
     }
   };
 
@@ -57,7 +89,7 @@ const NotebookManagementPage = ({ onExit }) => {
     if (window.confirm('Are you sure you want to delete this word?')) {
         try {
             notebookService.deleteWordsFromNotebook(selectedNotebook.id, [wordId]);
-            loadNotebooks();
+            refreshNotebooks(selectedNotebook.id);
         } catch (error) {
             alert(error.message);
         }
@@ -69,12 +101,13 @@ const NotebookManagementPage = ({ onExit }) => {
     if (!file) return;
 
     try {
-      await notebookService.importNotebook(file);
-      loadNotebooks();
+      const newNotebook = await notebookService.importNotebook(file);
+      refreshNotebooks(newNotebook.id);
       alert('Notebook imported successfully!');
     } catch (error) {
       alert(error.message);
     }
+    event.target.value = null;
   };
 
   return (
@@ -107,7 +140,7 @@ const NotebookManagementPage = ({ onExit }) => {
           {notebooks.length === 0 ? <p>No notebooks found.</p> : (
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {notebooks.map(notebook => (
-                <li key={notebook.id} style={{ marginBottom: '10px' }}>
+                <li key={notebook.id} style={{ marginBottom: '10px', fontWeight: selectedNotebook?.id === notebook.id ? 'bold' : 'normal' }}>
                   <span onClick={() => handleSelectNotebook(notebook)} style={{ cursor: 'pointer' }}>
                     {notebook.name}
                   </span>
@@ -132,16 +165,23 @@ const NotebookManagementPage = ({ onExit }) => {
                 <button onClick={handleUpdateName}>Update Name</button>
               </div>
               
-              <h3>Content:</h3>
-              <pre style={{ background: '#f4f4f4', padding: '10px', maxHeight: '300px', overflowY: 'auto' }}>
-                {JSON.stringify(selectedNotebook.context, null, 2)}
-              </pre>
+              <h3>Content (JSON - Merge Update):</h3>
+                <textarea 
+                    value={editingContext}
+                    onChange={(e) => setEditingContext(e.target.value)}
+                    rows={15}
+                    style={{width: '95%', background: '#f4f4f4', border: '1px solid #ccc'}}
+                    placeholder="Paste a full array or a single object (with id) to update/merge."
+                />
+                <div>
+                    <button onClick={handleUpdateContext}>Save Context</button>
+                </div>
               
-              <h4>Words:</h4>
-               {selectedNotebook.context && selectedNotebook.context.length > 0 && selectedNotebook.context[0].jp ? (
+              <h4>Words Preview:</h4>
+               {selectedNotebook.context && selectedNotebook.context.length > 0 && selectedNotebook.context[0].jp_word ? (
                 <ul>
                     {selectedNotebook.context.map(word => (
-                        <li key={word.id}>{word.jp} - {word.en} <button onClick={() => handleDeleteWord(word.id)}>Delete</button></li>
+                        <li key={word.id}>{word.jp_word} - {word.ch_word} <button onClick={() => handleDeleteWord(word.id)}>Delete</button></li>
                     ))}
                 </ul>
                ) : <p>This notebook is empty.</p>}
