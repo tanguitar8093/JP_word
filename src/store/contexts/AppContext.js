@@ -1,4 +1,6 @@
-import { createContext, useContext, useReducer } from "react";
+import { createContext, useContext, useReducer, useEffect } from "react";
+import notebookService from '../../services/notebookService';
+import { getNotebooks, setCurrentNotebook } from '../reducer/actions';
 
 // Import individual reducers
 import { reducer as quizReducer } from "../../pages/quiz/reducer";
@@ -44,6 +46,15 @@ const initialAppState = {
 
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(rootReducer, initialAppState);
+
+  useEffect(() => {
+    notebookService.init();
+    notebookService.initCurrentNotebook();
+    const notebooks = notebookService.getNotebooks();
+    const currentNotebookId = notebookService.getCurrentNotebookId();
+    dispatch(getNotebooks(notebooks));
+    dispatch(setCurrentNotebook(currentNotebookId));
+  }, []);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>

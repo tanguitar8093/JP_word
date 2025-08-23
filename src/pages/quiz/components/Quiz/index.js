@@ -17,6 +17,7 @@ import styled from "styled-components";
 import {
   nextQuestionGame, // Changed from NEXT_QUESTION
   restartQuiz,
+  startQuiz
 } from "../../../../pages/quiz/reducer/actions"; // Import quiz actions
 
 const IconContainer = styled.div`
@@ -139,8 +140,22 @@ function QuizContent() {
 
 // The component that provides the context
 export default function Quiz() {
-  const { state } = useApp(); // Get state from global context
+  const { state, dispatch } = useApp(); // Get state from global context
   const { quizCompleted, answeredQuestions, correctAnswersCount } = state.quiz; // Access quiz-specific state
+  const { notebooks, currentNotebookId } = state.shared;
+
+  useEffect(() => {
+    const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
+    if (currentNotebook) {
+      const questions = currentNotebook.context.filter(q => q.jp_word);
+      if (questions.length > 0) {
+        dispatch(startQuiz(questions));
+      } else {
+        // Handle case where notebook is empty
+        alert("This notebook is empty!");
+      }
+    }
+  }, [notebooks, currentNotebookId, dispatch]);
 
   if (quizCompleted) {
     // Use quizCompleted from global state
@@ -150,6 +165,11 @@ export default function Quiz() {
         correctAnswersCount={correctAnswersCount} // Pass from global state
       />
     );
+  }
+
+  // show loading state if questions are not ready
+  if (state.quiz.questions.length === 0) {
+    return <div>Loading questions...</div>;
   }
 
   return (

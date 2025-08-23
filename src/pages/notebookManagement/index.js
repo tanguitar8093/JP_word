@@ -1,27 +1,31 @@
 
 import React, { useState, useEffect } from 'react';
 import notebookService from '../../services/notebookService';
+import { useApp } from '../../store/contexts/AppContext';
+import { getNotebooks, setCurrentNotebook } from '../../store/reducer/actions';
 
 const NotebookManagementPage = ({ onExit }) => {
-  const [notebooks, setNotebooks] = useState([]);
+  const { state, dispatch } = useApp();
+  const { notebooks, currentNotebookId } = state.shared;
   const [newNotebookName, setNewNotebookName] = useState('');
   const [selectedNotebook, setSelectedNotebook] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [editingContext, setEditingContext] = useState('');
 
-  // Load initial notebooks on mount
   useEffect(() => {
-    notebookService.init();
-    setNotebooks(notebookService.getNotebooks());
-  }, []);
+    const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
+    if (currentNotebook) {
+        handleSelectNotebook(currentNotebook);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentNotebookId, notebooks]);
 
-  // Function to refresh notebook list and update selection
   const refreshNotebooks = (currentId) => {
     const allNotebooks = notebookService.getNotebooks();
-    setNotebooks(allNotebooks);
+    dispatch(getNotebooks(allNotebooks));
     if (currentId) {
-        const updatedSelected = allNotebooks.find(n => n.id === currentId);
-        setSelectedNotebook(updatedSelected || null);
+        dispatch(setCurrentNotebook(currentId));
+        notebookService.setCurrentNotebookId(currentId);
     }
   };
 
@@ -29,6 +33,8 @@ const NotebookManagementPage = ({ onExit }) => {
     setSelectedNotebook(notebook);
     setEditingName(notebook.name);
     setEditingContext(JSON.stringify(notebook.context, null, 2));
+    dispatch(setCurrentNotebook(notebook.id));
+    notebookService.setCurrentNotebookId(notebook.id);
   };
 
   const handleCreateNotebook = () => {
@@ -140,7 +146,7 @@ const NotebookManagementPage = ({ onExit }) => {
           {notebooks.length === 0 ? <p>No notebooks found.</p> : (
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {notebooks.map(notebook => (
-                <li key={notebook.id} style={{ marginBottom: '10px', fontWeight: selectedNotebook?.id === notebook.id ? 'bold' : 'normal' }}>
+                <li key={notebook.id} style={{ marginBottom: '10px', fontWeight: currentNotebookId === notebook.id ? 'bold' : 'normal' }}>
                   <span onClick={() => handleSelectNotebook(notebook)} style={{ cursor: 'pointer' }}>
                     {notebook.name}
                   </span>

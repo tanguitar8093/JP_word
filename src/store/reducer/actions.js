@@ -1,9 +1,13 @@
 
-// Placeholder action type
-export const EXAMPLE_ACTION = 'shared/EXAMPLE_ACTION';
+export const SET_CURRENT_NOTEBOOK = 'shared/SET_CURRENT_NOTEBOOK';
+export const GET_NOTEBOOKS = 'shared/GET_NOTEBOOKS';
 
-// Placeholder action creator
-export const exampleAction = (payload) => ({
-  type: EXAMPLE_ACTION,
-  payload,
+export const setCurrentNotebook = (notebookId) => ({
+  type: SET_CURRENT_NOTEBOOK,
+  payload: notebookId,
+});
+
+export const getNotebooks = (notebooks) => ({
+    type: GET_NOTEBOOKS,
+    payload: notebooks,
 });

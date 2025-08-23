@@ -2,6 +2,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 const NOTEBOOK_STORAGE_KEY = 'notebooks';
+const CURRENT_NOTEBOOK_ID_KEY = 'currentNotebookId';
 
 // Private method to get notebooks from localStorage
 const _getNotebooksFromStorage = () => {
@@ -87,11 +88,31 @@ const notebookService = {
       _saveNotebooksToStorage(initialNotebook);
     }
   },
+  initCurrentNotebook: () => {
+    const notebooks = _getNotebooksFromStorage();
+    const currentNotebookId = localStorage.getItem(CURRENT_NOTEBOOK_ID_KEY);
+
+    if (!currentNotebookId || !notebooks[currentNotebookId]) {
+      const firstNotebookId = Object.keys(notebooks)[0];
+      if (firstNotebookId) {
+        localStorage.setItem(CURRENT_NOTEBOOK_ID_KEY, firstNotebookId);
+      }
+    }
+  },
+
+  getCurrentNotebookId: () => {
+    return localStorage.getItem(CURRENT_NOTEBOOK_ID_KEY);
+  },
+
+  setCurrentNotebookId: (id) => {
+    localStorage.setItem(CURRENT_NOTEBOOK_ID_KEY, id);
+  },
 
   getNotebooks: () => {
     const notebooks = _getNotebooksFromStorage();
     return Object.values(notebooks);
   },
+
 
   getNotebook: (id) => {
     const notebooks = _getNotebooksFromStorage();

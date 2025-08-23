@@ -1,8 +1,6 @@
-import { questions } from "../../../data/questions"; // Import questions directly
-
 const initialState = {
-  questions: questions, // Initialize with loaded questions
-  status: "ready", // Set status to ready as questions are available
+  questions: [], // Initialize with an empty array
+  status: "ready",
   currentQuestionIndex: 0,
   selectedAnswer: "",
   points: 0, // Score for the quiz
@@ -16,12 +14,12 @@ const initialState = {
 
 function reducer(state = initialState, action) {
   switch (action.type) {
-    // DATA_RECEIVED and DATA_FAILED cases are removed as questions are loaded directly
     case "quiz/START_QUIZ":
       return {
         ...state,
+        questions: action.payload, // Load questions from payload
         status: "active",
-        secondsRemaining: state.questions.length * 30,
+        secondsRemaining: action.payload.length * 30,
         // Reset game-specific state when starting a new quiz
         currentQuestionIndex: 0,
         selectedAnswer: "",
