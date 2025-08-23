@@ -146,17 +146,19 @@ export default function Quiz() {
   const { proficiencyFilter } = state.systemSettings;
 
   useEffect(() => {
-    const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
-    if (currentNotebook) {
-      const questions = currentNotebook.context.filter(q => q.jp_word && proficiencyFilter[q.proficiency]);
-      if (questions.length > 0) {
-        dispatch(startQuiz(questions));
-      } else {
-        // Handle case where notebook is empty or no questions match filter
-        alert("This notebook is empty or no words match the proficiency filter!");
+    if (!quizCompleted) {
+      const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
+      if (currentNotebook) {
+        const questions = currentNotebook.context.filter(q => q.jp_word && proficiencyFilter[q.proficiency]);
+        if (questions.length > 0) {
+          dispatch(startQuiz(questions));
+        } else {
+          // Handle case where notebook is empty or no questions match filter
+          alert("This notebook is empty or no words match the proficiency filter!");
+        }
       }
     }
-  }, [notebooks, currentNotebookId, dispatch, proficiencyFilter]);
+  }, [currentNotebookId, dispatch, quizCompleted]);
 
   if (quizCompleted) {
     // Use quizCompleted from global state

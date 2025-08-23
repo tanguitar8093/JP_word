@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../../../../store/contexts/AppContext"; // Import useApp
 import { restartQuiz } from "../../../../pages/quiz/reducer/actions"; // Import restartQuiz
+import { updateWordInNotebook } from "../../../../store/reducer/actions";
 import notebookService from "../../../../services/notebookService";
 import {
   StatisticsContainer,
@@ -33,6 +34,7 @@ const StatisticsPage = ({ answeredQuestions, correctAnswersCount }) => {
   const handleProficiencyChange = (wordId, proficiency) => {
     try {
       notebookService.updateWordInNotebook(currentNotebookId, wordId, { proficiency });
+      dispatch(updateWordInNotebook(currentNotebookId, wordId, { proficiency }));
       const updatedQuestions = localAnsweredQuestions.map(item => {
         if (item.question.id === wordId) {
           return { ...item, question: { ...item.question, proficiency } };
