@@ -56,8 +56,12 @@ const router = createBrowserRouter(
   }
 );
 
+import { AppProvider } from "./store/contexts/AppContext"; // Import AppProvider
+
 root.render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AppProvider>
+      <RouterProvider router={router} />
+    </AppProvider>
   </StrictMode>
 );

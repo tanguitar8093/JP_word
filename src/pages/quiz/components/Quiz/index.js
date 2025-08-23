@@ -38,16 +38,10 @@ const HomeIcon = styled(SettingsToggle)`
 `;
 
 // The actual UI component that consumes the context
+import { setPlaybackOptions, setPlaybackSpeed, setAutoProceed, setQuizScope } from "../../../../pages/systemSettings/reducer"; // Import actions
+
 function QuizContent() {
-  const [rate, setRate] = useState(1.0);
   const [showSettings, setShowSettings] = useState(false);
-  const [playbackOptions, setPlaybackOptions] = useState({
-    jp: true,
-    ch: true,
-    jpEx: false,
-    chEx: false,
-    autoNext: true,
-  });
   const [showExitConfirmModal, setShowExitConfirmModal] = useState(false); // State for modal visibility
 
   const navigate = useNavigate(); // Initialize useNavigate
@@ -55,6 +49,7 @@ function QuizContent() {
   // Correct: Get state and dispatch from the context using useApp hook
   const { state, dispatch } = useApp(); // Changed from useQuiz
   const { questions, currentQuestionIndex, result, quizCompleted } = state.quiz; // Access quiz state
+  const { playbackOptions, playbackSpeed, autoProceed } = state.systemSettings; // Access systemSettings state
   const question = questions[currentQuestionIndex];
 
   const blocker = useBlocker(!quizCompleted);
@@ -80,8 +75,9 @@ function QuizContent() {
     result,
     question,
     onNext: () => dispatch(nextQuestionGame()), // Changed dispatch type
-    playbackOptions,
-    rate,
+    playbackOptions, // Now from global state
+    rate: playbackSpeed, // Use playbackSpeed from global state
+    autoProceed, // Pass autoProceed from global state
     currentQuestionIndex,
   });
 
@@ -112,10 +108,13 @@ function QuizContent() {
       {showSettings && (
         <FloatingSettingsPanel>
           <SettingsPanel
-            rate={rate}
-            setRate={setRate}
+            playbackSpeed={playbackSpeed}
+            setPlaybackSpeed={(newSpeed) => dispatch(setPlaybackSpeed(newSpeed))}
             playbackOptions={playbackOptions}
-            setPlaybackOptions={setPlaybackOptions}
+            setPlaybackOptions={(newOptions) => dispatch(setPlaybackOptions(newOptions))}
+            autoProceed={autoProceed} // Pass autoProceed from global state
+            setAutoProceed={(newAutoProceed) => dispatch(setAutoProceed(newAutoProceed))} // Pass setAutoProceed from global state
+            isQuizContext={true} // New prop
           />
         </FloatingSettingsPanel>
       )}
@@ -143,13 +142,21 @@ export default function Quiz() {
   const { state, dispatch } = useApp(); // Get state from global context
   const { quizCompleted, answeredQuestions, correctAnswersCount } = state.quiz; // Access quiz-specific state
   const { notebooks, currentNotebookId } = state.shared;
-  const { proficiencyFilter } = state.systemSettings;
+  const { quizScope } = state.systemSettings;
 
   useEffect(() => {
     if (!quizCompleted) {
       const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
       if (currentNotebook) {
-        const questions = currentNotebook.context.filter(q => q.jp_word && proficiencyFilter[q.proficiency]);
+        const questions = currentNotebook.context.filter(q => {
+          if (!q.jp_word) return false; // Ensure jp_word exists
+
+          if (quizScope === "all") return true;
+          if (quizScope === "low" && q.proficiency === 1) return true;
+          if (quizScope === "medium" && q.proficiency === 2) return true;
+          if (quizScope === "high" && q.proficiency === 3) return true;
+          return false;
+        });
         if (questions.length > 0) {
           dispatch(startQuiz(questions));
         } else {
@@ -158,7 +165,7 @@ export default function Quiz() {
         }
       }
     }
-  }, [currentNotebookId, dispatch, quizCompleted]);
+  }, [currentNotebookId, dispatch, quizCompleted, quizScope]);
 
   if (quizCompleted) {
     // Use quizCompleted from global state

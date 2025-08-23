@@ -9,6 +9,7 @@ export function useAnswerPlayback({
   onNext,
   playbackOptions,
   rate,
+  autoProceed, // New prop
   currentQuestionIndex,
 }) {
   const playedForResult = useRef(false);
@@ -62,7 +63,6 @@ export function useAnswerPlayback({
       if (!skipSound && soundResult) {
         await playSound(soundResult);
       }
-
       if (options.jp && q.jp_word) await speakText(q.jp_word, "ja-JP");
       if (options.ch && q.ch_word) await speakText(q.ch_word, "zh-TW");
       if (options.jpEx && q.jp_ex_statement)
@@ -85,14 +85,14 @@ export function useAnswerPlayback({
       await playSequence(result, question, playbackOptions);
 
       if (playbackRef.current === playbackId && !playbackId.cancelled) {
-        if (playbackOptions.autoNext) {
+        if (autoProceed) { // Use autoProceed here
           onNext();
         }
       }
       playbackRef.current = null;
     };
     run();
-  }, [result, question, playbackOptions, onNext, playSequence]);
+  }, [result, question, playbackOptions, onNext, playSequence, autoProceed]); // Add autoProceed to dependencies
 
   return { playSequence, cancelPlayback };
 }
