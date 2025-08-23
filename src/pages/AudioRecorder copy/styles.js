@@ -40,7 +40,7 @@ export const Button = styled.button`
   }
 `;
 
-export const Status = styled.span`
+export const Status = styled.p`
   font-size: 1.2rem;
   color: #dc3545;
   margin-top: 1rem;

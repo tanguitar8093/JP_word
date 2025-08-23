@@ -1,6 +1,8 @@
 
 import React, { useState, useRef } from 'react';
 import {
+  Container,
+  Title,
   Button,
   Status,
   AudioPlayer,
@@ -65,7 +67,8 @@ const AudioRecorderPage = () => {
   };
 
   return (
-    <>
+    <Container>
+      <Title>Audio Recorder</Title>
       <main>
         <ButtonContainer>
           {!permission ? (
@@ -81,13 +84,20 @@ const AudioRecorderPage = () => {
               Stop Recording
             </Button>
           ) : null}
-          {isRecording && <Status>錄音中...</Status>}
-          {audioURL && (
-            <AudioPlayer src={audioURL} controls />
-        )}
         </ButtonContainer>
+
+        {isRecording && <Status>Recording...</Status>}
+        
+        {audioURL && (
+          <div>
+            <AudioPlayer src={audioURL} controls />
+            <a download href={audioURL}>
+              Download Recording
+            </a>
+          </div>
+        )}
       </main>
-    </>
+    </Container>
   );
 };
 

@@ -2,7 +2,9 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate, useBlocker } from "react-router-dom"; // Import useBlocker
 import { useApp } from "../../../../store/contexts/AppContext"; // Changed from QuizContext
 import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
-import QuestionCard from "../QuestionCard";
+import { ExampleSentence } from '../ExampleSentence';
+import QuestionCard  from '../QuestionCard';
+import AudioRecorderPage from '../../../AudioRecorder';
 import SettingsPanel from "../../../../components/SettingsPanel";
 import StatisticsPage from "../StatisticsPage"; // Import StatisticsPage
 import Modal from "../../../../components/Modal"; // Import the new Modal component
@@ -126,6 +128,7 @@ function QuizContent() {
 
       {/* Pass speakManually and question down as they are not part of the quiz context */}
       <QuestionCard speakManually={speakManually} cancelPlayback={cancelPlayback} question={question} />
+      <AudioRecorderPage />
 
       <Modal
         message="測驗尚未完成，確定要離開嗎？"
