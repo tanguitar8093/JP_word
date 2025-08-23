@@ -1,79 +1,77 @@
-import styled from 'styled-components';
-
-export const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2rem;
-  background-color: #f0f2f5;
-  height: 100vh;
-`;
-
-export const Title = styled.h1`
-  color: #333;
-  margin-bottom: 2rem;
-`;
+import styled, { keyframes, css } from 'styled-components';
 
 export const ButtonContainer = styled.div`
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  text-align:center
-`;
-
-export const Button = styled.button`
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem;
-  color: white;
-  background-color: #007bff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #0056b3;
-  }
-
-  &:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-  }
-`;
-
-export const Status = styled.span`
-  font-size: 1.2rem;
-  color: #dc3545;
-  margin-top: 1rem;
-`;
-
-export const AudioPlayer = styled.audio`
+  align-items: center;
+  gap: 0.5rem;
   width: 100%;
-  max-width: 500px;
+  max-width: 400px;
+  margin:5px;
 `;
 
-// 外圈按鈕
-export const RecordButton = styled.button`
-  width: 60px;
-  height: 60px;
-  border: 3px solid #333;  /* 外框 */
-  border-radius: 50%;
+export const IconButton = styled.button`
+  height: 28px;
+  padding-left: 5px;
+  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+
+  border: ${(props) => (props.round ? '2px solid #333' : '2px solid #333')};
+  border-radius: ${(props) => (props.round ? '50%' : '4px')};
+
   background: #fff;
-  outline: none;
+  transition: background-color 0.2s;
 
   &:active {
-    background: #eee;
+    background-color: #eee;
   }
 `;
 
-// 紅色實心圓
+export const InfoButton = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+`;
+
+export const Status = styled.span`
+  font-size: 0.8rem;
+  color: #dc3545;
+  margin-left: 0.5rem;
+  white-space: nowrap;
+`;
+
+export const AudioPlayer = styled.audio`
+  flex: 1;
+  height: 28px;
+`;
+
+// keyframes
+const blink = keyframes`
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0; }
+`;
+
+// 正確寫法，用 css helper
 export const RecordIcon = styled.div`
-  width: 24px;
-  height: 24px;
+  width: 14px;
+  height: 14px;
   background: red;
   border-radius: 50%;
+  ${(props) =>
+    props.recording &&
+    css`
+      animation: ${blink} 1s infinite;
+    `}
 `;

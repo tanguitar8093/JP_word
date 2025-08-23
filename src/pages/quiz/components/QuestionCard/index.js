@@ -42,6 +42,7 @@ export default function QuestionCard({ speakManually, question }) {
     setShowHiragana(false);
   }, [q]);
 
+
   const handleCheckAnswer = (answer) => {
     dispatch(checkAnswer(answer)); // Changed dispatch type
   };
@@ -82,7 +83,9 @@ export default function QuestionCard({ speakManually, question }) {
       {!result && (
         <OptionsContainer>
           {q.options.map((opt, i) => (
-            <OptionButton key={i} onClick={() => handleCheckAnswer(opt)}>
+            <OptionButton key={i} onClick={() => 
+              handleCheckAnswer(opt)
+              }>
               {opt}
             </OptionButton>
           ))}

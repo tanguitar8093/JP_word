@@ -1,10 +1,11 @@
-
 import React, { useState, useRef } from 'react';
 import {
-  Button,
+  ButtonContainer,
+  IconButton,
   Status,
   AudioPlayer,
-  ButtonContainer,RecordButton,RecordIcon
+  InfoButton,
+  RecordIcon
 } from './styles';
 
 const AudioRecorderPage = () => {
@@ -18,17 +19,14 @@ const AudioRecorderPage = () => {
   const getMicrophonePermission = async () => {
     if ('MediaRecorder' in window) {
       try {
-        const streamData = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: false,
-        });
+        const streamData = await navigator.mediaDevices.getUserMedia({ audio: true });
         setPermission(true);
         setStream(streamData);
       } catch (err) {
         alert(err.message);
       }
     } else {
-      alert('The MediaRecorder API is not supported in your browser.');
+      alert('您的瀏覽器不支援錄音功能。');
     }
   };
 
@@ -36,9 +34,9 @@ const AudioRecorderPage = () => {
     if (stream === null) {
       await getMicrophonePermission();
     }
-    
+
     setIsRecording(true);
-    setAudioURL('');
+    setAudioURL(''); // 清空之前的錄音
     audioChunks.current = [];
 
     const media = new MediaRecorder(stream, { type: 'audio/webm' });
@@ -46,9 +44,9 @@ const AudioRecorderPage = () => {
     mediaRecorder.current.start();
 
     mediaRecorder.current.ondataavailable = (event) => {
-      if (typeof event.data === 'undefined') return;
-      if (event.data.size === 0) return;
-      audioChunks.current.push(event.data);
+      if (event.data && event.data.size > 0) {
+        audioChunks.current.push(event.data);
+      }
     };
   };
 
@@ -65,29 +63,35 @@ const AudioRecorderPage = () => {
   };
 
   return (
-    <>
-      <main>
-        <ButtonContainer>
-          {!permission ? (
-            <span onClick={getMicrophonePermission}>載入錄音權限</span>
-          ) : null}
-          {permission && !isRecording ? (
-            <span onClick={startRecording} disabled={isRecording}>
-              錄音
-            </span>
-          ) : null}
-          {isRecording ? (
-            <span onClick={stopRecording} disabled={!isRecording}>
-              停止
-            </span>
-          ) : null}
-          {isRecording && <Status>錄音中...</Status>}
-          {audioURL && (
-            <AudioPlayer src={audioURL} controls />
-        )}
-        </ButtonContainer>
-      </main>
-    </>
+    <ButtonContainer>
+      {/* 未取得權限 */}
+      {!permission && (
+        <InfoButton onClick={getMicrophonePermission}>
+          🎤 點擊取得錄音權限
+        </InfoButton>
+      )}
+
+      {/* 已取得權限但尚未錄音 */}
+      {permission && !isRecording && (
+        <InfoButton onClick={startRecording}>
+          <RecordIcon recording={false} /> 點擊開始錄音
+        </InfoButton>
+      )}
+
+      {/* 錄音中 */}
+      {permission && isRecording && (
+        <>
+          <IconButton onClick={stopRecording}> ⏹ 點擊停止錄音</IconButton>
+            <RecordIcon recording={true} /> 
+          <Status>錄音中... </Status>
+        </>
+      )}
+
+      {/* 播放 bar，只在錄音完成後顯示 */}
+      {permission && !isRecording && audioURL && (
+        <AudioPlayer src={audioURL} controls />
+      )}
+    </ButtonContainer>
   );
 };
 
