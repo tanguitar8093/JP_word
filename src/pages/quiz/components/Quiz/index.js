@@ -143,7 +143,8 @@ export default function Quiz() {
   const { quizCompleted, answeredQuestions, correctAnswersCount } = state.quiz; // Access quiz-specific state
   const { notebooks, currentNotebookId } = state.shared;
   const { quizScope } = state.systemSettings;
-
+  const [emptyAlert, setEmptyAlert,]=useState(false)
+  const navigate = useNavigate();
   useEffect(() => {
     if (!quizCompleted) {
       const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
@@ -161,7 +162,7 @@ export default function Quiz() {
           dispatch(startQuiz(questions));
         } else {
           // Handle case where notebook is empty or no questions match filter
-          alert("This notebook is empty or no words match the proficiency filter!");
+          setEmptyAlert(true)
         }
       }
     }
@@ -177,12 +178,24 @@ export default function Quiz() {
     );
   }
 
+  
+
   // show loading state if questions are not ready
   if (state.quiz.questions.length === 0) {
-    return <div>Loading questions...</div>;
+    return (     
+      <>
+        <Modal
+          message="請調整單字範圍或筆記本!"
+          onConfirm={()=>{navigate("/settings")}}
+          disableCancel
+          isVisible={emptyAlert}
+        />
+          <div>Loading questions...</div>;
+      </>
+    )
   }
-
+  console.log("emptyAlert",emptyAlert)
   return (
-    <QuizContent /> // No longer wrapping with QuizContext.Provider
+      <QuizContent />
   );
 }

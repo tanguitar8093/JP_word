@@ -7,7 +7,7 @@ import {
   ModalButton,
 } from './styles';
 
-const Modal = ({ message, onConfirm, onCancel, isVisible }) => {
+const Modal = ({ message, onConfirm, onCancel, isVisible, disableCancel }) => {
   if (!isVisible) return null;
 
   return (
@@ -16,7 +16,11 @@ const Modal = ({ message, onConfirm, onCancel, isVisible }) => {
         <ModalContent>{message}</ModalContent>
         <ModalActions>
           <ModalButton onClick={onConfirm}>確定</ModalButton>
-          <ModalButton onClick={onCancel} cancel>取消</ModalButton>
+          {!disableCancel && (
+            <ModalButton onClick={onCancel} cancel>
+              取消
+            </ModalButton>
+          )}
         </ModalActions>
       </ModalContainer>
     </ModalOverlay>
