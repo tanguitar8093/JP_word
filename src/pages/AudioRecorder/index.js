@@ -4,7 +4,7 @@ import {
   Button,
   Status,
   AudioPlayer,
-  ButtonContainer,
+  ButtonContainer,RecordButton,RecordIcon
 } from './styles';
 
 const AudioRecorderPage = () => {
@@ -69,17 +69,17 @@ const AudioRecorderPage = () => {
       <main>
         <ButtonContainer>
           {!permission ? (
-            <Button onClick={getMicrophonePermission}>Get Mic Permission</Button>
+            <span onClick={getMicrophonePermission}>載入錄音權限</span>
           ) : null}
           {permission && !isRecording ? (
-            <Button onClick={startRecording} disabled={isRecording}>
-              Start Recording
-            </Button>
+            <span onClick={startRecording} disabled={isRecording}>
+              錄音
+            </span>
           ) : null}
           {isRecording ? (
-            <Button onClick={stopRecording} disabled={!isRecording}>
-              Stop Recording
-            </Button>
+            <span onClick={stopRecording} disabled={!isRecording}>
+              停止
+            </span>
           ) : null}
           {isRecording && <Status>錄音中...</Status>}
           {audioURL && (

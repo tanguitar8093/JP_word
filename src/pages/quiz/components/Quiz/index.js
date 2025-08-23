@@ -128,7 +128,6 @@ function QuizContent() {
 
       {/* Pass speakManually and question down as they are not part of the quiz context */}
       <QuestionCard speakManually={speakManually} cancelPlayback={cancelPlayback} question={question} />
-      <AudioRecorderPage />
 
       <Modal
         message="測驗尚未完成，確定要離開嗎？"

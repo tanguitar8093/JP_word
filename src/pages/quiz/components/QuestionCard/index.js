@@ -22,7 +22,7 @@ import {
 } from "./styles";
 import ExampleSentence from "../ExampleSentence";
 import AnswerSound from "../AnswerSound";
-
+import AudioRecorderPage from '../../../AudioRecorder'
 const proficiencyMapping = {
   1: '低',
   2: '中',
@@ -78,7 +78,7 @@ export default function QuestionCard({ speakManually, question }) {
           🔊
         </SpeakButton>
       </WordContainer>
-
+      <AudioRecorderPage />
       {!result && (
         <OptionsContainer>
           {q.options.map((opt, i) => (

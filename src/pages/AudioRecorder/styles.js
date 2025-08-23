@@ -18,6 +18,7 @@ export const ButtonContainer = styled.div`
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
+  text-align:center
 `;
 
 export const Button = styled.button`
@@ -47,7 +48,32 @@ export const Status = styled.span`
 `;
 
 export const AudioPlayer = styled.audio`
-  margin-top: 2rem;
   width: 100%;
   max-width: 500px;
+`;
+
+// 外圈按鈕
+export const RecordButton = styled.button`
+  width: 60px;
+  height: 60px;
+  border: 3px solid #333;  /* 外框 */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #fff;
+  outline: none;
+
+  &:active {
+    background: #eee;
+  }
+`;
+
+// 紅色實心圓
+export const RecordIcon = styled.div`
+  width: 24px;
+  height: 24px;
+  background: red;
+  border-radius: 50%;
 `;
