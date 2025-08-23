@@ -36,13 +36,39 @@ const rootReducer = combineReducers({
 });
 
 // Initial state for the combined application state
-const initialAppState = {
-  quiz: quizReducer(undefined, {}), // Get initial state from each reducer
-  wordManagement: wordManagementReducer(undefined, {}),
-  systemSettings: systemSettingsReducer(undefined, {}),
-  wordReading: wordReadingReducer(undefined, {}),
-  shared: sharedReducer(undefined, {}),
-};
+const initialAppState = (() => {
+  let savedSettings = {};
+  try {
+    const storedSettings = localStorage.getItem('jp_word_settings');
+    if (storedSettings) {
+      savedSettings = JSON.parse(storedSettings);
+    }
+  } catch (error) {
+    console.error("Failed to load settings from localStorage", error);
+  }
+
+  // Get the default systemSettings initial state
+  const defaultSystemSettings = systemSettingsReducer(undefined, {});
+
+  // Merge loaded settings with default system settings
+  const mergedSystemSettings = {
+    ...defaultSystemSettings,
+    ...savedSettings,
+    // Deep merge for playbackOptions if it exists in savedSettings
+    playbackOptions: {
+      ...defaultSystemSettings.playbackOptions,
+      ...(savedSettings.playbackOptions || {}),
+    },
+  };
+
+  return {
+    quiz: quizReducer(undefined, {}), // Get initial state from each reducer
+    wordManagement: wordManagementReducer(undefined, {}),
+    systemSettings: mergedSystemSettings, // Pass the fully merged state here
+    wordReading: wordReadingReducer(undefined, {}),
+    shared: sharedReducer(undefined, {}),
+  };
+})();
 
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(rootReducer, initialAppState);
@@ -55,6 +81,15 @@ export function AppProvider({ children }) {
     dispatch(getNotebooks(notebooks));
     dispatch(setCurrentNotebook(currentNotebookId));
   }, []);
+
+  // Save systemSettings to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('jp_word_settings', JSON.stringify(state.systemSettings));
+    } catch (error) {
+      console.error("Failed to save settings to localStorage", error);
+    }
+  }, [state.systemSettings]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
