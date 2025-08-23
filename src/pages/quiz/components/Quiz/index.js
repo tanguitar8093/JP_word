@@ -196,7 +196,6 @@ export default function Quiz() {
       </>
     )
   }
-  console.log("emptyAlert",emptyAlert)
   return (
       <QuizContent />
   );

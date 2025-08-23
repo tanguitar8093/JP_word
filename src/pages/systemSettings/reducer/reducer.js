@@ -26,17 +26,12 @@ export const initialState = {
 };
 
 function reducer(state = initialState, action) {
-  console.log('Reducer initial state (before merge):', initialState); // Keep for debugging
-  console.log('Reducer incoming state (from AppContext):', state); // Keep for debugging
-  
+
   // The state passed to the reducer is already the fully merged state from AppContext
   const currentWorkingState = state; // Use the state directly
 
-  console.log('Reducer currentState (after merge):', currentWorkingState); // Keep for debugging
-
   switch (action.type) {
     case SET_PLAYBACK_OPTIONS:
-      console.log('SET_PLAYBACK_OPTIONS payload:', action.payload);
       return {
         ...currentWorkingState,
         playbackOptions: action.payload,

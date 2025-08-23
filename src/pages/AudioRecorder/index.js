@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   ButtonContainer,
   IconButton,
@@ -8,13 +8,53 @@ import {
   RecordIcon
 } from './styles';
 
-const AudioRecorderPage = () => {
+const AudioRecorderPage = ({ triggerReset }) => {
   const [permission, setPermission] = useState(false);
   const [stream, setStream] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [audioURL, setAudioURL] = useState('');
   const mediaRecorder = useRef(null);
   const audioChunks = useRef([]);
+
+  // Reset function
+  const resetRecorder = () => {
+    // 停止 recorder
+    if (mediaRecorder.current) {
+      try {
+        mediaRecorder.current.stop();
+      } catch (e) {
+        // 已經停止就忽略
+      }
+      mediaRecorder.current = null;
+    }
+
+    // 如果已經有權限，就只 reset 錄音相關
+    if (permission) {
+      if (audioURL) {
+        URL.revokeObjectURL(audioURL); // 釋放 blob URL
+      }
+      setIsRecording(false);
+      setAudioURL('');
+      audioChunks.current = [];
+    } else {
+      // 沒有權限 → 完全回到初始狀態
+      setPermission(false);
+      setStream(null);
+      setIsRecording(false);
+      if (audioURL) {
+        URL.revokeObjectURL(audioURL);
+      }
+      setAudioURL('');
+      audioChunks.current = [];
+    }
+  };
+
+  // 父層觸發 reset
+  useEffect(() => {
+    if (triggerReset) {
+      resetRecorder();
+    }
+  }, [triggerReset]);
 
   const getMicrophonePermission = async () => {
     if ('MediaRecorder' in window) {
@@ -36,7 +76,10 @@ const AudioRecorderPage = () => {
     }
 
     setIsRecording(true);
-    setAudioURL(''); // 清空之前的錄音
+    if (audioURL) {
+      URL.revokeObjectURL(audioURL); // 清掉舊的 URL
+    }
+    setAudioURL('');
     audioChunks.current = [];
 
     const media = new MediaRecorder(stream, { type: 'audio/webm' });
@@ -52,14 +95,16 @@ const AudioRecorderPage = () => {
 
   const stopRecording = () => {
     setIsRecording(false);
-    mediaRecorder.current.stop();
+    if (mediaRecorder.current) {
+      mediaRecorder.current.stop();
 
-    mediaRecorder.current.onstop = () => {
-      const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      setAudioURL(audioUrl);
-      audioChunks.current = [];
-    };
+      mediaRecorder.current.onstop = () => {
+        const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        setAudioURL(audioUrl);
+        audioChunks.current = [];
+      };
+    }
   };
 
   return (
@@ -82,7 +127,7 @@ const AudioRecorderPage = () => {
       {permission && isRecording && (
         <>
           <IconButton onClick={stopRecording}> ⏹ 點擊停止錄音</IconButton>
-            <RecordIcon recording={true} /> 
+          <RecordIcon recording={true} />
           <Status>錄音中... </Status>
         </>
       )}

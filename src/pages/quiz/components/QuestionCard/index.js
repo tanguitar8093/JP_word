@@ -79,7 +79,7 @@ export default function QuestionCard({ speakManually, question }) {
           🔊
         </SpeakButton>
       </WordContainer>
-      <AudioRecorderPage />
+      <AudioRecorderPage triggerReset={currentQuestionIndex}/>
       {!result && (
         <OptionsContainer>
           {q.options.map((opt, i) => (
