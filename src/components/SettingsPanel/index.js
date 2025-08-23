@@ -5,6 +5,8 @@ export default function SettingsPanel({
   setRate,
   playbackOptions,
   setPlaybackOptions,
+  proficiencyFilter,
+  setProficiencyFilter,
 }) {
   return (
     <PanelContainer>
@@ -94,6 +96,53 @@ export default function SettingsPanel({
           開啟
         </label>
       </LabelGroup>
+
+      {proficiencyFilter && setProficiencyFilter && (
+        <LabelGroup>
+          測驗範圍：
+          <div>
+            <label>
+              <input
+                type="checkbox"
+                checked={proficiencyFilter[1]}
+                onChange={(e) =>
+                  setProficiencyFilter((prev) => ({
+                    ...prev,
+                    1: e.target.checked,
+                  }))
+                }
+              />
+              低
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={proficiencyFilter[2]}
+                onChange={(e) =>
+                  setProficiencyFilter((prev) => ({
+                    ...prev,
+                    2: e.target.checked,
+                  }))
+                }
+              />
+              中
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={proficiencyFilter[3]}
+                onChange={(e) =>
+                  setProficiencyFilter((prev) => ({
+                    ...prev,
+                    3: e.target.checked,
+                  }))
+                }
+              />
+              高
+            </label>
+          </div>
+        </LabelGroup>
+      )}
     </PanelContainer>
   );
 }

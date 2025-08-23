@@ -1,12 +1,31 @@
 import styled from "styled-components";
 
+const proficiencyColors = {
+  1: '#007bff', // blue
+  2: '#ffc107', // orange
+  3: '#dc3545', // red
+};
+
 // 容器
 export const CardContainer = styled.div`
+  position: relative;
   padding: 12px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background: #ffffff;
   margin-bottom: 16px;
+`;
+
+export const ProficiencyBadge = styled.div`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 6px;
+  border: 1px solid ${(props) => proficiencyColors[props.level] || '#ccc'};
+  color: ${(props) => proficiencyColors[props.level] || '#ccc'};
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
 `;
 
 // 平假名 toggle 容器

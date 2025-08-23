@@ -12,6 +12,7 @@ export const questions = [
     ch_ex_statement: "吃飯。",
     type: "動詞",
     options: generateOptions("吃", "動詞"),
+    proficiency: 1,
   },
   {
     id: uuidv4(),
@@ -22,6 +23,7 @@ export const questions = [
     ch_ex_statement: "在公園跑步。",
     type: "動詞",
     options: generateOptions("跑", "動詞"),
+    proficiency: 2,
   },
   {
     id: uuidv4(),
@@ -32,6 +34,7 @@ export const questions = [
     ch_ex_statement: "這是一個日文例句。",
     type: "名詞",
     options: generateOptions("日文", "名詞"),
+    proficiency: 3,
   },
   {
     id: uuidv4(),
@@ -42,6 +45,7 @@ export const questions = [
     ch_ex_statement: "喝水。",
     type: "動詞",
     options: generateOptions("喝", "動詞"),
+    proficiency: 1,
   },
   {
     id: uuidv4(),
@@ -52,6 +56,7 @@ export const questions = [
     ch_ex_statement: "寫信。",
     type: "動詞",
     options: generateOptions("寫", "動詞"),
+    proficiency: 2,
   },
   {
     id: uuidv4(),
@@ -62,6 +67,7 @@ export const questions = [
     ch_ex_statement: "看電視。",
     type: "動詞",
     options: generateOptions("看", "動詞"),
+    proficiency: 3,
   },
   {
     id: uuidv4(),
@@ -72,6 +78,7 @@ export const questions = [
     ch_ex_statement: "聽音樂。",
     type: "動詞",
     options: generateOptions("聽", "動詞"),
+    proficiency: 1,
   },
   {
     id: uuidv4(),
@@ -82,6 +89,7 @@ export const questions = [
     ch_ex_statement: "在路上走。",
     type: "動詞",
     options: generateOptions("走路", "動詞"),
+    proficiency: 2,
   },
   {
     id: uuidv4(),
@@ -92,6 +100,7 @@ export const questions = [
     ch_ex_statement: "貓很可愛。",
     type: "名詞",
     options: generateOptions("貓", "名詞"),
+    proficiency: 3,
   },
   {
     id: uuidv4(),
@@ -102,6 +111,7 @@ export const questions = [
     ch_ex_statement: "狗在叫。",
     type: "名詞",
     options: generateOptions("狗", "名詞"),
+    proficiency: 1,
   },
   {
     id: uuidv4(),
@@ -112,6 +122,7 @@ export const questions = [
     ch_ex_statement: "天空是藍色的。",
     type: "名詞",
     options: generateOptions("天空", "名詞"),
+    proficiency: 2,
   },
   {
     id: uuidv4(),
@@ -122,6 +133,7 @@ export const questions = [
     ch_ex_statement: "月色真美啊。",
     type: "名詞",
     options: generateOptions("月亮", "名詞"),
+    proficiency: 3,
   },
   {
     id: uuidv4(),
@@ -132,5 +144,6 @@ export const questions = [
     ch_ex_statement: "花開了。",
     type: "名詞",
     options: generateOptions("花", "名詞"),
+    proficiency: 1,
   },
 ];

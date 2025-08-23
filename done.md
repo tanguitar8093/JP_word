@@ -40,3 +40,6 @@
                     options: [string,string,...],
                 },
             ```
+            筆記本
+        - bug 結束遊戲和選擇題遊戲有關的狀態要復原 [high] --> ing
+        - bug 自動下一題,按鈕要隱藏 [normal]        

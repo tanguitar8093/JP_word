@@ -1,4 +1,4 @@
-import { SET_RATE, SET_PLAYBACK_OPTIONS } from "./actions";
+import { SET_RATE, SET_PLAYBACK_OPTIONS, SET_PROFICIENCY_FILTER } from "./actions";
 
 export const initialState = {
   rate: 1.0,
@@ -8,6 +8,11 @@ export const initialState = {
     jpEx: false,
     chEx: false,
     autoNext: true,
+  },
+  proficiencyFilter: {
+    1: true,
+    2: true,
+    3: true,
   },
 };
 
@@ -22,6 +27,11 @@ function reducer(state = initialState, action) {
       return {
         ...state,
         playbackOptions: action.payload,
+      };
+    case SET_PROFICIENCY_FILTER:
+      return {
+        ...state,
+        proficiencyFilter: action.payload,
       };
     default:
       return state;

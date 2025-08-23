@@ -18,12 +18,19 @@ import {
   AnswerText,
   NextButton,
   SubCard,
+  ProficiencyBadge,
 } from "./styles";
 import ExampleSentence from "../ExampleSentence";
 import AnswerSound from "../AnswerSound";
 
+const proficiencyMapping = {
+  1: '低',
+  2: '中',
+  3: '高',
+};
+
 // Note: This component no longer receives props. It gets everything from context.
-export default function QuestionCard({ speakManually }) {
+export default function QuestionCard({ speakManually, question }) {
   const { state, dispatch } = useApp(); // Changed from useQuiz
   const { questions, currentQuestionIndex, selectedAnswer, result } =
     state.quiz; // Access quiz state
@@ -45,6 +52,11 @@ export default function QuestionCard({ speakManually }) {
 
   return (
     <CardContainer>
+      {question.proficiency && (
+        <ProficiencyBadge level={question.proficiency} title="熟練度">
+          {proficiencyMapping[question.proficiency]}
+        </ProficiencyBadge>
+      )}
       {q.kanji_jp_word && (
         <>
           <HiraganaToggleContainer>

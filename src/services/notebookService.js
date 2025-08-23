@@ -181,6 +181,26 @@ const notebookService = {
     _saveNotebooksToStorage(notebooks);
     return notebooks[notebookId];
   },
+
+  updateWordInNotebook: (notebookId, wordId, updates) => {
+    const notebooks = _getNotebooksFromStorage();
+    if (!notebooks[notebookId]) {
+      throw new Error("Notebook not found.");
+    }
+
+    const wordIndex = notebooks[notebookId].context.findIndex(word => word.id === wordId);
+    if (wordIndex === -1) {
+      throw new Error("Word not found in the notebook.");
+    }
+
+    notebooks[notebookId].context[wordIndex] = {
+      ...notebooks[notebookId].context[wordIndex],
+      ...updates,
+    };
+
+    _saveNotebooksToStorage(notebooks);
+    return notebooks[notebookId].context[wordIndex];
+  },
   
   importNotebook: (file) => {
     return new Promise((resolve, reject) => {

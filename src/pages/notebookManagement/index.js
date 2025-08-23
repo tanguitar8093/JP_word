@@ -11,13 +11,14 @@ const NotebookManagementPage = ({ onExit }) => {
   const [selectedNotebook, setSelectedNotebook] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [editingContext, setEditingContext] = useState('');
+  const [proficiencyFilter, setProficiencyFilter] = useState(0); // 0 for all, 1 for low, 2 for medium, 3 for high
 
   useEffect(() => {
     const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
     if (currentNotebook) {
         handleSelectNotebook(currentNotebook);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [currentNotebookId, notebooks]);
 
   const refreshNotebooks = (currentId) => {
@@ -116,6 +117,11 @@ const NotebookManagementPage = ({ onExit }) => {
     event.target.value = null;
   };
 
+  const filteredContext = selectedNotebook?.context.filter(word => {
+    if (proficiencyFilter === 0) return true;
+    return word.proficiency === proficiencyFilter;
+  }) || [];
+
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
       <button onClick={onExit} style={{ float: 'right' }}>Back to App</button>
@@ -184,13 +190,19 @@ const NotebookManagementPage = ({ onExit }) => {
                 </div>
               
               <h4>Words Preview:</h4>
-               {selectedNotebook.context && selectedNotebook.context.length > 0 && selectedNotebook.context[0].jp_word ? (
+              <div>
+                <button onClick={() => setProficiencyFilter(0)} style={{ fontWeight: proficiencyFilter === 0 ? 'bold' : 'normal' }}>All</button>
+                <button onClick={() => setProficiencyFilter(1)} style={{ fontWeight: proficiencyFilter === 1 ? 'bold' : 'normal' }}>Low</button>
+                <button onClick={() => setProficiencyFilter(2)} style={{ fontWeight: proficiencyFilter === 2 ? 'bold' : 'normal' }}>Medium</button>
+                <button onClick={() => setProficiencyFilter(3)} style={{ fontWeight: proficiencyFilter === 3 ? 'bold' : 'normal' }}>High</button>
+              </div>
+               {filteredContext && filteredContext.length > 0 ? (
                 <ul>
-                    {selectedNotebook.context.map(word => (
-                        <li key={word.id}>{word.jp_word} - {word.ch_word} <button onClick={() => handleDeleteWord(word.id)}>Delete</button></li>
+                    {filteredContext.map(word => (
+                        <li key={word.id}>{word.jp_word} - {word.ch_word} (Proficiency: {word.proficiency}) <button onClick={() => handleDeleteWord(word.id)}>Delete</button></li>
                     ))}
                 </ul>
-               ) : <p>This notebook is empty.</p>}
+               ) : <p>This notebook is empty or no words match the filter.</p>}
             </div>
           ) : (
             <p>Select a notebook to see its details.</p>

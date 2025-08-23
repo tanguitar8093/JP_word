@@ -7,7 +7,7 @@ import {
 } from "../../components/App/styles";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { reducer, initialState, setRate, setPlaybackOptions } from "./reducer";
+import { reducer, initialState, setRate, setPlaybackOptions, setProficiencyFilter } from "./reducer";
 
 const HomeIcon = styled(SettingsToggle)`
   position: absolute;
@@ -17,7 +17,7 @@ const HomeIcon = styled(SettingsToggle)`
 
 function SystemSettingsPage() {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { rate, playbackOptions } = state;
+  const { rate, playbackOptions, proficiencyFilter } = state;
 
   const navigate = useNavigate();
 
@@ -31,6 +31,10 @@ function SystemSettingsPage() {
         playbackOptions={playbackOptions}
         setPlaybackOptions={(newOptions) =>
           dispatch(setPlaybackOptions(newOptions))
+        }
+        proficiencyFilter={proficiencyFilter}
+        setProficiencyFilter={(newFilter) =>
+          dispatch(setProficiencyFilter(newFilter))
         }
       />
     </AppContainer>

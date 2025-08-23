@@ -59,11 +59,6 @@ export const StatusEmoji = styled.span`
   font-size: 1.2em;
 `;
 
-export const FavoriteMark = styled.span`
-  margin-left: 10px;
-  cursor: pointer;
-`;
-
 export const EndQuizButton = styled.button`
   margin-top: 20px;
   padding: 12px 16px;
@@ -78,5 +73,30 @@ export const EndQuizButton = styled.button`
   &:hover {
     background-color: #007bff;
     color: white;
+  }
+`;
+
+export const ProficiencyControlContainer = styled.div`
+  display: flex;
+  gap: 5px;
+`;
+
+export const ProficiencyButton = styled.button`
+  margin: 0 5px;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #ddd;
+  }
+
+  &.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
   }
 `;

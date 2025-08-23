@@ -125,8 +125,8 @@ function QuizContent() {
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
 
-      {/* Pass speakManually down as it's not part of the quiz context */}
-      <QuestionCard speakManually={speakManually} cancelPlayback={cancelPlayback} />
+      {/* Pass speakManually and question down as they are not part of the quiz context */}
+      <QuestionCard speakManually={speakManually} cancelPlayback={cancelPlayback} question={question} />
 
       <Modal
         message="測驗尚未完成，確定要離開嗎？"
@@ -143,19 +143,20 @@ export default function Quiz() {
   const { state, dispatch } = useApp(); // Get state from global context
   const { quizCompleted, answeredQuestions, correctAnswersCount } = state.quiz; // Access quiz-specific state
   const { notebooks, currentNotebookId } = state.shared;
+  const { proficiencyFilter } = state.systemSettings;
 
   useEffect(() => {
     const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
     if (currentNotebook) {
-      const questions = currentNotebook.context.filter(q => q.jp_word);
+      const questions = currentNotebook.context.filter(q => q.jp_word && proficiencyFilter[q.proficiency]);
       if (questions.length > 0) {
         dispatch(startQuiz(questions));
       } else {
-        // Handle case where notebook is empty
-        alert("This notebook is empty!");
+        // Handle case where notebook is empty or no questions match filter
+        alert("This notebook is empty or no words match the proficiency filter!");
       }
     }
-  }, [notebooks, currentNotebookId, dispatch]);
+  }, [notebooks, currentNotebookId, dispatch, proficiencyFilter]);
 
   if (quizCompleted) {
     // Use quizCompleted from global state
