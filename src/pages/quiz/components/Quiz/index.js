@@ -149,7 +149,7 @@ export default function Quiz() {
   const { state, dispatch } = useApp(); // Get state from global context
   const { quizCompleted, answeredQuestions, correctAnswersCount } = state.quiz; // Access quiz-specific state
   const { notebooks, currentNotebookId } = state.shared;
-  const { quizScope } = state.systemSettings;
+  const { quizScope, startQuestionIndex, wordRangeCount } = state.systemSettings; // Destructure new settings
   const [emptyAlert, setEmptyAlert,]=useState(false)
   const navigate = useNavigate();
   useEffect(() => {
@@ -157,15 +157,22 @@ export default function Quiz() {
     if (!quizCompleted) {
       const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
       if (currentNotebook) {
-        const questions = currentNotebook.context.filter(q => {
+        let questions = currentNotebook.context.filter(q => {
           if (!q.jp_word) return false; // Ensure jp_word exists
 
+          // Apply quizScope filter (old logic)
           if (quizScope === "all") return true;
           if (quizScope === "low" && q.proficiency === 1) return true;
           if (quizScope === "medium" && q.proficiency === 2) return true;
           if (quizScope === "high" && q.proficiency === 3) return true;
           return false;
         });
+
+        // Apply startQuestionIndex and wordRangeCount filters
+        const startIndex = Math.max(0, startQuestionIndex - 1); // Convert to 0-based index
+        const endIndex = Math.min(questions.length, startIndex + wordRangeCount);
+        questions = questions.slice(startIndex, endIndex);
+
         console.log("Quiz useEffect - filtered questions IDs:", questions.map(q => q.id)); // Add this log
         if (questions.length > 0) {
           dispatch(startQuiz(questions));
@@ -175,7 +182,7 @@ export default function Quiz() {
         }
       }
     }
-  }, [currentNotebookId, dispatch, quizCompleted, quizScope, notebooks]);
+  }, [currentNotebookId, dispatch, quizCompleted, quizScope, notebooks, startQuestionIndex, wordRangeCount]); // Add new dependencies
 
   if (quizCompleted) {
     // Use quizCompleted from global state
