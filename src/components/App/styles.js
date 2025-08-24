@@ -15,6 +15,7 @@ export const AppContainer = styled.div`
 export const Title = styled.h2`
   text-align: center;
   margin-bottom: 16px;
+  user-select: none;
 `;
 
 // 進度文字
@@ -23,6 +24,7 @@ export const Progress = styled.p`
   margin-bottom: 24px;
   font-size: 16px;
   color: #555;
+  user-select: none;
 `;
 
 // 設定按鈕

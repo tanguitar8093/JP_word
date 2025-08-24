@@ -12,7 +12,6 @@ const NavList = styled.ul`
 `;
 
 const NavItem = styled.li`
-  padding: 10px 16px;
   font-size: 16px;
   border: 1px solid #007bff;
   border-radius: 6px;
@@ -33,6 +32,7 @@ const NavItem = styled.li`
 `;
 
 const StyledLink = styled(Link)`
+  padding: 10px 16px;
   color: inherit; /* 繼承父元素的顏色 */
   text-decoration: none;
   display: block;

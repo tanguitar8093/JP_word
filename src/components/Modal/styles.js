@@ -31,6 +31,7 @@ export const ModalContent = styled.p`
   font-size: 1.1em;
   color: #333;
   margin: 0;
+  user-select: none;
 `;
 
 export const ModalActions = styled.div`
