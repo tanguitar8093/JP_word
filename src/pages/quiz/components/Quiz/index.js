@@ -58,20 +58,7 @@ function QuizContent() {
   const question = questions[currentQuestionIndex];
   const blocker = useBlocker(!quizCompleted);
 
-  useEffect(() => {
-    const handleBeforeUnload = (event) => {
-      if (!quizCompleted) {
-        event.preventDefault();
-        event.returnValue = "";
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [quizCompleted]);
+  
 
   const handleConfirmExit = useCallback(() => {
     dispatch(commitPendingProficiencyUpdates()); // Commit changes before exiting
