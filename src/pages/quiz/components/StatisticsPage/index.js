@@ -68,7 +68,7 @@ const StatisticsPage = ({ answeredQuestions, correctAnswersCount }) => {
 
   return (
     <StatisticsContainer>
-      <ScoreDisplay>分數: {score.toFixed(0)} / 100</ScoreDisplay>
+      <ScoreDisplay>答對比例: {correctAnswersCount}/{totalQuestions}</ScoreDisplay>
       <HeaderContainer>
         <HeaderItem>結果</HeaderItem>
         <HeaderItem>單字</HeaderItem>
