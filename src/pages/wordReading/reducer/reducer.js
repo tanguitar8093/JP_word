@@ -7,15 +7,32 @@ export const initialState = {
   sessionState: 'ready', // ready, active, finished
 };
 
+const sortCards = (cards, sortOrder) => {
+  let sortedCards = [...cards];
+
+  if (sortOrder === 'random') {
+    for (let i = sortedCards.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [sortedCards[i], sortedCards[j]] = [sortedCards[j], sortedCards[i]];
+    }
+  } else if (sortOrder === 'aiueo') {
+    sortedCards.sort((a, b) => a.jp_word.localeCompare(b.jp_word, 'ja'));
+  } else if (sortOrder === 'none') {
+    // Do nothing
+  }
+  return sortedCards;
+};
+
 function reducer(state = initialState, action) {
   switch (action.type) {
     case START_SESSION:
-      const cards = action.payload;
+      const { cards, sortOrder } = action.payload; // Destructure payload
+      const sortedCards = sortCards(cards, sortOrder); // Apply sorting
       return {
         ...state,
-        cards: cards,
-        queue: cards,
-        currentCard: cards[0] || null,
+        cards: sortedCards, // Use sorted cards
+        queue: sortedCards, // Use sorted cards
+        currentCard: sortedCards[0] || null,
         sessionState: 'active',
       };
     case ANSWER_CARD:

@@ -40,8 +40,18 @@ const Flashcard = ({ card, onAnswer, speak }) => {
       {showAnswer ? (
         <AnswerContainer>
           <p>{card.ch_word}</p>
-          <p>{card.jp_ex_statement}</p>
-          <p>{card.ch_ex_statement}</p>
+          <p>
+            {card.jp_ex_statement}
+            {card.jp_ex_statement && ( // Only show button if statement exists
+              <SpeakButton onClick={() => speak(card.jp_ex_statement, 'ja')}>🔊</SpeakButton>
+            )}
+          </p>
+          <p>
+            {card.ch_ex_statement}
+            {card.ch_ex_statement && ( // Only show button if statement exists
+              <SpeakButton onClick={() => speak(card.ch_ex_statement, 'zh')}>🔊</SpeakButton>
+            )}
+          </p>
           <ActionButtons>
             <ActionButton className="hard" onClick={() => handleAnswer('hard')}>Hard</ActionButton>
             <ActionButton className="good" onClick={() => handleAnswer('good')}>Good</ActionButton>
