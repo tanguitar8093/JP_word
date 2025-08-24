@@ -55,6 +55,7 @@ const proficiencyMap = {
 const sortOrderMap = {
   random: '隨機',
   aiueo: 'あいうえお',
+  none: '預設',
 };
 
 function QuizContent() {

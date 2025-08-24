@@ -146,6 +146,16 @@ export default function SettingsPanel({
               <input
                 type="radio"
                 name="sortOrder"
+                value="none"
+                checked={sortOrder === 'none'}
+                onChange={(e) => setSortOrder(e.target.value)}
+              />
+              預設
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="sortOrder"
                 value="random"
                 checked={sortOrder === 'random'}
                 onChange={(e) => setSortOrder(e.target.value)}

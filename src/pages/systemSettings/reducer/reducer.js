@@ -26,7 +26,7 @@ export const initialState = {
   autoProceed: true,
   startQuestionIndex: 1, // New state variable, default to 1 (data index 0)
   wordRangeCount: 9999,   // New state variable, default to 9999
-  sortOrder: 'random',
+  sortOrder: 'none',
 };
 
 function reducer(state = initialState, action) {

@@ -36,6 +36,8 @@ const sortQuestions = (questions, sortOrder) => {
     }
   } else if (sortOrder === 'aiueo') {
     sortedQuestions.sort((a, b) => a.jp_word.localeCompare(b.jp_word, 'ja'));
+  } else if (sortOrder === 'none') {
+    // Do nothing
   }
 
   // After sorting questions, shuffle options for each question
