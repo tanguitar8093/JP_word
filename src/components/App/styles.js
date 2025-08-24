@@ -44,7 +44,7 @@ export const SettingsToggle = styled.span`
 // 懸浮設定面板
 export const FloatingSettingsPanel = styled.div`
   position: absolute;
-  top: 40px;
+  top: 56px;
   right: 10px;
   background: #fff;
   padding: 12px 16px;
