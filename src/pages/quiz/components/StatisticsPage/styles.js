@@ -1,4 +1,18 @@
 import styled from "styled-components";
+export const SpeakButton = styled.span`
+  cursor: pointer;
+  font-size: 10x;
+  user-select: none;
+  transition: transform 0.1s;
+
+  &:hover {
+    color: #007bff;
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+`;
 
 export const StatisticsContainer = styled.div`
   display: flex;
@@ -28,7 +42,7 @@ export const HeaderContainer = styled.div`
 export const HeaderItem = styled.div`
   flex: 1; /* Default flex for items */
   text-align: center; /* Default center alignment */
-  
+
   &:first-child {
     flex: 0 0 50px; /* Fixed width for "結果" */
     text-align: left;
@@ -60,8 +74,8 @@ export const QuestionList = styled.ul`
   border-radius: 5px;
 
   /* Hide scrollbar for IE, Edge and Firefox */
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 
   /* Hide scrollbar for Chrome, Safari and Opera */
   &::-webkit-scrollbar {

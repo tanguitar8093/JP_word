@@ -16,23 +16,34 @@ import {
   ProficiencyButton,
   ProficiencyControlContainer,
   HeaderContainer, // Import HeaderContainer
-  HeaderItem,     // Import HeaderItem
+  HeaderItem, // Import HeaderItem
+  SpeakButton,
 } from "./styles"; // Import styled components from styles.js
 
-const StatisticsPage = ({ answeredQuestions, correctAnswersCount }) => {
+const StatisticsPage = ({
+  answeredQuestions,
+  correctAnswersCount,
+  speakManually,
+  wordType,
+}) => {
   const navigate = useNavigate();
   const { state, dispatch } = useApp(); // Get dispatch from useApp
   const { currentNotebookId, pendingProficiencyUpdates } = state.shared; // Get pendingProficiencyUpdates
 
   // Initialize localAnsweredQuestions by applying pendingProficiencyUpdates
-  const initialAnsweredQuestions = answeredQuestions.map(item => {
+  const initialAnsweredQuestions = answeredQuestions.map((item) => {
     const pendingProficiency = pendingProficiencyUpdates[item.question.id];
     if (pendingProficiency !== undefined) {
-      return { ...item, question: { ...item.question, proficiency: pendingProficiency } };
+      return {
+        ...item,
+        question: { ...item.question, proficiency: pendingProficiency },
+      };
     }
     return item;
   });
-  const [localAnsweredQuestions, setLocalAnsweredQuestions] = useState(initialAnsweredQuestions);
+  const [localAnsweredQuestions, setLocalAnsweredQuestions] = useState(
+    initialAnsweredQuestions
+  );
 
   const totalQuestions = localAnsweredQuestions.length;
   const score =
@@ -51,10 +62,14 @@ const StatisticsPage = ({ answeredQuestions, correctAnswersCount }) => {
 
   const handleProficiencyChange = (wordId, proficiency) => {
     try {
-      notebookService.updateWordInNotebook(currentNotebookId, wordId, { proficiency });
-      dispatch(updateWordInNotebook(currentNotebookId, wordId, { proficiency }));
+      notebookService.updateWordInNotebook(currentNotebookId, wordId, {
+        proficiency,
+      });
+      dispatch(
+        updateWordInNotebook(currentNotebookId, wordId, { proficiency })
+      );
       // Update local state to reflect the change immediately in UI
-      const updatedQuestions = localAnsweredQuestions.map(item => {
+      const updatedQuestions = localAnsweredQuestions.map((item) => {
         if (item.question.id === wordId) {
           return { ...item, question: { ...item.question, proficiency } };
         }
@@ -68,7 +83,9 @@ const StatisticsPage = ({ answeredQuestions, correctAnswersCount }) => {
 
   return (
     <StatisticsContainer>
-      <ScoreDisplay>答對比例: {correctAnswersCount}/{totalQuestions}</ScoreDisplay>
+      <ScoreDisplay>
+        答對比例: {correctAnswersCount}/{totalQuestions}
+      </ScoreDisplay>
       <HeaderContainer>
         <HeaderItem>結果</HeaderItem>
         <HeaderItem>單字</HeaderItem>
@@ -78,25 +95,45 @@ const StatisticsPage = ({ answeredQuestions, correctAnswersCount }) => {
         {localAnsweredQuestions.map((item, index) => {
           // Determine the current proficiency to highlight the button
           // This still uses pendingProficiencyUpdates for initial display from quiz phase
-          const currentProficiency = pendingProficiencyUpdates[item.question.id] || item.question.proficiency;
+          const currentProficiency =
+            pendingProficiencyUpdates[item.question.id] ||
+            item.question.proficiency;
           return (
             <QuestionItem key={index}>
               <StatusEmoji>{item.isCorrect ? "⭕" : "❌"}</StatusEmoji>
-              <QuestionText>
-                {item.question.kanji_jp_word
-                  ? item.question.kanji_jp_word
-                  : item.question.jp_word}
-              </QuestionText>
+              <SpeakButton
+                onClick={() => speakManually(item.question.jp_word, "ja")}
+              >
+                <QuestionText>
+                  {wordType == "kanji_jp_word" &&
+                    item.question.kanji_jp_word &&
+                    item.question.kanji_jp_word}
+                  {wordType == "kanji_jp_word" &&
+                    !item.question.kanji_jp_word &&
+                    item.question.jp_word}
+                  {wordType == "jp_word" && item.question.jp_word}
+                  🔊
+                </QuestionText>
+              </SpeakButton>
               <ProficiencyControlContainer>
                 <ProficiencyButton
-                  className={currentProficiency === 1 ? 'active' : ''}
-                  onClick={() => handleProficiencyChange(item.question.id, 1)}>低</ProficiencyButton>
+                  className={currentProficiency === 1 ? "active" : ""}
+                  onClick={() => handleProficiencyChange(item.question.id, 1)}
+                >
+                  低
+                </ProficiencyButton>
                 <ProficiencyButton
-                  className={currentProficiency === 2 ? 'active' : ''}
-                  onClick={() => handleProficiencyChange(item.question.id, 2)}>中</ProficiencyButton>
+                  className={currentProficiency === 2 ? "active" : ""}
+                  onClick={() => handleProficiencyChange(item.question.id, 2)}
+                >
+                  中
+                </ProficiencyButton>
                 <ProficiencyButton
-                  className={currentProficiency === 3 ? 'active' : ''}
-                  onClick={() => handleProficiencyChange(item.question.id, 3)}>高</ProficiencyButton>
+                  className={currentProficiency === 3 ? "active" : ""}
+                  onClick={() => handleProficiencyChange(item.question.id, 3)}
+                >
+                  高
+                </ProficiencyButton>
               </ProficiencyControlContainer>
             </QuestionItem>
           );

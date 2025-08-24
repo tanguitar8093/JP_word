@@ -173,7 +173,6 @@ function QuizContent() {
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
 
-      {/* Pass speakManually and question down as they are not part of the quiz context */}
       <QuestionCard
         speakManually={speakManually}
         cancelPlayback={cancelPlayback}
@@ -210,10 +209,38 @@ export default function Quiz() {
   const { state, dispatch } = useApp(); // Get state from global context
   const { quizCompleted, answeredQuestions, correctAnswersCount } = state.quiz; // Access quiz-specific state
   const { notebooks, currentNotebookId } = state.shared;
-  const { proficiencyFilter, startQuestionIndex, wordRangeCount, sortOrder } =
-    state.systemSettings; // Destructure new settings
+  const {
+    proficiencyFilter,
+    startQuestionIndex,
+    wordRangeCount,
+    sortOrder,
+    playbackOptions,
+    playbackSpeed,
+    wordType,
+  } = state.systemSettings; // Destructure new settings
   const [emptyAlert, setEmptyAlert] = useState(false);
   const navigate = useNavigate();
+
+  const { playSequence } = useAnswerPlayback({
+    onNext: () => dispatch(nextQuestionGame()),
+    playbackOptions,
+    rate: playbackSpeed,
+  });
+
+  const speakManually = useCallback(
+    (text, lang) => {
+      const options = {};
+      if (lang === "ja") {
+        options.jp = true;
+        playSequence(null, { jp_word: text }, options, { skipSound: true });
+      } else if (lang === "zh") {
+        options.ch = true;
+        playSequence(null, { ch_word: text }, options, { skipSound: true });
+      }
+    },
+    [playSequence]
+  );
+
   useEffect(() => {
     if (!quizCompleted) {
       const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
@@ -253,8 +280,10 @@ export default function Quiz() {
     // Use quizCompleted from global state
     return (
       <StatisticsPage
-        answeredQuestions={answeredQuestions} // Pass from global state
-        correctAnswersCount={correctAnswersCount} // Pass from global state
+        answeredQuestions={answeredQuestions}
+        correctAnswersCount={correctAnswersCount}
+        speakManually={speakManually}
+        wordType={wordType}
       />
     );
   }

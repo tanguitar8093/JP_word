@@ -132,13 +132,12 @@ export default function QuestionCard({ speakManually, question }) {
       {result && (
         <ResultContainer>
           <SubCard>
-            <AnswerText correct={result === "⭕"}>{q.ch_word}</AnswerText>
+            <AnswerText correct={result === "⭕"}>
+              {q.ch_word} [{q.type}]
+            </AnswerText>
             <AnswerText correct={result === "⭕"}>
               {selectedAnswer} {result}
             </AnswerText>
-          </SubCard>
-          <SubCard>
-            <div>詞性：{q.type}</div>
           </SubCard>
           <ExampleSentence
             jp_ex={q.jp_ex_statement}

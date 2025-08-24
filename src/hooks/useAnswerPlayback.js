@@ -9,8 +9,7 @@ export function useAnswerPlayback({
   onNext,
   playbackOptions,
   rate,
-  autoProceed, // New prop
-  currentQuestionIndex,
+  autoProceed,
 }) {
   const playedForResult = useRef(false);
   const playbackRef = useRef(null);
@@ -85,7 +84,8 @@ export function useAnswerPlayback({
       await playSequence(result, question, playbackOptions);
 
       if (playbackRef.current === playbackId && !playbackId.cancelled) {
-        if (autoProceed) { // Use autoProceed here
+        if (autoProceed) {
+          // Use autoProceed here
           onNext();
         }
       }
