@@ -14,6 +14,7 @@ import {
   Progress,
   SettingsToggle,
   FloatingSettingsPanel,
+  Overlay,
 } from "../../../../components/App/styles";
 import styled from "styled-components";
 import {
@@ -56,6 +57,21 @@ function QuizContent() {
   const { playbackOptions, playbackSpeed, autoProceed } = state.systemSettings; // Access systemSettings state
   const question = questions[currentQuestionIndex];
   const blocker = useBlocker(!quizCompleted);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if (!quizCompleted) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [quizCompleted]);
 
   const handleConfirmExit = useCallback(() => {
     dispatch(commitPendingProficiencyUpdates()); // Commit changes before exiting
@@ -111,17 +127,20 @@ function QuizContent() {
         </IconGroup>
       </IconContainer>
       {showSettings && (
-        <FloatingSettingsPanel>
-          <SettingsPanel
-            playbackSpeed={playbackSpeed}
-            setPlaybackSpeed={(newSpeed) => dispatch(setPlaybackSpeed(newSpeed))}
-            playbackOptions={playbackOptions}
-            setPlaybackOptions={(newOptions) => dispatch(setPlaybackOptions(newOptions))}
-            autoProceed={autoProceed} // Pass autoProceed from global state
-            setAutoProceed={(newAutoProceed) => dispatch(setAutoProceed(newAutoProceed))} // Pass setAutoProceed from global state
-            isQuizContext={true} // New prop
-          />
-        </FloatingSettingsPanel>
+        <>
+          <Overlay onClick={() => setShowSettings(false)} />
+          <FloatingSettingsPanel>
+            <SettingsPanel
+              playbackSpeed={playbackSpeed}
+              setPlaybackSpeed={(newSpeed) => dispatch(setPlaybackSpeed(newSpeed))}
+              playbackOptions={playbackOptions}
+              setPlaybackOptions={(newOptions) => dispatch(setPlaybackOptions(newOptions))}
+              autoProceed={autoProceed} // Pass autoProceed from global state
+              setAutoProceed={(newAutoProceed) => dispatch(setAutoProceed(newAutoProceed))} // Pass setAutoProceed from global state
+              isQuizContext={true} // New prop
+            />
+          </FloatingSettingsPanel>
+        </>
       )}
 
       <Title>單字練習</Title>
