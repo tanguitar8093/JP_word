@@ -43,15 +43,20 @@ export const ActionButton = styled.button`
   transition: all 0.2s ease;
   border: 1px solid #ccc;
 
+  &.again {
+    background-color: #dc3545; /* Red */
+    color: white;
+  }
   &.hard {
-    background-color: #ffc107;
+    background-color: #007bff; /* Blue */
+    color: white;
   }
   &.good {
-    background-color: #007bff;
+    background-color: #28a745; /* Green */
     color: white;
   }
   &.easy {
-    background-color: #28a745;
+    background-color: #6f42c1; /* Purple */
     color: white;
   }
 `;

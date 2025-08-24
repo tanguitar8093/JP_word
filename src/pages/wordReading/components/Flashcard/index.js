@@ -75,6 +75,7 @@ const Flashcard = ({ card, onAnswer, speak }) => {
             {card.ch_ex_statement}
           </p>
           <ActionButtons>
+            <ActionButton className="again" onClick={() => handleAnswer('again')}>Again</ActionButton>
             <ActionButton className="hard" onClick={() => handleAnswer('hard')}>Hard</ActionButton>
             <ActionButton className="good" onClick={() => handleAnswer('good')}>Good</ActionButton>
             <ActionButton className="easy" onClick={() => handleAnswer('easy')}>Easy</ActionButton>

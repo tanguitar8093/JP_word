@@ -1,4 +1,4 @@
-import { START_SESSION, ANSWER_CARD, NEXT_CARD } from './actions';
+import { START_SESSION, ANSWER_CARD, NEXT_CARD, UPDATE_CARD } from './actions'; // Import UPDATE_CARD
 
 export const initialState = {
   cards: [],
@@ -47,6 +47,21 @@ function reducer(state = initialState, action) {
         queue: newQueue,
         currentCard: newQueue[0] || null,
         sessionState: newQueue.length === 0 ? 'finished' : state.sessionState,
+      };
+    case UPDATE_CARD: // Handle UPDATE_CARD action
+      const updatedCard = action.payload;
+      const updatedCards = state.cards.map(card =>
+        card.id === updatedCard.id ? updatedCard : card
+      );
+      // Also update the queue if the current card is the one being updated
+      const updatedQueue = state.queue.map(card =>
+        card.id === updatedCard.id ? updatedCard : card
+      );
+      return {
+        ...state,
+        cards: updatedCards,
+        queue: updatedQueue,
+        currentCard: state.currentCard && state.currentCard.id === updatedCard.id ? updatedCard : state.currentCard,
       };
     default:
       return state;

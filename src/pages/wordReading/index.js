@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../store/contexts/AppContext';
-import { startSession, answerCard, nextCard } from './reducer/actions';
+import { startSession, answerCard, nextCard, updateCard } from './reducer/actions';
 import Flashcard from './components/Flashcard';
 import {
   AppContainer,
   Title,
-  Progress,
   SettingsToggle,
   FloatingSettingsPanel,
   Overlay,
-  InfoToggle, // New import
+  InfoToggle,
 } from '../../components/App/styles';
 import styled from 'styled-components';
 import { speak } from '../../services/speechService';
@@ -22,6 +21,8 @@ import {
 } from '../../pages/systemSettings/reducer/actions';
 import correctSound from '../../assets/sounds/correct.mp3';
 import wrongSound from '../../assets/sounds/wrong.mp3';
+import { calculateNextState } from '../../services/ankiService';
+import { CounterContainer, CounterItem } from './styles';
 
 const IconContainer = styled.div`
   position: absolute;
@@ -69,29 +70,63 @@ const WordReadingPage = () => {
     .map(([key]) => proficiencyMap[key])
     .join(', ');
 
+  const now = Date.now();
+  const newCount = cards.filter(card => card.status === 'new').length;
+  const learningCount = cards.filter(card => card.status === 'learning' && card.due <= now).length;
+  const reviewCount = cards.filter(card => card.status === 'review' && card.due <= now).length;
+
   useEffect(() => {
     const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
     if (currentNotebook) {
       let filteredCards = currentNotebook.context.filter(card => {
         if (!card.jp_word) return false;
         return proficiencyFilter[card.proficiency];
+      }).map(card => {
+        // Initialize Anki fields if they don't exist
+        return {
+          ...card,
+          status: card.status || 'new',
+          due: card.due || Date.now(), // New cards are due immediately
+          interval: card.interval || 0,
+          easeFactor: card.easeFactor || 2.5,
+          reps: card.reps || 0,
+          lapses: card.lapses || 0,
+          learningStep: card.learningStep || 0,
+        };
       });
 
       const startIndex = Math.max(0, startQuestionIndex - 1);
       const endIndex = Math.min(filteredCards.length, startIndex + wordRangeCount);
       filteredCards = filteredCards.slice(startIndex, endIndex);
 
-      if (filteredCards.length > 0) {
-        dispatch(startSession(filteredCards, sortOrder));
+      // Categorize cards into Anki queues
+      let reviewQueue = [];
+      let newQueue = [];
+      let learningQueue = [];
+
+      filteredCards.forEach(card => {
+        if (card.status === 'review' && card.due <= now) {
+          reviewQueue.push(card);
+        } else if (card.status === 'new') {
+          newQueue.push(card);
+        } else if (card.status === 'learning' && card.due <= now) {
+          learningQueue.push(card);
+        }
+        // Cards not due yet are implicitly excluded from the current session
+      });
+
+      // Prioritize queues: Review -> New -> Learning
+      const sessionCards = [...reviewQueue, ...newQueue, ...learningQueue];
+
+      if (sessionCards.length > 0) {
+        dispatch(startSession(sessionCards, sortOrder));
       } else {
-        // Handle case where no cards match filter, similar to quiz
-        // For now, just log or set a state to show a message
-        console.log("No cards match the current filter settings.");
-        // You might want to add a state here to display a message to the user
-        // e.g., setNoCardsFound(true);
+        // Handle case where no cards are due for review/learning/new
+        console.log("No cards are due for review, learning, or are new cards.");
+        // You might want to display a "Session Finished" or "No cards today" message
       }
     }
-  }, [currentNotebookId, notebooks, dispatch, proficiencyFilter, startQuestionIndex, wordRangeCount, sortOrder]); // Added new dependencies
+  }, [currentNotebookId, notebooks, dispatch, proficiencyFilter, startQuestionIndex, wordRangeCount, sortOrder]);
 
   const speakCardText = useCallback(
     (text, lang) => {
@@ -117,9 +152,14 @@ const WordReadingPage = () => {
   );
 
   const handleAnswer = (cardId, rating) => {
-    dispatch(answerCard(cardId, rating));
+    // Calculate next state for the current card
+    const updatedCard = calculateNextState(currentCard, rating);
+
+    // Dispatch an action to update the card in the global state
+    dispatch(updateCard(updatedCard));
+
     // Play content based on playbackOptions
-    playCardSequence(currentCard, playbackOptions).then(() => {
+    playCardSequence(updatedCard, playbackOptions).then(() => {
       // Only proceed to next card after speech finishes
       dispatch(nextCard());
     });
@@ -142,13 +182,18 @@ const WordReadingPage = () => {
 
   return (
     <AppContainer>
+      <CounterContainer>
+        <CounterItem className="new">{newCount}</CounterItem>
+        <CounterItem className="learning">{learningCount}</CounterItem>
+        <CounterItem className="review">{reviewCount}</CounterItem>
+      </CounterContainer>
       <IconContainer>
         <IconGroup>
           <SettingsToggle onClick={() => setShowSettings(s => !s)}>
             ⚙️
           </SettingsToggle>
           <HomeIcon onClick={() => navigate('/')}>↩️</HomeIcon>
-          <InfoToggle onClick={() => setIsInfoModalOpen(true)}>ℹ️</InfoToggle> {/* Moved and using InfoToggle */}
+          <InfoToggle onClick={() => setIsInfoModalOpen(true)}>ℹ️</InfoToggle>
         </IconGroup>
       </IconContainer>
       {showSettings && (
@@ -168,9 +213,7 @@ const WordReadingPage = () => {
         </>
       )}
       <Title>單字朗讀</Title>
-      <Progress>
-        第 {cards.length - queue.length + 1} 題 / 共 {cards.length} 題
-      </Progress>
+      
       <Flashcard card={currentCard} onAnswer={handleAnswer} speak={speakManually} />
       <Modal
         isVisible={isInfoModalOpen}
