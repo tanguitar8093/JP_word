@@ -12,15 +12,26 @@ const initialState = {
   quizCompleted: false, // (from useQuizGame)
 };
 
+const createRandomQuestions = (questions) => {
+  function shuffleArray(array) {
+    const arr = [...array]; 
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]]; 
+    }
+    return arr;
+  }
+
+  return questions.map(q => ({ ...q, options: shuffleArray(q.options) }));
+}
 function reducer(state = initialState, action) {
   switch (action.type) {
     case "quiz/START_QUIZ":
       return {
         ...state,
-        questions: action.payload, // Load questions from payload
+        questions: createRandomQuestions(action.payload), 
         status: "active",
         secondsRemaining: action.payload.length * 30,
-        // Reset game-specific state when starting a new quiz
         currentQuestionIndex: 0,
         selectedAnswer: "",
         points: 0,

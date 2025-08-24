@@ -55,11 +55,9 @@ function QuizContent() {
   const { questions, currentQuestionIndex, result, quizCompleted } = state.quiz; // Access quiz state
   const { playbackOptions, playbackSpeed, autoProceed } = state.systemSettings; // Access systemSettings state
   const question = questions[currentQuestionIndex];
-
   const blocker = useBlocker(!quizCompleted);
 
   const handleConfirmExit = useCallback(() => {
-    console.log('confirm exit');
     dispatch(commitPendingProficiencyUpdates()); // Commit changes before exiting
     dispatch(restartQuiz());
     blocker.proceed();
@@ -153,7 +151,6 @@ export default function Quiz() {
   const [emptyAlert, setEmptyAlert,]=useState(false)
   const navigate = useNavigate();
   useEffect(() => {
-    console.log("Quiz useEffect - notebooks:", notebooks); // Add this log
     if (!quizCompleted) {
       const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
       if (currentNotebook) {
