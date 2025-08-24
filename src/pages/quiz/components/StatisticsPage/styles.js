@@ -82,13 +82,13 @@ export const QuestionItem = styled.li`
 `;
 
 export const QuestionText = styled.span`
-  font-size: 15px;
+  font-size: 10px;
   color: #555;
 `;
 
 export const StatusEmoji = styled.span`
   margin-right: 10px;
-  font-size: 15px;
+  font-size: 10px;
 `;
 
 export const EndQuizButton = styled.button`
