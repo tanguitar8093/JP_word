@@ -22,6 +22,10 @@ export const AnswerContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
+  border: 1px solid #e0e0e0; /* Added border */
+  border-radius: 8px; /* Added border-radius for rounded corners */
+  padding: 15px; /* Added padding */
+  background-color: #f9f9f9; /* Slightly different background for distinction */
 `;
 
 export const ActionButtons = styled.div`
