@@ -15,6 +15,12 @@ export default function SettingsPanel({
   setWordRangeCount, // New prop
   sortOrder, // New prop
   setSortOrder, // New prop
+  learningSteps, // New Anki prop
+  setLearningSteps, // New Anki prop
+  graduatingInterval, // New Anki prop
+  setGraduatingInterval, // New Anki prop
+  lapseInterval, // New Anki prop
+  setLapseInterval, // New Anki prop
   isQuizContext, // New prop
 }) {
   const handleProficiencyChange = (level) => {
@@ -199,6 +205,41 @@ export default function SettingsPanel({
             onChange={(e) => setWordRangeCount(Number(e.target.value))}
           />
         </LabelGroup>
+      )}
+
+      {/* Anki Algorithm Settings */}
+      {learningSteps !== undefined && ( // Conditionally render Anki settings
+        <>
+          <SettingTitle>Anki 演算法設定</SettingTitle>
+          <LabelGroup>
+            <SettingTitle>學習步驟 (毫秒, 逗號分隔):</SettingTitle>
+            <input
+              type="text"
+              value={learningSteps.join(', ')}
+              onChange={(e) =>
+                setLearningSteps(e.target.value.split(',').map(s => Number(s.trim())))
+              }
+            />
+          </LabelGroup>
+          <LabelGroup>
+            <SettingTitle>畢業間隔 (天):</SettingTitle>
+            <input
+              type="number"
+              min="1"
+              value={graduatingInterval}
+              onChange={(e) => setGraduatingInterval(Number(e.target.value))}
+            />
+          </LabelGroup>
+          <LabelGroup>
+            <SettingTitle>重學間隔 (毫秒):</SettingTitle>
+            <input
+              type="number"
+              min="1"
+              value={lapseInterval}
+              onChange={(e) => setLapseInterval(Number(e.target.value))}
+            />
+          </LabelGroup>
+        </>
       )}
     </PanelContainer>
   );

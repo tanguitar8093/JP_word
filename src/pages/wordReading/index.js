@@ -18,10 +18,19 @@ import Modal from '../../components/Modal';
 import {
   setPlaybackOptions,
   setPlaybackSpeed,
+  setProficiencyFilter, // New import
+  setAutoProceed, // New import
+  setStartQuestionIndex, // New import
+  setWordRangeCount, // New import
+  setSortOrder, // New import
+  setLearningSteps, // New import
+  setGraduatingInterval, // New import
+  setLapseInterval, // New import
 } from '../../pages/systemSettings/reducer/actions';
 import correctSound from '../../assets/sounds/correct.mp3';
 import wrongSound from '../../assets/sounds/wrong.mp3';
 import { calculateNextState } from '../../services/ankiService';
+
 import { CounterContainer, CounterItem } from './styles';
 
 const IconContainer = styled.div`
@@ -57,7 +66,7 @@ const WordReadingPage = () => {
   const { state, dispatch } = useApp();
   const { currentNotebookId, notebooks } = state.shared;
   const { cards, currentCard, sessionState, queue } = state.wordReading;
-  const { playbackOptions, playbackSpeed, proficiencyFilter, startQuestionIndex, wordRangeCount, sortOrder } = state.systemSettings;
+  const { playbackOptions, playbackSpeed, proficiencyFilter, startQuestionIndex, wordRangeCount, sortOrder, learningSteps, graduatingInterval, lapseInterval, autoProceed } = state.systemSettings || {};
   const [showSettings, setShowSettings] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -70,63 +79,68 @@ const WordReadingPage = () => {
     .map(([key]) => proficiencyMap[key])
     .join(', ');
 
-  const now = Date.now();
+  // Recalculate 'now' on each render to ensure accurate due date comparison for counters
+  const currentTimestamp = Date.now();
   const newCount = cards.filter(card => card.status === 'new').length;
-  const learningCount = cards.filter(card => card.status === 'learning' && card.due <= now).length;
-  const reviewCount = cards.filter(card => card.status === 'review' && card.due <= now).length;
+  const learningCount = cards.filter(card => card.status === 'learning' && card.due <= currentTimestamp).length;
+  const reviewCount = cards.filter(card => card.status === 'review' && card.due <= currentTimestamp).length;
 
-  useEffect(() => {
-    const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
-    if (currentNotebook) {
-      let filteredCards = currentNotebook.context.filter(card => {
-        if (!card.jp_word) return false;
-        return proficiencyFilter[card.proficiency];
-      }).map(card => {
-        // Initialize Anki fields if they don't exist
-        return {
-          ...card,
-          status: card.status || 'new',
-          due: card.due || Date.now(), // New cards are due immediately
-          interval: card.interval || 0,
-          easeFactor: card.easeFactor || 2.5,
-          reps: card.reps || 0,
-          lapses: card.lapses || 0,
-          learningStep: card.learningStep || 0,
-        };
-      });
+    useEffect(() => {
+    // Only initialize session if it's not already active or if notebook/filters change
+    if (sessionState === 'ready') { // Simplified condition for now
+      const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
+      if (currentNotebook) {
+        let filteredCards = currentNotebook.context.filter(card => {
+          if (!card.jp_word) return false;
+          return proficiencyFilter[card.proficiency];
+        }).map(card => {
+          // Initialize Anki fields if they don't exist
+          return {
+            ...card,
+            status: card.status || 'new',
+            due: card.due || Date.now(), // New cards are due immediately
+            interval: card.interval || 0,
+            easeFactor: card.easeFactor || 2.5,
+            reps: card.reps || 0,
+            lapses: card.lapses || 0,
+            learningStep: card.learningStep || 0,
+          };
+        });
 
-      const startIndex = Math.max(0, startQuestionIndex - 1);
-      const endIndex = Math.min(filteredCards.length, startIndex + wordRangeCount);
-      filteredCards = filteredCards.slice(startIndex, endIndex);
+        const startIndex = Math.max(0, startQuestionIndex - 1);
+        const endIndex = Math.min(filteredCards.length, startIndex + wordRangeCount);
+        filteredCards = filteredCards.slice(startIndex, endIndex);
 
-      // Categorize cards into Anki queues
-      let reviewQueue = [];
-      let newQueue = [];
-      let learningQueue = [];
+        // Categorize cards into Anki queues
+        const now = Date.now();
+        let reviewQueue = [];
+        let newQueue = [];
+        let learningQueue = [];
 
-      filteredCards.forEach(card => {
-        if (card.status === 'review' && card.due <= now) {
-          reviewQueue.push(card);
-        } else if (card.status === 'new') {
-          newQueue.push(card);
-        } else if (card.status === 'learning' && card.due <= now) {
-          learningQueue.push(card);
+        filteredCards.forEach(card => {
+          if (card.status === 'review' && card.due <= now) {
+            reviewQueue.push(card);
+          } else if (card.status === 'new') {
+            newQueue.push(card);
+          } else if (card.status === 'learning' && card.due <= now) {
+            learningQueue.push(card);
+          }
+          // Cards not due yet are implicitly excluded from the current session
+        });
+
+        // Prioritize queues: Review -> New -> Learning
+        const sessionCards = [...reviewQueue, ...newQueue, ...learningQueue];
+
+        if (sessionCards.length > 0) {
+          dispatch(startSession(sessionCards, sortOrder));
+        } else {
+          // Handle case where no cards are due for review/learning/new
+          console.log("No cards are due for review, learning, or are new cards.");
+          // You might want to display a "Session Finished" or "No cards today" message
         }
-        // Cards not due yet are implicitly excluded from the current session
-      });
-
-      // Prioritize queues: Review -> New -> Learning
-      const sessionCards = [...reviewQueue, ...newQueue, ...learningQueue];
-
-      if (sessionCards.length > 0) {
-        dispatch(startSession(sessionCards, sortOrder));
-      } else {
-        // Handle case where no cards are due for review/learning/new
-        console.log("No cards are due for review, learning, or are new cards.");
-        // You might want to display a "Session Finished" or "No cards today" message
       }
     }
-  }, [currentNotebookId, notebooks, dispatch, proficiencyFilter, startQuestionIndex, wordRangeCount, sortOrder]);
+  }, [currentNotebookId, notebooks, dispatch, proficiencyFilter, startQuestionIndex, wordRangeCount, sortOrder, sessionState]); // Removed 'cards' from dependency, added 'sessionState'
 
   const speakCardText = useCallback(
     (text, lang) => {
@@ -152,14 +166,14 @@ const WordReadingPage = () => {
   );
 
   const handleAnswer = (cardId, rating) => {
-    // Calculate next state for the current card
-    const updatedCard = calculateNextState(currentCard, rating);
-
-    // Dispatch an action to update the card in the global state
-    dispatch(updateCard(updatedCard));
+    // Dispatch an action to update the card proficiency and schedule it
+    dispatch(answerCard(cardId, rating, state.systemSettings)); // Let the reducer handle calculateNextState and state update
 
     // Play content based on playbackOptions
-    playCardSequence(updatedCard, playbackOptions).then(() => {
+    // Note: playCardSequence should ideally use the *updated* card state after reducer processes it.
+    // However, for immediate feedback, we might need to pass currentCard or fetch it from state after dispatch.
+    // For now, we'll use currentCard for speech, as the actual state update happens asynchronously.
+    playCardSequence(currentCard, playbackOptions).then(() => {
       // Only proceed to next card after speech finishes
       dispatch(nextCard());
     });
@@ -187,7 +201,7 @@ const WordReadingPage = () => {
           <SettingsToggle onClick={() => setShowSettings(s => !s)}>
             ⚙️
           </SettingsToggle>
-          <HomeIcon onClick={() => navigate('/')}>↩️</HomeIcon>
+          <HomeIcon onClick={() => { console.log('Home icon clicked!'); navigate('/'); }}>↩️</HomeIcon>
           <InfoToggle onClick={() => setIsInfoModalOpen(true)}>ℹ️</InfoToggle>
         </IconGroup>
       </IconContainer>
@@ -202,6 +216,22 @@ const WordReadingPage = () => {
               setPlaybackOptions={newOptions =>
                 dispatch(setPlaybackOptions(newOptions))
               }
+              proficiencyFilter={proficiencyFilter} // Pass proficiencyFilter
+              setProficiencyFilter={newFilter => dispatch(setProficiencyFilter(newFilter))} // Pass setProficiencyFilter
+              autoProceed={autoProceed} // Pass autoProceed
+              setAutoProceed={newAutoProceed => dispatch(setAutoProceed(newAutoProceed))} // Pass setAutoProceed
+              startQuestionIndex={startQuestionIndex} // Pass startQuestionIndex
+              setStartQuestionIndex={newIndex => dispatch(setStartQuestionIndex(newIndex))} // Pass setStartQuestionIndex
+              wordRangeCount={wordRangeCount} // Pass wordRangeCount
+              setWordRangeCount={newCount => dispatch(setWordRangeCount(newCount))} // Pass setWordRangeCount
+              sortOrder={sortOrder} // Pass sortOrder
+              setSortOrder={newOrder => dispatch(setSortOrder(newOrder))} // Pass setSortOrder
+              learningSteps={learningSteps}
+              setLearningSteps={newSteps => dispatch(setLearningSteps(newSteps))}
+              graduatingInterval={graduatingInterval}
+              setGraduatingInterval={newInterval => dispatch(setGraduatingInterval(newInterval))}
+              lapseInterval={lapseInterval}
+              setLapseInterval={newInterval => dispatch(setLapseInterval(newInterval))}
               isQuizContext={true} // To hide some options
             />
           </FloatingSettingsPanel>

@@ -8,6 +8,11 @@ export const SET_START_QUESTION_INDEX = "systemSettings/SET_START_QUESTION_INDEX
 export const SET_WORD_RANGE_COUNT = "systemSettings/SET_WORD_RANGE_COUNT";     // New action type
 export const SET_SORT_ORDER = "systemSettings/SET_SORT_ORDER";
 
+// Anki Algorithm Settings Actions
+export const SET_LEARNING_STEPS = "systemSettings/SET_LEARNING_STEPS";
+export const SET_GRADUATING_INTERVAL = "systemSettings/SET_GRADUATING_INTERVAL";
+export const SET_LAPSE_INTERVAL = "systemSettings/SET_LAPSE_INTERVAL";
+
 export const setPlaybackOptions = (options) => ({
   type: SET_PLAYBACK_OPTIONS,
   payload: options,
@@ -48,4 +53,20 @@ export const setWordRangeCount = (count) => ({
 export const setSortOrder = (order) => ({
   type: SET_SORT_ORDER,
   payload: order,
+});
+
+// Anki Algorithm Settings Action Creators
+export const setLearningSteps = (steps) => ({
+  type: SET_LEARNING_STEPS,
+  payload: steps,
+});
+
+export const setGraduatingInterval = (interval) => ({
+  type: SET_GRADUATING_INTERVAL,
+  payload: interval,
+});
+
+export const setLapseInterval = (interval) => ({
+  type: SET_LAPSE_INTERVAL,
+  payload: interval,
 });

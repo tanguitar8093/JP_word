@@ -1,4 +1,5 @@
-import { START_SESSION, ANSWER_CARD, NEXT_CARD, UPDATE_CARD } from './actions'; // Import UPDATE_CARD
+import { START_SESSION, ANSWER_CARD, NEXT_CARD, UPDATE_CARD, UPDATE_SESSION_QUEUE } from './actions'; // Import UPDATE_SESSION_QUEUE
+import { calculateNextState } from '../../../services/ankiService';
 
 export const initialState = {
   cards: [],
@@ -25,7 +26,7 @@ const sortCards = (cards, sortOrder) => {
 
 function reducer(state = initialState, action) {
   switch (action.type) {
-    case START_SESSION:
+    case START_SESSION: { // Added curly braces
       const { cards, sortOrder } = action.payload; // Destructure payload
       const sortedCards = sortCards(cards, sortOrder); // Apply sorting
       return {
@@ -35,12 +36,45 @@ function reducer(state = initialState, action) {
         currentCard: sortedCards[0] || null,
         sessionState: 'active',
       };
-    case ANSWER_CARD:
-      // For now, just log the answer.
-      // Later, I'll update card proficiency and schedule it.
-      console.log(`Card ${action.payload.cardId} answered with ${action.payload.rating}`);
-      return state;
-    case NEXT_CARD:
+    } // Added curly braces
+    case ANSWER_CARD: { // Added curly braces
+      const { cardId, rating, systemSettings } = action.payload;
+      const cardToUpdate = state.cards.find(card => card.id === cardId);
+
+      if (!cardToUpdate) {
+        console.warn(`Card with ID ${cardId} not found for update.`);
+        return state;
+      }
+
+      const updatedCard = calculateNextState(cardToUpdate, rating, systemSettings);
+
+      const updatedCards = state.cards.map(card =>
+        card.id === updatedCard.id ? updatedCard : card
+      );
+
+      // Filter out the answered card from the queue if its new due date is far in the future
+      // This assumes the queue is for the current session and cards due much later should not reappear.
+      const now = Date.now();
+      const futureThreshold = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+      let newQueue = state.queue.filter(card => card.id !== cardId); // Remove the answered card
+
+      // If the updated card is still due soon (e.g., marked 'again' or 'hard' in learning phase), re-add it to the queue
+      if (updatedCard.due <= now + futureThreshold) {
+        // Re-insert into the queue.
+        newQueue.push(updatedCard);
+        // Re-sort the queue to ensure cards due sooner are at the front
+        newQueue.sort((a, b) => a.due - b.due);
+      }
+
+      return {
+        ...state,
+        cards: updatedCards, // Update the main cards array
+        queue: newQueue, // Update the session queue
+        currentCard: state.currentCard && state.currentCard.id === updatedCard.id ? updatedCard : state.currentCard,
+      };
+    } // Added curly braces
+    case NEXT_CARD: { // Added curly braces
       const newQueue = state.queue.slice(1);
       return {
         ...state,
@@ -48,7 +82,8 @@ function reducer(state = initialState, action) {
         currentCard: newQueue[0] || null,
         sessionState: newQueue.length === 0 ? 'finished' : state.sessionState,
       };
-    case UPDATE_CARD: // Handle UPDATE_CARD action
+    } // Added curly braces
+    case UPDATE_CARD: { // Added curly braces
       const updatedCard = action.payload;
       const updatedCards = state.cards.map(card =>
         card.id === updatedCard.id ? updatedCard : card
@@ -63,6 +98,16 @@ function reducer(state = initialState, action) {
         queue: updatedQueue,
         currentCard: state.currentCard && state.currentCard.id === updatedCard.id ? updatedCard : state.currentCard,
       };
+    } // Added curly braces
+    case UPDATE_SESSION_QUEUE: { // Added curly braces
+      const newSessionQueue = action.payload;
+      return {
+        ...state,
+        queue: newSessionQueue,
+        currentCard: newSessionQueue[0] || null, // Set current card from the new queue
+        sessionState: newSessionQueue.length === 0 ? 'finished' : state.sessionState,
+      };
+    } // Added curly braces
     default:
       return state;
   }

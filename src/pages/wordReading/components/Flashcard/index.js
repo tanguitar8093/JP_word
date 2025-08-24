@@ -23,7 +23,6 @@ const Flashcard = ({ card, onAnswer, speak, newCount, learningCount, reviewCount
   const [showHiragana, setShowHiragana] = useState(false); // New state
 
   useEffect(() => {
-    setShowAnswer(false);
     setTriggerReset(true);
     setShowHiragana(false); // Reset hiragana state
     const timer = setTimeout(() => setTriggerReset(false), 100);

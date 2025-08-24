@@ -57,10 +57,21 @@ const _ensureContextIds = (context) => {
   if (!Array.isArray(context)) return [];
   return context.map(word => {
     // also check for empty object
-    if (!word.id && Object.keys(word).length > 0) {
-      return { ...word, id: uuidv4() };
+    let newWord = { ...word };
+    if (!newWord.id && Object.keys(newWord).length > 0) {
+      newWord.id = uuidv4();
     }
-    return word;
+    // Ensure Anki fields are present for all words
+    newWord.status = newWord.status || 'new';
+    newWord.due = newWord.due || Date.now();
+    newWord.interval = newWord.interval || 0;
+    newWord.easeFactor = newWord.easeFactor || 2.5;
+    newWord.reps = newWord.reps || 0;
+    newWord.lapses = newWord.lapses || 0;
+    newWord.learningStep = newWord.learningStep || 0;
+    newWord.lastReview = newWord.lastReview || null; // Use null for initial lastReview
+
+    return newWord;
   });
 };
 
@@ -84,6 +95,15 @@ const notebookService = {
             type: "greeting",
             options: ["a", "b", "c"],
             proficiency: 1, // Added proficiency with default value
+            // Anki fields
+            status: 'new',
+            due: Date.now(),
+            interval: 0,
+            easeFactor: 2.5,
+            reps: 0,
+            lapses: 0,
+            learningStep: 0,
+            lastReview: null,
           }]
         }
       };

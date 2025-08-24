@@ -1,8 +1,5 @@
-const LEARNING_STEPS = [1 * 60 * 1000, 10 * 60 * 1000]; // 1 minute, 10 minutes in milliseconds
-const GRADUATING_INTERVAL = 1; // 1 day
-const LAPSE_INTERVAL = 1 * 60 * 1000; // 1 minute in milliseconds
-
-export const calculateNextState = (card, rating) => {
+export const calculateNextState = (card, rating, ankiSettings) => {
+  const { learningSteps, graduatingInterval, lapseInterval } = ankiSettings;
   let newCard = { ...card };
   const now = Date.now();
 
@@ -13,31 +10,31 @@ export const calculateNextState = (card, rating) => {
     newCard.easeFactor = Math.max(1.3, newCard.easeFactor - 0.2);
     newCard.status = 'learning';
     newCard.learningStep = 0; // Reset to first learning step
-    newCard.interval = LAPSE_INTERVAL;
-    newCard.due = now + LAPSE_INTERVAL;
+    newCard.interval = lapseInterval;
+    newCard.due = now + lapseInterval;
   } else if (newCard.status === 'learning') {
     if (rating === 'hard') {
       // Stay at current learning step, or move back if it's the first
       newCard.learningStep = Math.max(0, newCard.learningStep - 1);
-      newCard.interval = LEARNING_STEPS[newCard.learningStep];
+      newCard.interval = learningSteps[newCard.learningStep];
       newCard.due = now + newCard.interval;
     } else if (rating === 'good') {
       newCard.learningStep += 1;
-      if (newCard.learningStep >= LEARNING_STEPS.length) {
+      if (newCard.learningStep >= learningSteps.length) {
         // Graduate
         newCard.status = 'review';
-        newCard.interval = GRADUATING_INTERVAL * 24 * 60 * 60 * 1000; // Convert days to ms
+        newCard.interval = graduatingInterval * 24 * 60 * 60 * 1000; // Convert days to ms
         newCard.due = now + newCard.interval;
         newCard.learningStep = 0; // Reset learning step
       } else {
-        newCard.interval = LEARNING_STEPS[newCard.learningStep];
+        newCard.interval = learningSteps[newCard.learningStep];
         newCard.due = now + newCard.interval;
       }
     } else if (rating === 'easy') {
       // Graduate early
       newCard.status = 'review';
       newCard.easeFactor = newCard.easeFactor + 0.15;
-      newCard.interval = GRADUATING_INTERVAL * 24 * 60 * 60 * 1000 * 1.3; // Graduate interval * 1.3
+      newCard.interval = graduatingInterval * 24 * 60 * 60 * 1000 * 1.3; // Graduate interval * 1.3
       newCard.due = now + newCard.interval;
       newCard.learningStep = 0; // Reset learning step
     }
@@ -55,31 +52,36 @@ export const calculateNextState = (card, rating) => {
     }
     newCard.due = now + newCard.interval;
   } else if (newCard.status === 'new') {
-    // New card logic (first time seeing it)
-    // Treat 'new' cards as if they are in the 'learning' phase from step 0
-    newCard.status = 'learning';
-    newCard.learningStep = 0;
-    if (rating === 'good') {
+    newCard.status = 'learning'; // Transition to learning phase
+    newCard.learningStep = 0; // Start at first learning step
+
+    if (rating === 'again') {
+      newCard.lapses += 1; // A lapse on a new card
+      newCard.easeFactor = Math.max(1.3, newCard.easeFactor - 0.2); // Decrease ease
+      newCard.interval = learningSteps[0]; // Due very soon
+      newCard.due = now + newCard.interval;
+    } else if (rating === 'hard') {
+      newCard.interval = learningSteps[0]; // Stay at first learning step
+      newCard.due = now + newCard.interval;
+    } else if (rating === 'good') {
       newCard.learningStep += 1;
-      if (newCard.learningStep >= LEARNING_STEPS.length) {
+      if (newCard.learningStep >= learningSteps.length) {
+        // Graduate
         newCard.status = 'review';
-        newCard.interval = GRADUATING_INTERVAL * 24 * 60 * 60 * 1000;
+        newCard.interval = graduatingInterval * 24 * 60 * 60 * 1000;
         newCard.due = now + newCard.interval;
         newCard.learningStep = 0;
       } else {
-        newCard.interval = LEARNING_STEPS[newCard.learningStep];
+        newCard.interval = learningSteps[newCard.learningStep];
         newCard.due = now + newCard.interval;
       }
     } else if (rating === 'easy') {
+      // Graduate early
       newCard.status = 'review';
       newCard.easeFactor = newCard.easeFactor + 0.15;
-      newCard.interval = GRADUATING_INTERVAL * 24 * 60 * 60 * 1000 * 1.3;
+      newCard.interval = graduatingInterval * 24 * 60 * 60 * 1000 * 1.3;
       newCard.due = now + newCard.interval;
       newCard.learningStep = 0;
-    } else if (rating === 'hard') {
-      // For new cards, 'hard' means stay at first learning step
-      newCard.interval = LEARNING_STEPS[0];
-      newCard.due = now + newCard.interval;
     }
   }
 

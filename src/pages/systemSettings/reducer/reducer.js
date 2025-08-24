@@ -7,6 +7,10 @@ import {
   SET_START_QUESTION_INDEX, // New import
   SET_WORD_RANGE_COUNT,     // New import
   SET_SORT_ORDER,
+  // New Anki Algorithm Settings Actions
+  SET_LEARNING_STEPS,
+  SET_GRADUATING_INTERVAL,
+  SET_LAPSE_INTERVAL,
 } from "./actions";
 
 export const initialState = {
@@ -27,6 +31,11 @@ export const initialState = {
   startQuestionIndex: 1, // New state variable, default to 1 (data index 0)
   wordRangeCount: 9999,   // New state variable, default to 9999
   sortOrder: 'none',
+
+  // Anki Algorithm Settings
+  learningSteps: [1 * 60 * 1000, 10 * 60 * 1000], // 1 minute, 10 minutes in milliseconds
+  graduatingInterval: 1, // 1 day
+  lapseInterval: 1 * 60 * 1000, // 1 minute in milliseconds
 };
 
 function reducer(state = initialState, action) {
@@ -75,6 +84,13 @@ function reducer(state = initialState, action) {
         ...state,
         sortOrder: action.payload,
       };
+    // Anki Algorithm Settings Actions
+    case SET_LEARNING_STEPS:
+      return { ...state, learningSteps: action.payload };
+    case SET_GRADUATING_INTERVAL:
+      return { ...state, graduatingInterval: action.payload };
+    case SET_LAPSE_INTERVAL:
+      return { ...state, lapseInterval: action.payload };
     default:
       return state;
   }
