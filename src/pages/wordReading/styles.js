@@ -1,11 +1,8 @@
 import styled from 'styled-components';
 
 export const CounterContainer = styled.div`
-  position: absolute;
-  top: 10px;
-  left: 10px;
   display: flex;
-  gap: 10px;
+  gap: 2px; /* Smaller gap */
   z-index: 100;
 `;
 
@@ -13,12 +10,12 @@ export const CounterItem = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 20px; /* Smaller width */
+  height: 20px; /* Smaller height */
   border-radius: 50%;
   color: white;
   font-weight: bold;
-  font-size: 1.2em;
+  font-size: 0.7em; /* Smaller font size */
 
   &.new {
     background-color: #007bff; /* Blue */

@@ -182,11 +182,6 @@ const WordReadingPage = () => {
 
   return (
     <AppContainer>
-      <CounterContainer>
-        <CounterItem className="new">{newCount}</CounterItem>
-        <CounterItem className="learning">{learningCount}</CounterItem>
-        <CounterItem className="review">{reviewCount}</CounterItem>
-      </CounterContainer>
       <IconContainer>
         <IconGroup>
           <SettingsToggle onClick={() => setShowSettings(s => !s)}>
@@ -214,7 +209,14 @@ const WordReadingPage = () => {
       )}
       <Title>單字朗讀</Title>
       
-      <Flashcard card={currentCard} onAnswer={handleAnswer} speak={speakManually} />
+      <Flashcard
+        card={currentCard}
+        onAnswer={handleAnswer}
+        speak={speakManually}
+        newCount={newCount}
+        learningCount={learningCount}
+        reviewCount={reviewCount}
+      />
       <Modal
         isVisible={isInfoModalOpen}
         onConfirm={() => setIsInfoModalOpen(false)}

@@ -14,9 +14,10 @@ import {
   ToggleButton, // New import
   HiraganaText, // New import
 } from '../../../quiz/components/QuestionCard/styles'; // reuse speak button
+import { CounterContainer, CounterItem } from '../../styles'; // Corrected import path
 import AudioRecorderPage from '../../../AudioRecorder';
 
-const Flashcard = ({ card, onAnswer, speak }) => {
+const Flashcard = ({ card, onAnswer, speak, newCount, learningCount, reviewCount }) => {
   const [showAnswer, setShowAnswer] = useState(false);
   const [triggerReset, setTriggerReset] = useState(false);
   const [showHiragana, setShowHiragana] = useState(false); // New state
@@ -39,6 +40,11 @@ const Flashcard = ({ card, onAnswer, speak }) => {
 
   return (
     <CardContainer>
+      <CounterContainer>
+        <CounterItem className="new">{newCount}</CounterItem>
+        <CounterItem className="learning">{learningCount}</CounterItem>
+        <CounterItem className="review">{reviewCount}</CounterItem>
+      </CounterContainer>
       {card.kanji_jp_word && ( // Only show Hiragana toggle if kanji_jp_word exists
         <>
           <HiraganaToggleContainer>
