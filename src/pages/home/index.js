@@ -50,18 +50,18 @@ function HomePage() {
           <NavItem>
             <StyledLink to="/word-reading">單字朗讀</StyledLink>
           </NavItem>
-          <NavItem>
+          {/* <NavItem>
             <StyledLink to="/word-management">單字管理</StyledLink>
-          </NavItem>
+          </NavItem> */}
           <NavItem>
-            <StyledLink to="/notebook-management">筆記本 (Beta)</StyledLink>
+            <StyledLink to="/notebook-management">單字庫</StyledLink>
           </NavItem>
           <NavItem>
             <StyledLink to="/settings">系統設定</StyledLink>
           </NavItem>
-          <NavItem>
+          {/* <NavItem>
             <StyledLink to="/recorder">錄音測試</StyledLink>
-          </NavItem>
+          </NavItem> */}
         </NavList>
       </nav>
     </AppContainer>

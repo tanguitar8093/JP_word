@@ -1,9 +1,17 @@
+export const START_SESSION = 'wordReading/START_SESSION';
+export const ANSWER_CARD = 'wordReading/ANSWER_CARD';
+export const NEXT_CARD = 'wordReading/NEXT_CARD';
 
-// Placeholder action type
-export const EXAMPLE_ACTION = 'wordReading/EXAMPLE_ACTION';
+export const startSession = (cards) => ({
+  type: START_SESSION,
+  payload: cards,
+});
 
-// Placeholder action creator
-export const exampleAction = (payload) => ({
-  type: EXAMPLE_ACTION,
-  payload,
+export const answerCard = (cardId, rating) => ({ // rating: 'hard', 'good', 'easy'
+  type: ANSWER_CARD,
+  payload: { cardId, rating },
+});
+
+export const nextCard = () => ({
+  type: NEXT_CARD,
 });
