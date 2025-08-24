@@ -13,7 +13,9 @@ import {
   StatusEmoji,
   EndQuizButton,
   ProficiencyButton,
-  ProficiencyControlContainer
+  ProficiencyControlContainer,
+  HeaderContainer, // Import HeaderContainer
+  HeaderItem,     // Import HeaderItem
 } from "./styles"; // Import styled components from styles.js
 
 const StatisticsPage = ({ answeredQuestions, correctAnswersCount }) => {
@@ -50,6 +52,11 @@ const StatisticsPage = ({ answeredQuestions, correctAnswersCount }) => {
   return (
     <StatisticsContainer>
       <ScoreDisplay>分數: {score.toFixed(0)} / 100</ScoreDisplay>
+      <HeaderContainer>
+        <HeaderItem>結果</HeaderItem>
+        <HeaderItem>單字</HeaderItem>
+        <HeaderItem>熟練度</HeaderItem>
+      </HeaderContainer>
       <QuestionList>
         {localAnsweredQuestions.map((item, index) => (
           <QuestionItem key={index}>

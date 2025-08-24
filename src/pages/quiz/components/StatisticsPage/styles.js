@@ -13,6 +13,38 @@ export const StatisticsContainer = styled.div`
   margin: 20px auto;
 `;
 
+export const HeaderContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 10px; /* Adjust padding to match QuestionItem */
+  margin-bottom: 10px; /* Space between header and list */
+  border-bottom: 1px solid #e0e0e0;
+  font-weight: bold;
+  border-radius: 5px; /* Match QuestionList border-radius */
+  width: 100%; /* Take full width of parent */
+`;
+
+export const HeaderItem = styled.div`
+  flex: 1; /* Default flex for items */
+  text-align: center; /* Default center alignment */
+  
+  &:first-child {
+    flex: 0 0 50px; /* Fixed width for "結果" */
+    text-align: left;
+  }
+
+  &:nth-child(2) {
+    flex-grow: 1; /* "單字" takes remaining space */
+    text-align: center;
+  }
+
+  &:last-child {
+    flex: 0 0 60px; /* Fixed width for "熟練度" */
+    text-align: right;
+  }
+`;
+
 export const ScoreDisplay = styled.h2`
   color: #333;
   margin-bottom: 20px;
@@ -50,13 +82,13 @@ export const QuestionItem = styled.li`
 `;
 
 export const QuestionText = styled.span`
-  font-size: 1.1em;
+  font-size: 15px;
   color: #555;
 `;
 
 export const StatusEmoji = styled.span`
   margin-right: 10px;
-  font-size: 1.2em;
+  font-size: 15px;
 `;
 
 export const EndQuizButton = styled.button`
@@ -78,18 +110,17 @@ export const EndQuizButton = styled.button`
 
 export const ProficiencyControlContainer = styled.div`
   display: flex;
-  gap: 5px;
+  gap: 2px;
 `;
 
 export const ProficiencyButton = styled.button`
-  margin: 0 5px;
   padding: 5px 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
   background-color: #f0f0f0;
   cursor: pointer;
   transition: all 0.2s ease;
-
+  font-size: 12px;
   &:hover {
     background-color: #ddd;
   }
