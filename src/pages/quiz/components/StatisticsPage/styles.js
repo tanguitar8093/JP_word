@@ -114,13 +114,13 @@ export const ProficiencyControlContainer = styled.div`
 `;
 
 export const ProficiencyButton = styled.button`
-  padding: 5px 10px;
+  padding: 2px 4px;
   border: 1px solid #ccc;
   border-radius: 5px;
   background-color: #f0f0f0;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 12px;
+  font-size: 10px;
   &:hover {
     background-color: #ddd;
   }
