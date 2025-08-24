@@ -33,9 +33,25 @@ export const SettingsToggle = styled.span`
   transition: all 0.2s ease;
   position: absolute;
   top: 10px;
-  right: 30px; /* 改成右上角 */
+  right: 55px; /* 改成右上角 */
   z-index: 100;
 
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+// info 按鈕
+export const InfoToggle = styled.span`
+  cursor: pointer;
+  font-size: 20px;
+  user-select: none;
+  transition: all 0.2s ease;
+  position: absolute;
+  top: 10px;
+  right: 30px; 
+  z-index: 100;
+  
   &:hover {
     opacity: 0.8;
   }

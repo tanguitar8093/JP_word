@@ -14,6 +14,7 @@ import {
   Progress,
   SettingsToggle,
   FloatingSettingsPanel,
+  InfoToggle,
   Overlay,
 } from "../../../../components/App/styles";
 import styled from "styled-components";
@@ -45,20 +46,30 @@ const HomeIcon = styled(SettingsToggle)`
 // The actual UI component that consumes the context
 import { setPlaybackOptions, setPlaybackSpeed, setAutoProceed, setQuizScope } from "../../../../pages/systemSettings/reducer"; // Import actions
 
+const quizScopeMap = {
+  all: '全部',
+  low: '低',
+  medium: '中',
+  high: '高',
+};
+
 function QuizContent() {
   const [showSettings, setShowSettings] = useState(false);
   const [showExitConfirmModal, setShowExitConfirmModal] = useState(false); // State for modal visibility
+  const [showInfoModal, setShowInfoModal] = useState(false); // New state for info modal
 
   const navigate = useNavigate(); // Initialize useNavigate
 
   // Correct: Get state and dispatch from the context using useApp hook
   const { state, dispatch } = useApp(); // Changed from useQuiz
   const { questions, currentQuestionIndex, result, quizCompleted } = state.quiz; // Access quiz state
-  const { playbackOptions, playbackSpeed, autoProceed } = state.systemSettings; // Access systemSettings state
+  const { playbackOptions, playbackSpeed, autoProceed, quizScope, startQuestionIndex, wordRangeCount } = state.systemSettings; // Access systemSettings state
+  const { notebooks, currentNotebookId } = state.shared;
   const question = questions[currentQuestionIndex];
   const blocker = useBlocker(!quizCompleted);
 
-  
+  const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
+  const notebookName = currentNotebook ? currentNotebook.name : '';
 
   const handleConfirmExit = useCallback(() => {
     dispatch(commitPendingProficiencyUpdates()); // Commit changes before exiting
@@ -111,6 +122,7 @@ function QuizContent() {
             ⚙️
           </SettingsToggle>
           <HomeIcon onClick={() => navigate("/")}>↩️</HomeIcon>
+          <InfoToggle onClick={() => setShowInfoModal(true)}>ℹ️</InfoToggle>
         </IconGroup>
       </IconContainer>
       {showSettings && (
@@ -143,6 +155,20 @@ function QuizContent() {
         onConfirm={handleConfirmExit}
         onCancel={handleCancelExit}
         isVisible={showExitConfirmModal}
+      />
+
+      <Modal
+        message={
+          <div style={{ textAlign: 'left' }}>
+            <p>筆記本名稱: {notebookName}</p>
+            <p>熟練度: {quizScopeMap[quizScope]}</p>
+            <p>單字起始索引: {startQuestionIndex}</p>
+            <p>單字範圍: {wordRangeCount}</p>
+          </div>
+        }
+        onConfirm={() => setShowInfoModal(false)}
+        disableCancel
+        isVisible={showInfoModal}
       />
     </AppContainer>
   );
