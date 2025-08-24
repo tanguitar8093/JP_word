@@ -1,8 +1,7 @@
+import { v4 as uuidv4 } from "uuid";
 
-import { v4 as uuidv4 } from 'uuid';
-
-const NOTEBOOK_STORAGE_KEY = 'notebooks';
-const CURRENT_NOTEBOOK_ID_KEY = 'currentNotebookId';
+const NOTEBOOK_STORAGE_KEY = "notebooks";
+const CURRENT_NOTEBOOK_ID_KEY = "currentNotebookId";
 
 // Private method to get notebooks from localStorage
 const _getNotebooksFromStorage = () => {
@@ -17,7 +16,6 @@ const _getNotebooksFromStorage = () => {
 
 // Private method to save notebooks to localStorage
 const _saveNotebooksToStorage = (notebooks) => {
-  console.log("notebookService: _saveNotebooksToStorage - Saving notebooks:", JSON.parse(JSON.stringify(notebooks))); // Deep copy for logging
   try {
     localStorage.setItem(NOTEBOOK_STORAGE_KEY, JSON.stringify(notebooks));
   } catch (error) {
@@ -27,42 +25,46 @@ const _saveNotebooksToStorage = (notebooks) => {
 
 // Private method for validating the context structure
 const _validateContext = (context) => {
-    if (!Array.isArray(context)) {
-        throw new Error("Context must be an array.");
-    }
+  if (!Array.isArray(context)) {
+    throw new Error("Context must be an array.");
+  }
 
-    for (const word of context) {
-        // Allow empty objects for new notebooks
-        if (Object.keys(word).length === 0) continue;
+  for (const word of context) {
+    // Allow empty objects for new notebooks
+    if (Object.keys(word).length === 0) continue;
 
-        const requiredKeys = [
-            'jp_word', 'kanji_jp_word', 'ch_word', 
-            'jp_ex_statement', 'ch_ex_statement', 'type', 'options'
-        ];
-        for (const key of requiredKeys) {
-            if (!(key in word)) {
-                throw new Error(`Invalid word object: missing key \"${key}\".`);
-            }
-        }
-        if (!Array.isArray(word.options)) {
-            throw new Error('Invalid word object: "options" must be an array.');
-        }
+    const requiredKeys = [
+      "jp_word",
+      "kanji_jp_word",
+      "ch_word",
+      "jp_ex_statement",
+      "ch_ex_statement",
+      "type",
+      "options",
+    ];
+    for (const key of requiredKeys) {
+      if (!(key in word)) {
+        throw new Error(`Invalid word object: missing key \"${key}\".`);
+      }
     }
-    return true;
+    if (!Array.isArray(word.options)) {
+      throw new Error('Invalid word object: "options" must be an array.');
+    }
+  }
+  return true;
 };
-
 
 // Private method to ensure all words in a context have an ID
 const _ensureContextIds = (context) => {
   if (!Array.isArray(context)) return [];
-  return context.map(word => {
+  return context.map((word) => {
     // also check for empty object
     let newWord = { ...word };
     if (!newWord.id && Object.keys(newWord).length > 0) {
       newWord.id = uuidv4();
     }
     // Ensure Anki fields are present for all words
-    newWord.status = newWord.status || 'new';
+    newWord.status = newWord.status || "new";
     newWord.due = newWord.due || Date.now();
     newWord.interval = newWord.interval || 0;
     newWord.easeFactor = newWord.easeFactor || 2.5;
@@ -85,27 +87,29 @@ const notebookService = {
         [id]: {
           id,
           name: "Hello JP word",
-          context: [{
-            id: uuidv4(),
-            jp_word: "こんにちは",
-            kanji_jp_word: "今日は",
-            ch_word: "你好",
-            jp_ex_statement: "こんにちは、良い一日を！",
-            ch_ex_statement: "你好，祝你有美好的一天！",
-            type: "greeting",
-            options: ["a", "b", "c"],
-            proficiency: 1, // Added proficiency with default value
-            // Anki fields
-            status: 'new',
-            due: Date.now(),
-            interval: 0,
-            easeFactor: 2.5,
-            reps: 0,
-            lapses: 0,
-            learningStep: 0,
-            lastReview: null,
-          }]
-        }
+          context: [
+            {
+              id: uuidv4(),
+              jp_word: "こんにちは",
+              kanji_jp_word: "今日は",
+              ch_word: "你好",
+              jp_ex_statement: "こんにちは、良い一日を！",
+              ch_ex_statement: "你好，祝你有美好的一天！",
+              type: "greeting",
+              options: ["a", "b", "c"],
+              proficiency: 1, // Added proficiency with default value
+              // Anki fields
+              status: "new",
+              due: Date.now(),
+              interval: 0,
+              easeFactor: 2.5,
+              reps: 0,
+              lapses: 0,
+              learningStep: 0,
+              lastReview: null,
+            },
+          ],
+        },
       };
       _saveNotebooksToStorage(initialNotebook);
     }
@@ -135,7 +139,6 @@ const notebookService = {
     return Object.values(notebooks);
   },
 
-
   getNotebook: (id) => {
     const notebooks = _getNotebooksFromStorage();
     return notebooks[id];
@@ -143,7 +146,9 @@ const notebookService = {
 
   createNotebook: (name) => {
     if (!name || name.length > 20) {
-      throw new Error("Notebook name cannot be empty and must be 20 characters or less.");
+      throw new Error(
+        "Notebook name cannot be empty and must be 20 characters or less."
+      );
     }
     const notebooks = _getNotebooksFromStorage();
     const id = uuidv4();
@@ -163,15 +168,15 @@ const notebookService = {
     }
 
     if (name) {
-        if (name.length > 20) {
-            throw new Error("Notebook name must be 20 characters or less.");
-        }
-        notebooks[id].name = name;
+      if (name.length > 20) {
+        throw new Error("Notebook name must be 20 characters or less.");
+      }
+      notebooks[id].name = name;
     }
 
     if (context) {
-        _validateContext(context);
-        notebooks[id].context = _ensureContextIds(context);
+      _validateContext(context);
+      notebooks[id].context = _ensureContextIds(context);
     }
 
     _saveNotebooksToStorage(notebooks);
@@ -193,11 +198,11 @@ const notebookService = {
       throw new Error("Notebook not found.");
     }
     if (!Array.isArray(wordIds)) {
-        throw new Error("wordIds must be an array.");
+      throw new Error("wordIds must be an array.");
     }
 
     notebooks[notebookId].context = notebooks[notebookId].context.filter(
-      word => !wordIds.includes(word.id)
+      (word) => !wordIds.includes(word.id)
     );
 
     _saveNotebooksToStorage(notebooks);
@@ -210,7 +215,9 @@ const notebookService = {
       throw new Error("Notebook not found.");
     }
 
-    const wordIndex = notebooks[notebookId].context.findIndex(word => word.id === wordId);
+    const wordIndex = notebooks[notebookId].context.findIndex(
+      (word) => word.id === wordId
+    );
     if (wordIndex === -1) {
       throw new Error("Word not found in the notebook.");
     }
@@ -220,11 +227,10 @@ const notebookService = {
       ...oldWord,
       ...updates,
     };
-    console.log("notebookService: updateWordInNotebook - Updated word:", JSON.parse(JSON.stringify(notebooks[notebookId].context[wordIndex]))); // Deep copy for logging
     _saveNotebooksToStorage(notebooks);
     return notebooks[notebookId].context[wordIndex];
   },
-  
+
   importNotebook: (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -232,13 +238,20 @@ const notebookService = {
         try {
           const json = JSON.parse(event.target.result);
           if (!json.name || !json.context) {
-            return reject(new Error("Invalid JSON format. It must have 'name' and 'context' properties."));
+            return reject(
+              new Error(
+                "Invalid JSON format. It must have 'name' and 'context' properties."
+              )
+            );
           }
           const newNotebook = notebookService.createNotebook(json.name);
-          const updatedNotebook = notebookService.updateNotebook(newNotebook.id, { context: json.context });
+          const updatedNotebook = notebookService.updateNotebook(
+            newNotebook.id,
+            { context: json.context }
+          );
           resolve(updatedNotebook);
         } catch (error) {
-          reject(new Error(`Failed to import notebook: ${error.message}`))
+          reject(new Error(`Failed to import notebook: ${error.message}`));
         }
       };
       reader.onerror = (error) => {
@@ -246,7 +259,7 @@ const notebookService = {
       };
       reader.readAsText(file);
     });
-  }
+  },
 };
 
 export default notebookService;

@@ -2,24 +2,23 @@ let voices = [];
 let onVoicesLoaded = [];
 
 window.speechSynthesis.onvoiceschanged = () => {
-    voices = window.speechSynthesis.getVoices();
-    onVoicesLoaded.forEach(cb => cb());
-    onVoicesLoaded = [];
+  voices = window.speechSynthesis.getVoices();
+  onVoicesLoaded.forEach((cb) => cb());
+  onVoicesLoaded = [];
 };
 
 const getVoices = () => {
-    if (voices.length > 0) {
-        return Promise.resolve(voices);
-    }
-    voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0) {
-        return Promise.resolve(voices);
-    }
-    return new Promise(resolve => {
-        onVoicesLoaded.push(() => resolve(window.speechSynthesis.getVoices()));
-    });
+  if (voices.length > 0) {
+    return Promise.resolve(voices);
+  }
+  voices = window.speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    return Promise.resolve(voices);
+  }
+  return new Promise((resolve) => {
+    onVoicesLoaded.push(() => resolve(window.speechSynthesis.getVoices()));
+  });
 };
-
 
 const getVoice = (lang, loadedVoices) => {
   if (lang.startsWith("ja")) {

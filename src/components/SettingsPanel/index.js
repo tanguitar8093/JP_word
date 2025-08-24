@@ -1,6 +1,7 @@
 import { PanelContainer, LabelGroup, RangeInput, SettingTitle } from "./styles"; // Import SettingTitle
 
 export default function SettingsPanel({
+  setWordType,
   playbackSpeed,
   setPlaybackSpeed,
   playbackOptions,
@@ -9,19 +10,20 @@ export default function SettingsPanel({
   setProficiencyFilter,
   autoProceed,
   setAutoProceed,
-  startQuestionIndex, // New prop
-  setStartQuestionIndex, // New prop
-  wordRangeCount, // New prop
-  setWordRangeCount, // New prop
-  sortOrder, // New prop
-  setSortOrder, // New prop
+  startQuestionIndex,
+  setStartQuestionIndex,
+  wordRangeCount,
+  setWordRangeCount,
+  sortOrder,
+  wordType,
+  setSortOrder,
   learningSteps, // New Anki prop
   setLearningSteps, // New Anki prop
   graduatingInterval, // New Anki prop
   setGraduatingInterval, // New Anki prop
   lapseInterval, // New Anki prop
   setLapseInterval, // New Anki prop
-  isQuizContext, // New prop
+  isQuizContext,
 }) {
   const handleProficiencyChange = (level) => {
     setProficiencyFilter({
@@ -36,7 +38,7 @@ export default function SettingsPanel({
         <SettingTitle>播放速度: {playbackSpeed}</SettingTitle>
         <RangeInput
           type="range"
-          min="0.5"
+          min="0.2"
           max="2"
           step="0.1"
           value={playbackSpeed}
@@ -155,7 +157,7 @@ export default function SettingsPanel({
                 type="radio"
                 name="sortOrder"
                 value="none"
-                checked={sortOrder === 'none'}
+                checked={sortOrder === "none"}
                 onChange={(e) => setSortOrder(e.target.value)}
               />
               預設
@@ -165,7 +167,7 @@ export default function SettingsPanel({
                 type="radio"
                 name="sortOrder"
                 value="random"
-                checked={sortOrder === 'random'}
+                checked={sortOrder === "random"}
                 onChange={(e) => setSortOrder(e.target.value)}
               />
               隨機
@@ -175,7 +177,7 @@ export default function SettingsPanel({
                 type="radio"
                 name="sortOrder"
                 value="aiueo"
-                checked={sortOrder === 'aiueo'}
+                checked={sortOrder === "aiueo"}
                 onChange={(e) => setSortOrder(e.target.value)}
               />
               あいうえお
@@ -206,18 +208,47 @@ export default function SettingsPanel({
           />
         </LabelGroup>
       )}
+      {!isQuizContext && (
+        <LabelGroup>
+          <SettingTitle>主單字顯示:</SettingTitle>
+          <div>
+            <label>
+              <input
+                type="radio"
+                name="wordType"
+                value="jp_word"
+                checked={wordType === "jp_word"}
+                onChange={(e) => setWordType(e.target.value)}
+              />
+              純平/片假名
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="wordType"
+                value="kanji_jp_word"
+                checked={wordType === "kanji_jp_word"}
+                onChange={(e) => setWordType(e.target.value)}
+              />
+              包含漢字
+            </label>
+          </div>
+        </LabelGroup>
+      )}
 
       {/* Anki Algorithm Settings */}
-      {learningSteps !== undefined && ( // Conditionally render Anki settings
+      {/* {learningSteps !== undefined && ( // Conditionally render Anki settings
         <>
           <SettingTitle>Anki 演算法設定</SettingTitle>
           <LabelGroup>
             <SettingTitle>學習步驟 (毫秒, 逗號分隔):</SettingTitle>
             <input
               type="text"
-              value={learningSteps.join(', ')}
+              value={learningSteps.join(", ")}
               onChange={(e) =>
-                setLearningSteps(e.target.value.split(',').map(s => Number(s.trim())))
+                setLearningSteps(
+                  e.target.value.split(",").map((s) => Number(s.trim()))
+                )
               }
             />
           </LabelGroup>
@@ -240,7 +271,7 @@ export default function SettingsPanel({
             />
           </LabelGroup>
         </>
-      )}
+      )} */}
     </PanelContainer>
   );
 }

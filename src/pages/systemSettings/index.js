@@ -8,14 +8,15 @@ import {
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useApp } from "../../store/contexts/AppContext"; // Import useApp
-import { // Import actions from systemSettings reducer
+import {
   setPlaybackOptions,
   setPlaybackSpeed,
   setAutoProceed,
   setProficiencyFilter,
-  setStartQuestionIndex, // New import
-  setWordRangeCount,     // New import
+  setStartQuestionIndex,
+  setWordRangeCount,
   setSortOrder,
+  setWordType,
 } from "./reducer";
 
 const HomeIcon = styled(SettingsToggle)`
@@ -25,40 +26,45 @@ const HomeIcon = styled(SettingsToggle)`
 `;
 
 function SystemSettingsPage() {
-  const { state, dispatch } = useApp(); // Use global state and dispatch
-  const { systemSettings } = state; // Access systemSettings from global state
+  const { state, dispatch } = useApp();
+  const { systemSettings } = state;
   const {
     playbackOptions,
     playbackSpeed,
     autoProceed,
     proficiencyFilter,
     startQuestionIndex, // Destructure new state variable
-    wordRangeCount,     // Destructure new state variable
+    wordRangeCount, // Destructure new state variable
     sortOrder,
+    wordType,
   } = systemSettings; // Destructure systemSettings
 
   const navigate = useNavigate();
-
   return (
     <AppContainer>
       <HomeIcon onClick={() => navigate("/")}>↩️</HomeIcon>
       <Title>系統設定</Title>
       <SettingsPanel
+        setWordType={(newType) => dispatch(setWordType(newType))}
+        wordType={wordType}
         playbackOptions={playbackOptions}
         setPlaybackOptions={(newOptions) =>
           dispatch(setPlaybackOptions(newOptions))
         }
         playbackSpeed={playbackSpeed}
         setPlaybackSpeed={(newSpeed) => dispatch(setPlaybackSpeed(newSpeed))}
-        
         autoProceed={autoProceed}
         setAutoProceed={(newAutoProceed) =>
           dispatch(setAutoProceed(newAutoProceed))
         }
         proficiencyFilter={proficiencyFilter}
-        setProficiencyFilter={(newFilter) => dispatch(setProficiencyFilter(newFilter))}
+        setProficiencyFilter={(newFilter) =>
+          dispatch(setProficiencyFilter(newFilter))
+        }
         startQuestionIndex={startQuestionIndex} // Pass new prop
-        setStartQuestionIndex={(newIndex) => dispatch(setStartQuestionIndex(newIndex))} // Pass new setter
+        setStartQuestionIndex={(newIndex) =>
+          dispatch(setStartQuestionIndex(newIndex))
+        } // Pass new setter
         wordRangeCount={wordRangeCount} // Pass new prop
         setWordRangeCount={(newCount) => dispatch(setWordRangeCount(newCount))} // Pass new setter
         sortOrder={sortOrder}

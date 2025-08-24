@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useApp } from "../../../../store/contexts/AppContext"; // Changed from useQuiz
 import {
   checkAnswer,
@@ -24,17 +24,15 @@ import {
 } from "./styles";
 import ExampleSentence from "../ExampleSentence";
 import AnswerSound from "../AnswerSound";
-import AudioRecorderPage from '../../../AudioRecorder'
+import AudioRecorderPage from "../../../AudioRecorder";
 
-// Note: This component no longer receives props. It gets everything from context.
 export default function QuestionCard({ speakManually, question }) {
   const { state, dispatch } = useApp(); // Changed from useQuiz
   const { questions, currentQuestionIndex, selectedAnswer, result } =
-    state.quiz; // Access quiz state
-  const { pendingProficiencyUpdates } = state.shared; // Get pendingProficiencyUpdates
+    state.quiz;
+  const { pendingProficiencyUpdates } = state.shared;
+  const { wordType } = state.systemSettings;
   const q = questions[currentQuestionIndex];
-
-  console.log("QuestionCard - question.id:", question.id); // Add this log
 
   const [showHiragana, setShowHiragana] = useState(false);
 
@@ -42,42 +40,65 @@ export default function QuestionCard({ speakManually, question }) {
     setShowHiragana(false);
   }, [q]);
 
-
   const handleCheckAnswer = (answer) => {
-    dispatch(checkAnswer(answer)); // Changed dispatch type
+    dispatch(checkAnswer(answer));
   };
 
   const handleNextQuestion = () => {
-    dispatch(nextQuestionGame()); // Changed dispatch type
+    dispatch(nextQuestionGame());
   };
 
-  const handleProficiencyChange = (proficiency) => { // Removed wordId from params, use question.id directly
-    dispatch(updatePendingProficiency(question.id, proficiency)); // Dispatch to pending updates
+  const handleProficiencyChange = (proficiency) => {
+    dispatch(updatePendingProficiency(question.id, proficiency));
   };
 
-  // Determine the current proficiency to highlight the button
-  const currentProficiency = pendingProficiencyUpdates[question.id] || question.proficiency;
+  const currentProficiency =
+    pendingProficiencyUpdates[question.id] || question.proficiency;
 
   return (
     <CardContainer>
-      {/* Replace ProficiencyBadge with buttons */}
+      {/* 熟練度 */}
       <ProficiencyControlContainer>
         <ProficiencyButton
-          className={currentProficiency === 1 ? 'active' : ''}
-          onClick={() => handleProficiencyChange(1)}>低</ProficiencyButton>
+          className={currentProficiency === 1 ? "active" : ""}
+          onClick={() => handleProficiencyChange(1)}
+        >
+          低
+        </ProficiencyButton>
         <ProficiencyButton
-          className={currentProficiency === 2 ? 'active' : ''}
-          onClick={() => handleProficiencyChange(2)}>中</ProficiencyButton>
+          className={currentProficiency === 2 ? "active" : ""}
+          onClick={() => handleProficiencyChange(2)}
+        >
+          中
+        </ProficiencyButton>
         <ProficiencyButton
-          className={currentProficiency === 3 ? 'active' : ''}
-          onClick={() => handleProficiencyChange(3)}>高</ProficiencyButton>
+          className={currentProficiency === 3 ? "active" : ""}
+          onClick={() => handleProficiencyChange(3)}
+        >
+          高
+        </ProficiencyButton>
       </ProficiencyControlContainer>
 
-      {q.kanji_jp_word && (
+      {wordType == "jp_word" && (
         <>
           <HiraganaToggleContainer>
             <ToggleButton onClick={() => setShowHiragana((prev) => !prev)}>
-              {showHiragana ? "🔽 平" : "▶️ 平"}
+              {showHiragana ? "🔽漢" : "▶️漢"}
+            </ToggleButton>
+          </HiraganaToggleContainer>
+          {showHiragana && (
+            <HiraganaTextContainer>
+              <HiraganaText>{q.kanji_jp_word}</HiraganaText>
+            </HiraganaTextContainer>
+          )}
+        </>
+      )}
+
+      {q.kanji_jp_word && wordType == "kanji_jp_word" && (
+        <>
+          <HiraganaToggleContainer>
+            <ToggleButton onClick={() => setShowHiragana((prev) => !prev)}>
+              {showHiragana ? "🔽平/片" : "▶️平/片"}
             </ToggleButton>
           </HiraganaToggleContainer>
           {showHiragana && (
@@ -89,18 +110,19 @@ export default function QuestionCard({ speakManually, question }) {
       )}
 
       <WordContainer>
-        <span>{q.kanji_jp_word || q.jp_word}</span>
+        {wordType == "kanji_jp_word" && (
+          <span>{q.kanji_jp_word || q.jp_word}</span>
+        )}
+        {wordType == "jp_word" && <span>{q.jp_word}</span>}
         <SpeakButton onClick={() => speakManually(q.jp_word, "ja")}>
           🔊
         </SpeakButton>
       </WordContainer>
-      <AudioRecorderPage triggerReset={currentQuestionIndex}/>
+      <AudioRecorderPage triggerReset={currentQuestionIndex} />
       {!result && (
         <OptionsContainer>
           {q.options.map((opt, i) => (
-            <OptionButton key={i} onClick={() => 
-              handleCheckAnswer(opt)
-              }>
+            <OptionButton key={i} onClick={() => handleCheckAnswer(opt)}>
               {opt}
             </OptionButton>
           ))}
