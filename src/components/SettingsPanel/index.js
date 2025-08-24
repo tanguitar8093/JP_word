@@ -95,17 +95,19 @@ export default function SettingsPanel({
           </label>
         </div>
       </LabelGroup>
-      <LabelGroup>
-        <SettingTitle>自動下一題：</SettingTitle>
-        <label>
-          <input
-            type="checkbox"
-            checked={autoProceed}
-            onChange={(e) => setAutoProceed(e.target.checked)}
-          />
-          開啟
-        </label>
-      </LabelGroup>
+      {autoProceed !== undefined && (
+        <LabelGroup>
+          <SettingTitle>自動下一題：</SettingTitle>
+          <label>
+            <input
+              type="checkbox"
+              checked={autoProceed}
+              onChange={(e) => setAutoProceed(e.target.checked)}
+            />
+            開啟
+          </label>
+        </LabelGroup>
+      )}
 
       {!isQuizContext && ( // Conditionally render
         <LabelGroup>

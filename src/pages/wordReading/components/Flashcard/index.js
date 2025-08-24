@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   CardContainer,
   WordContainer,
@@ -8,9 +8,18 @@ import {
   ShowAnswerButton,
 } from './styles';
 import { SpeakButton } from '../../../quiz/components/QuestionCard/styles'; // reuse speak button
+import AudioRecorderPage from '../../../AudioRecorder';
 
 const Flashcard = ({ card, onAnswer, speak }) => {
   const [showAnswer, setShowAnswer] = useState(false);
+  const [triggerReset, setTriggerReset] = useState(false);
+
+  useEffect(() => {
+    setShowAnswer(false);
+    setTriggerReset(true);
+    const timer = setTimeout(() => setTriggerReset(false), 100);
+    return () => clearTimeout(timer);
+  }, [card]);
 
   if (!card) {
     return <CardContainer>No more cards.</CardContainer>;
@@ -18,7 +27,6 @@ const Flashcard = ({ card, onAnswer, speak }) => {
 
   const handleAnswer = (rating) => {
     onAnswer(card.id, rating);
-    setShowAnswer(false);
   };
 
   return (
@@ -27,6 +35,7 @@ const Flashcard = ({ card, onAnswer, speak }) => {
         <span>{card.jp_word}</span>
         <SpeakButton onClick={() => speak(card.jp_word, 'ja')}>🔊</SpeakButton>
       </WordContainer>
+      <AudioRecorderPage triggerReset={triggerReset} />
 
       {showAnswer ? (
         <AnswerContainer>
