@@ -4,6 +4,7 @@ import {
   checkAnswer,
   nextQuestionGame,
 } from "../../../../pages/quiz/reducer/actions"; // Import quiz actions
+import { updatePendingProficiency } from "../../../../store/reducer/actions"; // Import updatePendingProficiency
 import {
   CardContainer,
   HiraganaToggleContainer,
@@ -18,23 +19,22 @@ import {
   AnswerText,
   NextButton,
   SubCard,
-  ProficiencyBadge,
+  ProficiencyControlContainer,
+  ProficiencyButton,
 } from "./styles";
 import ExampleSentence from "../ExampleSentence";
 import AnswerSound from "../AnswerSound";
 import AudioRecorderPage from '../../../AudioRecorder'
-const proficiencyMapping = {
-  1: '低',
-  2: '中',
-  3: '高',
-};
 
 // Note: This component no longer receives props. It gets everything from context.
 export default function QuestionCard({ speakManually, question }) {
   const { state, dispatch } = useApp(); // Changed from useQuiz
   const { questions, currentQuestionIndex, selectedAnswer, result } =
     state.quiz; // Access quiz state
+  const { pendingProficiencyUpdates } = state.shared; // Get pendingProficiencyUpdates
   const q = questions[currentQuestionIndex];
+
+  console.log("QuestionCard - question.id:", question.id); // Add this log
 
   const [showHiragana, setShowHiragana] = useState(false);
 
@@ -51,13 +51,28 @@ export default function QuestionCard({ speakManually, question }) {
     dispatch(nextQuestionGame()); // Changed dispatch type
   };
 
+  const handleProficiencyChange = (proficiency) => { // Removed wordId from params, use question.id directly
+    dispatch(updatePendingProficiency(question.id, proficiency)); // Dispatch to pending updates
+  };
+
+  // Determine the current proficiency to highlight the button
+  const currentProficiency = pendingProficiencyUpdates[question.id] || question.proficiency;
+
   return (
     <CardContainer>
-      {question.proficiency && (
-        <ProficiencyBadge level={question.proficiency} title="熟練度">
-          {proficiencyMapping[question.proficiency]}
-        </ProficiencyBadge>
-      )}
+      {/* Replace ProficiencyBadge with buttons */}
+      <ProficiencyControlContainer>
+        <ProficiencyButton
+          className={currentProficiency === 1 ? 'active' : ''}
+          onClick={() => handleProficiencyChange(1)}>低</ProficiencyButton>
+        <ProficiencyButton
+          className={currentProficiency === 2 ? 'active' : ''}
+          onClick={() => handleProficiencyChange(2)}>中</ProficiencyButton>
+        <ProficiencyButton
+          className={currentProficiency === 3 ? 'active' : ''}
+          onClick={() => handleProficiencyChange(3)}>高</ProficiencyButton>
+      </ProficiencyControlContainer>
+
       {q.kanji_jp_word && (
         <>
           <HiraganaToggleContainer>

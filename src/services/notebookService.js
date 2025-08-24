@@ -17,10 +17,11 @@ const _getNotebooksFromStorage = () => {
 
 // Private method to save notebooks to localStorage
 const _saveNotebooksToStorage = (notebooks) => {
+  console.log("notebookService: _saveNotebooksToStorage - Saving notebooks:", JSON.parse(JSON.stringify(notebooks))); // Deep copy for logging
   try {
     localStorage.setItem(NOTEBOOK_STORAGE_KEY, JSON.stringify(notebooks));
   } catch (error) {
-    console.error("Error saving to localStorage", error);
+    console.error("notebookService: Error saving to localStorage", error);
   }
 };
 
@@ -82,6 +83,7 @@ const notebookService = {
             ch_ex_statement: "你好，祝你有美好的一天！",
             type: "greeting",
             options: ["a", "b", "c"],
+            proficiency: 1, // Added proficiency with default value
           }]
         }
       };
@@ -193,11 +195,12 @@ const notebookService = {
       throw new Error("Word not found in the notebook.");
     }
 
+    const oldWord = notebooks[notebookId].context[wordIndex];
     notebooks[notebookId].context[wordIndex] = {
-      ...notebooks[notebookId].context[wordIndex],
+      ...oldWord,
       ...updates,
     };
-
+    console.log("notebookService: updateWordInNotebook - Updated word:", JSON.parse(JSON.stringify(notebooks[notebookId].context[wordIndex]))); // Deep copy for logging
     _saveNotebooksToStorage(notebooks);
     return notebooks[notebookId].context[wordIndex];
   },

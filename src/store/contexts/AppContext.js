@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect } from "react";
+import { createContext, useContext, useReducer, useEffect, useCallback, useRef } from "react";
 import notebookService from '../../services/notebookService';
 import { getNotebooks, setCurrentNotebook } from '../reducer/actions';
 
@@ -66,21 +66,38 @@ const initialAppState = (() => {
     wordManagement: wordManagementReducer(undefined, {}),
     systemSettings: mergedSystemSettings, // Pass the fully merged state here
     wordReading: wordReadingReducer(undefined, {}),
-    shared: sharedReducer(undefined, {}),
+    shared: {
+      ...sharedReducer(undefined, {}), // Get initial state from shared reducer
+      pendingProficiencyUpdates: {}, // Add new temporary storage
+    },
   };
 })();
 
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(rootReducer, initialAppState);
+  const stateRef = useRef(state); // Create a ref to hold the latest state
+
+  // Update the ref whenever state changes
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  // Simple thunk middleware
+  const enhancedDispatch = useCallback((action) => {
+    if (typeof action === 'function') {
+      return action(enhancedDispatch, () => stateRef.current); // Use stateRef.current for getState
+    }
+    return dispatch(action);
+  }, [dispatch]); // Removed state from dependencies
 
   useEffect(() => {
     notebookService.init();
     notebookService.initCurrentNotebook();
     const notebooks = notebookService.getNotebooks();
     const currentNotebookId = notebookService.getCurrentNotebookId();
-    dispatch(getNotebooks(notebooks));
-    dispatch(setCurrentNotebook(currentNotebookId));
-  }, []);
+    enhancedDispatch(getNotebooks(notebooks)); // Use enhancedDispatch
+    enhancedDispatch(setCurrentNotebook(currentNotebookId)); // Use enhancedDispatch
+  }, [enhancedDispatch]); // Depend on enhancedDispatch
 
   // Save systemSettings to localStorage whenever it changes
   useEffect(() => {
@@ -92,7 +109,7 @@ export function AppProvider({ children }) {
   }, [state.systemSettings]);
 
   return (
-    <AppContext.Provider value={{ state, dispatch }}>
+    <AppContext.Provider value={{ state, dispatch: enhancedDispatch }}> {/* Provide enhancedDispatch */}
       {children}
     </AppContext.Provider>
   );

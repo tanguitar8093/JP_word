@@ -147,3 +147,30 @@ export const SubCard = styled.div`
   border-radius: 8px; /* 🔹 圓角 */
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* 🔹 陰影 */
 `;
+
+export const ProficiencyControlContainer = styled.div`
+  display: flex;
+  gap: 2px;
+  position: absolute;
+  right: 5px;
+`;
+
+export const ProficiencyButton = styled.button`
+  padding: 2px 4px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 10px;
+
+  &:hover {
+    background-color: #ddd;
+  }
+
+  &.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+  }
+`;

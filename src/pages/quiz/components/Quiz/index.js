@@ -22,6 +22,8 @@ import {
   startQuiz
 } from "../../../../pages/quiz/reducer/actions"; // Import quiz actions
 
+import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actions"; // Import commitPendingProficiencyUpdates
+
 const IconContainer = styled.div`
   position: absolute;
   top: 10px;
@@ -57,9 +59,12 @@ function QuizContent() {
   const blocker = useBlocker(!quizCompleted);
 
   const handleConfirmExit = useCallback(() => {
+    console.log('confirm exit');
+    dispatch(commitPendingProficiencyUpdates()); // Commit changes before exiting
     dispatch(restartQuiz());
     blocker.proceed();
     setShowExitConfirmModal(false);
+    window.location.reload();
   }, [blocker, dispatch]);
 
   const handleCancelExit = useCallback(() => {
@@ -121,7 +126,7 @@ function QuizContent() {
         </FloatingSettingsPanel>
       )}
 
-      <Title>日文單字測驗</Title>
+      <Title>單字練習</Title>
       <Progress>
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
@@ -148,6 +153,7 @@ export default function Quiz() {
   const [emptyAlert, setEmptyAlert,]=useState(false)
   const navigate = useNavigate();
   useEffect(() => {
+    console.log("Quiz useEffect - notebooks:", notebooks); // Add this log
     if (!quizCompleted) {
       const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
       if (currentNotebook) {
@@ -160,6 +166,7 @@ export default function Quiz() {
           if (quizScope === "high" && q.proficiency === 3) return true;
           return false;
         });
+        console.log("Quiz useEffect - filtered questions IDs:", questions.map(q => q.id)); // Add this log
         if (questions.length > 0) {
           dispatch(startQuiz(questions));
         } else {
@@ -168,7 +175,7 @@ export default function Quiz() {
         }
       }
     }
-  }, [currentNotebookId, dispatch, quizCompleted, quizScope]);
+  }, [currentNotebookId, dispatch, quizCompleted, quizScope, notebooks]);
 
   if (quizCompleted) {
     // Use quizCompleted from global state
