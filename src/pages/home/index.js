@@ -18,78 +18,102 @@ const MainTitle = styled(Title)`
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  padding: 20px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 12px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 8px;
+  }
 `;
 
 const Card = styled.div`
   background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 12px 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
+  
+  @media (max-width: 768px) {
+    padding: 8px;
+  }
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
   }
 `;
 
 const CardTitle = styled.h3`
-  margin: 0 0 10px;
+  margin: 4px 0;
   color: #333;
-  font-size: 1.2em;
+  font-size: 1em;
+  
+  @media (max-width: 768px) {
+    font-size: 0.9em;
+  }
 `;
 
 const CardDescription = styled.p`
   margin: 0;
   color: #666;
-  font-size: 0.9em;
+  font-size: 0.8em;
+  display: none;
+  
+  @media (min-width: 769px) {
+    display: block;
+  }
 `;
 
 const IconWrapper = styled.div`
-  font-size: 2em;
-  margin-bottom: 15px;
+  font-size: 1.5em;
+  margin-bottom: 4px;
   color: #4CAF50;
+  
+  @media (max-width: 768px) {
+    font-size: 1.2em;
+    margin-bottom: 2px;
+  }
 `;
 
 const menuItems = [
   {
-    title: '單字練習',
-    description: '開始一個客製化測驗，測試你的日語能力',
+    title: '快速測驗',
+    description: '測試日語能力',
     path: '/quiz',
     icon: '📝'
   },
   {
-    title: '單字朗讀',
-    description: '練習閱讀和理解日語單字',
+    title: '單字讀本',
+    description: '練習朗讀',
     path: '/word-reading',
     icon: '📚'
   },
   {
-    title: '單字管理',
-    description: 'Anki 式間隔重複學習系統',
+    title: 'Anki',
+    description: '間隔重複學習',
     path: '/word-management',
     icon: '🗂'
   },
   {
-    title: '單字庫',
-    description: '管理你的單字筆記本和學習資料',
+    title: '筆記本',
+    description: '管理單字庫',
     path: '/notebook-management',
     icon: '📔'
   },
   {
-    title: '錄音工具',
-    description: '練習日語發音並錄製你的聲音',
+    title: '錄音',
+    description: '練習發音',
     path: '/recorder',
     icon: '🎤'
   },
   {
-    title: '系統設定',
-    description: '自定義你的學習體驗',
+    title: '設定',
+    description: '系統設定',
     path: '/settings',
     icon: '⚙️'
   }
