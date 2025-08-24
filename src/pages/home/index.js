@@ -15,7 +15,7 @@ const Container = styled(AppContainer)`
   background: transparent;
   border: none;
   box-shadow: none;
-  
+
   @media (max-width: 768px) {
     padding: 12px 8px;
     width: 100%;
@@ -35,7 +35,7 @@ const Grid = styled.div`
   gap: 12px;
   padding: 12px;
   width: 100%;
-  
+
   @media (max-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
@@ -57,7 +57,7 @@ const Card = styled.div`
   justify-content: center;
   align-items: center;
   min-height: 90px;
-  
+
   @media (max-width: 768px) {
     padding: 8px 4px;
     min-height: 75px;
@@ -73,7 +73,7 @@ const CardTitle = styled.h3`
   margin: 4px 0;
   color: #333;
   font-size: 1em;
-  
+
   @media (max-width: 768px) {
     font-size: 0.9em;
   }
@@ -84,7 +84,7 @@ const CardDescription = styled.p`
   color: #666;
   font-size: 0.8em;
   display: block;
-  
+
   @media (max-width: 768px) {
     font-size: 0.7em;
   }
@@ -93,8 +93,8 @@ const CardDescription = styled.p`
 const IconWrapper = styled.div`
   font-size: 1.5em;
   margin-bottom: 4px;
-  color: #4CAF50;
-  
+  color: #4caf50;
+
   @media (max-width: 768px) {
     font-size: 1.2em;
     margin-bottom: 2px;
@@ -103,41 +103,41 @@ const IconWrapper = styled.div`
 
 const menuItems = [
   {
-    title: '快速測驗',
-    description: '測試日語能力',
-    path: '/quiz',
-    icon: '📝'
+    title: "快速測驗",
+    description: "測試日語能力",
+    path: "/quiz",
+    icon: "📝",
   },
   {
-    title: '單字讀本',
-    description: '練習朗讀',
-    path: '/word-reading',
-    icon: '📚'
+    title: "單字讀本",
+    description: "練習朗讀",
+    path: "/reading",
+    icon: "📚",
   },
   {
-    title: 'Anki',
-    description: '間隔重複學習',
-    path: '/word-management',
-    icon: '🗂'
+    title: "Anki",
+    description: "間隔重複學習",
+    path: "/word-management",
+    icon: "🗂",
   },
   {
-    title: '筆記本',
-    description: '管理單字庫',
-    path: '/notebook-management',
-    icon: '📔'
+    title: "筆記本",
+    description: "管理單字庫",
+    path: "/notebook-management",
+    icon: "📔",
   },
   {
-    title: '錄音',
-    description: '練習發音',
-    path: '/recorder',
-    icon: '🎤'
+    title: "錄音",
+    description: "練習發音",
+    path: "/recorder",
+    icon: "🎤",
   },
   {
-    title: '設定',
-    description: '系統設定',
-    path: '/settings',
-    icon: '⚙️'
-  }
+    title: "設定",
+    description: "系統設定",
+    path: "/settings",
+    icon: "⚙️",
+  },
 ];
 
 function HomePage() {

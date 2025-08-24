@@ -1,10 +1,10 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 export const CardContainer = styled.div`
   padding: 20px;
   border-radius: 8px;
   background: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 16px;
 `;
 
@@ -12,7 +12,7 @@ export const WordText = styled.div`
   font-size: 24px;
   margin-bottom: 16px;
   text-align: center;
-  
+
   > div {
     margin: 8px 0;
   }
@@ -37,9 +37,9 @@ export const ActionButton = styled.button`
   border-radius: 4px;
   font-size: 14px;
   cursor: pointer;
-  background: #4CAF50;
+  background: #4caf50;
   color: white;
-  
+
   &:hover {
     background: #45a049;
   }

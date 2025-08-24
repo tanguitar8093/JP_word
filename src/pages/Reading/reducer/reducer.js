@@ -14,32 +14,29 @@ const initialState = {
 
 const createRandomQuestions = (questions) => {
   function shuffleArray(array) {
-    const arr = [...array];
+    const arr = [...array]; 
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+      [arr[i], arr[j]] = [arr[j], arr[i]]; 
     }
     return arr;
   }
 
-  return questions.map((q) => ({ ...q, options: shuffleArray(q.options) }));
-};
+  return questions.map(q => ({ ...q, options: shuffleArray(q.options) }));
+}
 
 const sortQuestions = (questions, sortOrder) => {
   let sortedQuestions = [...questions];
 
-  if (sortOrder === "random") {
+  if (sortOrder === 'random') {
     // Shuffle the questions array
     for (let i = sortedQuestions.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [sortedQuestions[i], sortedQuestions[j]] = [
-        sortedQuestions[j],
-        sortedQuestions[i],
-      ];
+      [sortedQuestions[i], sortedQuestions[j]] = [sortedQuestions[j], sortedQuestions[i]];
     }
-  } else if (sortOrder === "aiueo") {
-    sortedQuestions.sort((a, b) => a.jp_word.localeCompare(b.jp_word, "ja"));
-  } else if (sortOrder === "none") {
+  } else if (sortOrder === 'aiueo') {
+    sortedQuestions.sort((a, b) => a.jp_word.localeCompare(b.jp_word, 'ja'));
+  } else if (sortOrder === 'none') {
     // Do nothing
   }
 
@@ -53,7 +50,7 @@ function reducer(state = initialState, action) {
       const { questions, sortOrder } = action.payload;
       return {
         ...state,
-        questions: sortQuestions(questions, sortOrder),
+        questions: sortQuestions(questions, sortOrder), 
         status: "active",
         secondsRemaining: action.payload.questions.length * 30,
         currentQuestionIndex: 0,
@@ -76,16 +73,7 @@ function reducer(state = initialState, action) {
         action.payload === currentQuestion.correctOption
           ? state.points + currentQuestion.points
           : state.points;
-      console.log("???", {
-        ...state,
-        selectedAnswer: action.payload,
-        result: isCorrect ? "⭕" : "❌",
-        correctAnswersCount: isCorrect
-          ? state.correctAnswersCount + 1
-          : state.correctAnswersCount,
-        answeredQuestions: newAnsweredQuestions,
-        points: newPoints,
-      });
+
       return {
         ...state,
         selectedAnswer: action.payload,

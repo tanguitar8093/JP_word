@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useApp } from "../../../../store/contexts/AppContext"; // Changed from useQuiz
-import {
-  checkAnswer,
-  nextQuestionGame,
-} from "../../../../pages/quiz/reducer/actions"; // Import quiz actions
+import { checkAnswer, nextQuestionGame } from "../../../quiz/reducer/actions"; // Import quiz actions
 import { updatePendingProficiency } from "../../../../store/reducer/actions"; // Import updatePendingProficiency
 import {
   CardContainer,
@@ -13,8 +10,6 @@ import {
   HiraganaText,
   WordContainer,
   SpeakButton,
-  OptionsContainer,
-  OptionButton,
   ResultContainer,
   AnswerText,
   NextButton,
@@ -28,14 +23,13 @@ import AudioRecorderPage from "../../../AudioRecorder";
 
 export default function QuestionCard({ speakManually, question }) {
   const { state, dispatch } = useApp(); // Changed from useQuiz
-  const { questions, currentQuestionIndex, selectedAnswer, result } =
-    state.quiz;
+  const { questions, currentQuestionIndex, result } = state.quiz;
   const { pendingProficiencyUpdates } = state.shared;
   const { wordType } = state.systemSettings;
   const q = questions[currentQuestionIndex];
 
   const [showHiragana, setShowHiragana] = useState(false);
-
+  const [showInfo, setInfo] = useState(false);
   useEffect(() => {
     setShowHiragana(false);
   }, [q]);
@@ -119,24 +113,21 @@ export default function QuestionCard({ speakManually, question }) {
         </SpeakButton>
       </WordContainer>
       <AudioRecorderPage triggerReset={currentQuestionIndex} />
-      {!result && (
-        <OptionsContainer>
-          {q.options.map((opt, i) => (
-            <OptionButton key={i} onClick={() => handleCheckAnswer(opt)}>
-              {opt}
-            </OptionButton>
-          ))}
-        </OptionsContainer>
+      {!showInfo && (
+        <NextButton
+          onClick={() => {
+            setInfo(true);
+            speakManually(null, null, q);
+          }}
+        >
+          顯示細節
+        </NextButton>
       )}
-
-      {result && (
+      {showInfo && (
         <ResultContainer>
           <SubCard>
-            <AnswerText correct={result === "⭕"}>
+            <AnswerText correct={"⭕"}>
               {q.ch_word} [{q.type}]
-            </AnswerText>
-            <AnswerText correct={result === "⭕"}>
-              {selectedAnswer} {result}
             </AnswerText>
           </SubCard>
           <ExampleSentence
@@ -144,9 +135,10 @@ export default function QuestionCard({ speakManually, question }) {
             ch_ex={q.ch_ex_statement}
             speak={speakManually}
           />
-          <NextButton onClick={handleNextQuestion}>下一題</NextButton>
+          <NextButton onClick={() => setInfo(false)}>隱藏細節</NextButton>
         </ResultContainer>
       )}
+      <NextButton onClick={handleNextQuestion}>下一題</NextButton>
     </CardContainer>
   );
 }

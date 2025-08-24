@@ -1,10 +1,9 @@
-
 import {
   SET_CURRENT_WORD,
   UPDATE_WORD_STATUS,
   SET_WORD_FILTER,
   UPDATE_WORD_PROFICIENCY,
-} from './actions';
+} from "./actions";
 
 const ONE_MINUTE_MS = 60 * 1000;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -14,7 +13,7 @@ const initialState = {
   currentWord: null,
   filter: {
     proficiency: 0,
-    status: 'all',
+    status: "all",
   },
 };
 
@@ -23,28 +22,28 @@ function calculateNextState(card, rating) {
   updatedCard.reps += 1;
   const now = Date.now();
 
-  if (card.status === 'learning' || card.status === 'new') {
+  if (card.status === "learning" || card.status === "new") {
     switch (rating) {
-      case 'again': {
+      case "again": {
         updatedCard.learningStep = 1;
         updatedCard.due = now + ONE_MINUTE_MS;
-        updatedCard.status = 'learning';
+        updatedCard.status = "learning";
         break;
       }
-      case 'good': {
+      case "good": {
         if (updatedCard.learningStep < 2) {
           updatedCard.due = now + 10 * ONE_MINUTE_MS;
           updatedCard.learningStep += 1;
-          updatedCard.status = 'learning';
+          updatedCard.status = "learning";
         } else {
-          updatedCard.status = 'review';
+          updatedCard.status = "review";
           updatedCard.interval = 1;
           updatedCard.due = now + ONE_DAY_MS;
         }
         break;
       }
-      case 'easy': {
-        updatedCard.status = 'review';
+      case "easy": {
+        updatedCard.status = "review";
         updatedCard.interval = 4;
         updatedCard.due = now + 4 * ONE_DAY_MS;
         break;
@@ -52,25 +51,27 @@ function calculateNextState(card, rating) {
       default:
         break;
     }
-  } else if (card.status === 'review') {
+  } else if (card.status === "review") {
     switch (rating) {
-      case 'again': {
+      case "again": {
         updatedCard.lapses += 1;
         updatedCard.easeFactor = Math.max(1.3, card.easeFactor - 0.2);
-        updatedCard.status = 'learning';
+        updatedCard.status = "learning";
         updatedCard.learningStep = 1;
         updatedCard.interval = 0;
         updatedCard.due = now + ONE_MINUTE_MS;
         break;
       }
-      case 'good': {
+      case "good": {
         updatedCard.interval = Math.ceil(card.interval * card.easeFactor);
         updatedCard.due = now + updatedCard.interval * ONE_DAY_MS;
         break;
       }
-      case 'easy': {
+      case "easy": {
         updatedCard.easeFactor = card.easeFactor + 0.15;
-        updatedCard.interval = Math.ceil(card.interval * updatedCard.easeFactor * 1.3);
+        updatedCard.interval = Math.ceil(
+          card.interval * updatedCard.easeFactor * 1.3
+        );
         updatedCard.due = now + updatedCard.interval * ONE_DAY_MS;
         break;
       }
@@ -102,9 +103,10 @@ function reducer(state = initialState, action) {
     case UPDATE_WORD_STATUS:
       return {
         ...state,
-        currentWord: action.payload.wordId === state.currentWord?.id
-          ? { ...state.currentWord, ...action.payload.changes }
-          : state.currentWord,
+        currentWord:
+          action.payload.wordId === state.currentWord?.id
+            ? { ...state.currentWord, ...action.payload.changes }
+            : state.currentWord,
       };
 
     case UPDATE_WORD_PROFICIENCY:

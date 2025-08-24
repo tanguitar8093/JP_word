@@ -1,5 +1,5 @@
-import React from 'react';
-import { Table, TableHeader, TableRow, TableCell } from './styles';
+import React from "react";
+import { Table, TableHeader, TableRow, TableCell } from "./styles";
 
 export default function WordTable({ words, onWordSelect }) {
   return (
@@ -15,14 +15,14 @@ export default function WordTable({ words, onWordSelect }) {
         </TableHeader>
       </thead>
       <tbody>
-        {words.map(word => {
+        {words.map((word) => {
           const dueDate = new Date(word.due);
           const now = new Date();
           const isOverdue = dueDate < now;
-          
+
           return (
-            <TableRow 
-              key={word.id} 
+            <TableRow
+              key={word.id}
               onClick={() => onWordSelect(word)}
               isOverdue={isOverdue}
             >
@@ -32,7 +32,7 @@ export default function WordTable({ words, onWordSelect }) {
               <TableCell>{word.status}</TableCell>
               <TableCell>{word.proficiency}</TableCell>
               <TableCell>
-                {isOverdue ? '已到期' : dueDate.toLocaleDateString()}
+                {isOverdue ? "已到期" : dueDate.toLocaleDateString()}
               </TableCell>
             </TableRow>
           );

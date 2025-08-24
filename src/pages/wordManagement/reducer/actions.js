@@ -1,4 +1,3 @@
-
 // Placeholder action type
 // Action Types
 export const SET_CURRENT_WORD = "wordManagement/SET_CURRENT_WORD";

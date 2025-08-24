@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 export const Table = styled.table`
   width: 100%;
@@ -8,7 +8,7 @@ export const Table = styled.table`
 
 export const TableHeader = styled.tr`
   background: #f4f4f4;
-  
+
   th {
     padding: 12px;
     text-align: left;
@@ -19,10 +19,10 @@ export const TableHeader = styled.tr`
 
 export const TableRow = styled.tr`
   cursor: pointer;
-  background: ${props => props.isOverdue ? '#fff3f3' : 'white'};
-  
+  background: ${(props) => (props.isOverdue ? "#fff3f3" : "white")};
+
   &:hover {
-    background: ${props => props.isOverdue ? '#ffe6e6' : '#f8f8f8'};
+    background: ${(props) => (props.isOverdue ? "#ffe6e6" : "#f8f8f8")};
   }
 `;
 
