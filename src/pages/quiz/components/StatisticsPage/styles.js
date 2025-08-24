@@ -82,7 +82,7 @@ export const QuestionItem = styled.li`
 `;
 
 export const QuestionText = styled.span`
-  font-size: 10px;
+  font-size: 14px;
   color: #555;
 `;
 
@@ -120,7 +120,7 @@ export const ProficiencyButton = styled.button`
   background-color: #f0f0f0;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 14px;
+  font-size: 10px;
   &:hover {
     background-color: #ddd;
   }
