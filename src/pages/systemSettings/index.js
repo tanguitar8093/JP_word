@@ -12,7 +12,7 @@ import { // Import actions from systemSettings reducer
   setPlaybackOptions,
   setPlaybackSpeed,
   setAutoProceed,
-  setQuizScope,
+  setProficiencyFilter,
   setStartQuestionIndex, // New import
   setWordRangeCount,     // New import
   setSortOrder,
@@ -31,7 +31,7 @@ function SystemSettingsPage() {
     playbackOptions,
     playbackSpeed,
     autoProceed,
-    quizScope,
+    proficiencyFilter,
     startQuestionIndex, // Destructure new state variable
     wordRangeCount,     // Destructure new state variable
     sortOrder,
@@ -55,8 +55,8 @@ function SystemSettingsPage() {
         setAutoProceed={(newAutoProceed) =>
           dispatch(setAutoProceed(newAutoProceed))
         }
-        quizScope={quizScope}
-        setQuizScope={(newScope) => dispatch(setQuizScope(newScope))}
+        proficiencyFilter={proficiencyFilter}
+        setProficiencyFilter={(newFilter) => dispatch(setProficiencyFilter(newFilter))}
         startQuestionIndex={startQuestionIndex} // Pass new prop
         setStartQuestionIndex={(newIndex) => dispatch(setStartQuestionIndex(newIndex))} // Pass new setter
         wordRangeCount={wordRangeCount} // Pass new prop

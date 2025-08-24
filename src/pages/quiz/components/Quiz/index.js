@@ -44,13 +44,12 @@ const HomeIcon = styled(SettingsToggle)`
 `;
 
 // The actual UI component that consumes the context
-import { setPlaybackOptions, setPlaybackSpeed, setAutoProceed, setQuizScope } from "../../../../pages/systemSettings/reducer"; // Import actions
+import { setPlaybackOptions, setPlaybackSpeed, setAutoProceed } from "../../../../pages/systemSettings/reducer"; // Import actions
 
-const quizScopeMap = {
-  all: '全部',
-  low: '低',
-  medium: '中',
-  high: '高',
+const proficiencyMap = {
+  1: '低',
+  2: '中',
+  3: '高',
 };
 
 const sortOrderMap = {
@@ -68,13 +67,18 @@ function QuizContent() {
   // Correct: Get state and dispatch from the context using useApp hook
   const { state, dispatch } = useApp(); // Changed from useQuiz
   const { questions, currentQuestionIndex, result, quizCompleted } = state.quiz; // Access quiz state
-  const { playbackOptions, playbackSpeed, autoProceed, quizScope, startQuestionIndex, wordRangeCount, sortOrder } = state.systemSettings; // Access systemSettings state
+  const { playbackOptions, playbackSpeed, autoProceed, proficiencyFilter, startQuestionIndex, wordRangeCount, sortOrder } = state.systemSettings; // Access systemSettings state
   const { notebooks, currentNotebookId } = state.shared;
   const question = questions[currentQuestionIndex];
   const blocker = useBlocker(!quizCompleted);
 
   const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
   const notebookName = currentNotebook ? currentNotebook.name : '';
+
+  const selectedProficiencies = Object.entries(proficiencyFilter)
+    .filter(([, value]) => value)
+    .map(([key]) => proficiencyMap[key])
+    .join(', ');
 
   const handleConfirmExit = useCallback(() => {
     dispatch(commitPendingProficiencyUpdates()); // Commit changes before exiting
@@ -166,7 +170,7 @@ function QuizContent() {
         message={
           <div style={{ textAlign: 'left' }}>
             <p>筆記本名稱: {notebookName}</p>
-            <p>熟練度: {quizScopeMap[quizScope]}</p>
+            <p>熟練度: {selectedProficiencies}</p>
             <p>排序: {sortOrderMap[sortOrder]}</p>
             <p>單字起始索引: {startQuestionIndex}</p>
             <p>單字範圍: {wordRangeCount}</p>
@@ -185,7 +189,7 @@ export default function Quiz() {
   const { state, dispatch } = useApp(); // Get state from global context
   const { quizCompleted, answeredQuestions, correctAnswersCount } = state.quiz; // Access quiz-specific state
   const { notebooks, currentNotebookId } = state.shared;
-  const { quizScope, startQuestionIndex, wordRangeCount, sortOrder } = state.systemSettings; // Destructure new settings
+  const { proficiencyFilter, startQuestionIndex, wordRangeCount, sortOrder } = state.systemSettings; // Destructure new settings
   const [emptyAlert, setEmptyAlert,]=useState(false)
   const navigate = useNavigate();
   useEffect(() => {
@@ -194,13 +198,7 @@ export default function Quiz() {
       if (currentNotebook) {
         let questions = currentNotebook.context.filter(q => {
           if (!q.jp_word) return false; // Ensure jp_word exists
-
-          // Apply quizScope filter (old logic)
-          if (quizScope === "all") return true;
-          if (quizScope === "low" && q.proficiency === 1) return true;
-          if (quizScope === "medium" && q.proficiency === 2) return true;
-          if (quizScope === "high" && q.proficiency === 3) return true;
-          return false;
+          return proficiencyFilter[q.proficiency];
         });
 
         // Apply startQuestionIndex and wordRangeCount filters
@@ -217,7 +215,7 @@ export default function Quiz() {
         }
       }
     }
-  }, [currentNotebookId, dispatch, quizCompleted, quizScope, notebooks, startQuestionIndex, wordRangeCount, sortOrder]); // Add new dependencies
+  }, [currentNotebookId, dispatch, quizCompleted, proficiencyFilter, notebooks, startQuestionIndex, wordRangeCount, sortOrder]); // Add new dependencies
 
   if (quizCompleted) {
     // Use quizCompleted from global state

@@ -9,8 +9,6 @@ export default function SettingsPanel({
   setProficiencyFilter,
   autoProceed,
   setAutoProceed,
-  quizScope,
-  setQuizScope,
   startQuestionIndex, // New prop
   setStartQuestionIndex, // New prop
   wordRangeCount, // New prop
@@ -19,6 +17,13 @@ export default function SettingsPanel({
   setSortOrder, // New prop
   isQuizContext, // New prop
 }) {
+  const handleProficiencyChange = (level) => {
+    setProficiencyFilter({
+      ...proficiencyFilter,
+      [level]: !proficiencyFilter[level],
+    });
+  };
+
   return (
     <PanelContainer>
       <LabelGroup>
@@ -108,41 +113,25 @@ export default function SettingsPanel({
           <div>
             <label>
               <input
-                type="radio"
-                name="quizScope"
-                value="all"
-                checked={quizScope === "all"}
-                onChange={(e) => setQuizScope(e.target.value)}
-              />
-              全部
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="quizScope"
-                value="low"
-                checked={quizScope === "low"}
-                onChange={(e) => setQuizScope(e.target.value)}
+                type="checkbox"
+                checked={proficiencyFilter[1]}
+                onChange={() => handleProficiencyChange(1)}
               />
               低
             </label>
             <label>
               <input
-                type="radio"
-                name="quizScope"
-                value="medium"
-                checked={quizScope === "medium"}
-                onChange={(e) => setQuizScope(e.target.value)}
+                type="checkbox"
+                checked={proficiencyFilter[2]}
+                onChange={() => handleProficiencyChange(2)}
               />
               中
             </label>
             <label>
               <input
-                type="radio"
-                name="quizScope"
-                value="high"
-                checked={quizScope === "high"}
-                onChange={(e) => setQuizScope(e.target.value)}
+                type="checkbox"
+                checked={proficiencyFilter[3]}
+                onChange={() => handleProficiencyChange(3)}
               />
               高
             </label>
