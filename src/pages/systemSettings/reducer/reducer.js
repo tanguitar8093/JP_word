@@ -7,6 +7,7 @@ import {
   SET_QUIZ_SCOPE,
   SET_START_QUESTION_INDEX, // New import
   SET_WORD_RANGE_COUNT,     // New import
+  SET_SORT_ORDER,
 } from "./actions";
 
 export const initialState = {
@@ -27,6 +28,7 @@ export const initialState = {
   quizScope: "all",
   startQuestionIndex: 1, // New state variable, default to 1 (data index 0)
   wordRangeCount: 9999,   // New state variable, default to 9999
+  sortOrder: 'random',
 };
 
 function reducer(state = initialState, action) {
@@ -74,6 +76,11 @@ function reducer(state = initialState, action) {
       return {
         ...state,
         wordRangeCount: action.payload,
+      };
+    case SET_SORT_ORDER:
+      return {
+        ...state,
+        sortOrder: action.payload,
       };
     default:
       return state;

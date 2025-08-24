@@ -15,6 +15,8 @@ export default function SettingsPanel({
   setStartQuestionIndex, // New prop
   wordRangeCount, // New prop
   setWordRangeCount, // New prop
+  sortOrder, // New prop
+  setSortOrder, // New prop
   isQuizContext, // New prop
 }) {
   return (
@@ -143,6 +145,33 @@ export default function SettingsPanel({
                 onChange={(e) => setQuizScope(e.target.value)}
               />
               高
+            </label>
+          </div>
+        </LabelGroup>
+      )}
+      {!isQuizContext && (
+        <LabelGroup>
+          <SettingTitle>排序設定:</SettingTitle>
+          <div>
+            <label>
+              <input
+                type="radio"
+                name="sortOrder"
+                value="random"
+                checked={sortOrder === 'random'}
+                onChange={(e) => setSortOrder(e.target.value)}
+              />
+              隨機
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="sortOrder"
+                value="aiueo"
+                checked={sortOrder === 'aiueo'}
+                onChange={(e) => setSortOrder(e.target.value)}
+              />
+              あいうえお
             </label>
           </div>
         </LabelGroup>

@@ -53,6 +53,11 @@ const quizScopeMap = {
   high: '高',
 };
 
+const sortOrderMap = {
+  random: '隨機',
+  aiueo: 'あいうえお',
+};
+
 function QuizContent() {
   const [showSettings, setShowSettings] = useState(false);
   const [showExitConfirmModal, setShowExitConfirmModal] = useState(false); // State for modal visibility
@@ -63,7 +68,7 @@ function QuizContent() {
   // Correct: Get state and dispatch from the context using useApp hook
   const { state, dispatch } = useApp(); // Changed from useQuiz
   const { questions, currentQuestionIndex, result, quizCompleted } = state.quiz; // Access quiz state
-  const { playbackOptions, playbackSpeed, autoProceed, quizScope, startQuestionIndex, wordRangeCount } = state.systemSettings; // Access systemSettings state
+  const { playbackOptions, playbackSpeed, autoProceed, quizScope, startQuestionIndex, wordRangeCount, sortOrder } = state.systemSettings; // Access systemSettings state
   const { notebooks, currentNotebookId } = state.shared;
   const question = questions[currentQuestionIndex];
   const blocker = useBlocker(!quizCompleted);
@@ -162,6 +167,7 @@ function QuizContent() {
           <div style={{ textAlign: 'left' }}>
             <p>筆記本名稱: {notebookName}</p>
             <p>熟練度: {quizScopeMap[quizScope]}</p>
+            <p>排序: {sortOrderMap[sortOrder]}</p>
             <p>單字起始索引: {startQuestionIndex}</p>
             <p>單字範圍: {wordRangeCount}</p>
           </div>
@@ -179,7 +185,7 @@ export default function Quiz() {
   const { state, dispatch } = useApp(); // Get state from global context
   const { quizCompleted, answeredQuestions, correctAnswersCount } = state.quiz; // Access quiz-specific state
   const { notebooks, currentNotebookId } = state.shared;
-  const { quizScope, startQuestionIndex, wordRangeCount } = state.systemSettings; // Destructure new settings
+  const { quizScope, startQuestionIndex, wordRangeCount, sortOrder } = state.systemSettings; // Destructure new settings
   const [emptyAlert, setEmptyAlert,]=useState(false)
   const navigate = useNavigate();
   useEffect(() => {
@@ -204,14 +210,14 @@ export default function Quiz() {
 
         console.log("Quiz useEffect - filtered questions IDs:", questions.map(q => q.id)); // Add this log
         if (questions.length > 0) {
-          dispatch(startQuiz(questions));
+          dispatch(startQuiz(questions, sortOrder));
         } else {
           // Handle case where notebook is empty or no questions match filter
           setEmptyAlert(true)
         }
       }
     }
-  }, [currentNotebookId, dispatch, quizCompleted, quizScope, notebooks, startQuestionIndex, wordRangeCount]); // Add new dependencies
+  }, [currentNotebookId, dispatch, quizCompleted, quizScope, notebooks, startQuestionIndex, wordRangeCount, sortOrder]); // Add new dependencies
 
   if (quizCompleted) {
     // Use quizCompleted from global state

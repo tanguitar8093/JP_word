@@ -24,14 +24,33 @@ const createRandomQuestions = (questions) => {
 
   return questions.map(q => ({ ...q, options: shuffleArray(q.options) }));
 }
+
+const sortQuestions = (questions, sortOrder) => {
+  let sortedQuestions = [...questions];
+
+  if (sortOrder === 'random') {
+    // Shuffle the questions array
+    for (let i = sortedQuestions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [sortedQuestions[i], sortedQuestions[j]] = [sortedQuestions[j], sortedQuestions[i]];
+    }
+  } else if (sortOrder === 'aiueo') {
+    sortedQuestions.sort((a, b) => a.jp_word.localeCompare(b.jp_word, 'ja'));
+  }
+
+  // After sorting questions, shuffle options for each question
+  return createRandomQuestions(sortedQuestions);
+};
+
 function reducer(state = initialState, action) {
   switch (action.type) {
     case "quiz/START_QUIZ":
+      const { questions, sortOrder } = action.payload;
       return {
         ...state,
-        questions: createRandomQuestions(action.payload), 
+        questions: sortQuestions(questions, sortOrder), 
         status: "active",
-        secondsRemaining: action.payload.length * 30,
+        secondsRemaining: action.payload.questions.length * 30,
         currentQuestionIndex: 0,
         selectedAnswer: "",
         points: 0,

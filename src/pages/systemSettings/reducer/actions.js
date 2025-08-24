@@ -6,6 +6,7 @@ export const SET_AUTO_PROCEED = "systemSettings/SET_AUTO_PROCEED";
 export const SET_QUIZ_SCOPE = "systemSettings/SET_QUIZ_SCOPE";
 export const SET_START_QUESTION_INDEX = "systemSettings/SET_START_QUESTION_INDEX"; // New action type
 export const SET_WORD_RANGE_COUNT = "systemSettings/SET_WORD_RANGE_COUNT";     // New action type
+export const SET_SORT_ORDER = "systemSettings/SET_SORT_ORDER";
 
 export const setPlaybackOptions = (options) => ({
   type: SET_PLAYBACK_OPTIONS,
@@ -45,4 +46,9 @@ export const setStartQuestionIndex = (index) => ({
 export const setWordRangeCount = (count) => ({
   type: SET_WORD_RANGE_COUNT,
   payload: count,
+});
+
+export const setSortOrder = (order) => ({
+  type: SET_SORT_ORDER,
+  payload: order,
 });

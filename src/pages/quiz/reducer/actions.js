@@ -5,9 +5,9 @@ export const FINISH_QUIZ = 'quiz/FINISH_QUIZ';
 export const RESTART_QUIZ = 'quiz/RESTART_QUIZ';
 export const TICK = 'quiz/TICK';
 
-export const startQuiz = (questions) => ({
+export const startQuiz = (questions, sortOrder) => ({
   type: START_QUIZ,
-  payload: questions,
+  payload: { questions, sortOrder },
 });
 
 export const checkAnswer = (answer) => ({

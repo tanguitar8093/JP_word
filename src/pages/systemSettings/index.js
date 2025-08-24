@@ -15,6 +15,7 @@ import { // Import actions from systemSettings reducer
   setQuizScope,
   setStartQuestionIndex, // New import
   setWordRangeCount,     // New import
+  setSortOrder,
 } from "./reducer";
 
 const HomeIcon = styled(SettingsToggle)`
@@ -33,6 +34,7 @@ function SystemSettingsPage() {
     quizScope,
     startQuestionIndex, // Destructure new state variable
     wordRangeCount,     // Destructure new state variable
+    sortOrder,
   } = systemSettings; // Destructure systemSettings
 
   const navigate = useNavigate();
@@ -59,6 +61,8 @@ function SystemSettingsPage() {
         setStartQuestionIndex={(newIndex) => dispatch(setStartQuestionIndex(newIndex))} // Pass new setter
         wordRangeCount={wordRangeCount} // Pass new prop
         setWordRangeCount={(newCount) => dispatch(setWordRangeCount(newCount))} // Pass new setter
+        sortOrder={sortOrder}
+        setSortOrder={(newOrder) => dispatch(setSortOrder(newOrder))}
       />
     </AppContainer>
   );
