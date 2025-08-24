@@ -15,6 +15,11 @@ const Container = styled(AppContainer)`
   background: transparent;
   border: none;
   box-shadow: none;
+  
+  @media (max-width: 768px) {
+    padding: 12px 8px;
+    width: 100%;
+  }
 `;
 
 const MainTitle = styled(Title)`
@@ -29,11 +34,12 @@ const Grid = styled.div`
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   padding: 12px;
+  width: 100%;
   
   @media (max-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
-    padding: 8px;
+    padding: 4px;
   }
 `;
 
@@ -46,9 +52,15 @@ const Card = styled.div`
   border: 1px solid #eee;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 90px;
   
   @media (max-width: 768px) {
-    padding: 8px;
+    padding: 8px 4px;
+    min-height: 75px;
   }
 
   &:hover {
@@ -71,10 +83,10 @@ const CardDescription = styled.p`
   margin: 0;
   color: #666;
   font-size: 0.8em;
-  display: none;
+  display: block;
   
-  @media (min-width: 769px) {
-    display: block;
+  @media (max-width: 768px) {
+    font-size: 0.7em;
   }
 `;
 
