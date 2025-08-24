@@ -1,4 +1,4 @@
-import { PanelContainer, LabelGroup, RangeInput } from "./styles";
+import { PanelContainer, LabelGroup, RangeInput, SettingTitle } from "./styles"; // Import SettingTitle
 
 export default function SettingsPanel({
   playbackSpeed,
@@ -11,12 +11,16 @@ export default function SettingsPanel({
   setAutoProceed,
   quizScope,
   setQuizScope,
+  startQuestionIndex, // New prop
+  setStartQuestionIndex, // New prop
+  wordRangeCount, // New prop
+  setWordRangeCount, // New prop
   isQuizContext, // New prop
 }) {
   return (
     <PanelContainer>
       <LabelGroup>
-        播放速度 (Rate): {playbackSpeed}
+        <SettingTitle>播放速度: {playbackSpeed}</SettingTitle>
         <RangeInput
           type="range"
           min="0.5"
@@ -28,7 +32,7 @@ export default function SettingsPanel({
       </LabelGroup>
 
       <LabelGroup>
-        播放內容：
+        <SettingTitle>播放內容：</SettingTitle>
         <div>
           <label>
             <input
@@ -84,11 +88,8 @@ export default function SettingsPanel({
           </label>
         </div>
       </LabelGroup>
-
-      
-
       <LabelGroup>
-        自動下一題：
+        <SettingTitle>自動下一題：</SettingTitle>
         <label>
           <input
             type="checkbox"
@@ -101,7 +102,7 @@ export default function SettingsPanel({
 
       {!isQuizContext && ( // Conditionally render
         <LabelGroup>
-          測驗範圍 (單選):
+          <SettingTitle>熟練度篩選:</SettingTitle>
           <div>
             <label>
               <input
@@ -144,6 +145,29 @@ export default function SettingsPanel({
               高
             </label>
           </div>
+        </LabelGroup>
+      )}
+      {!isQuizContext && ( // Conditionally render startQuestionIndex
+        <LabelGroup>
+          <SettingTitle>起始題目索引:</SettingTitle>
+          <input
+            type="number"
+            min="1"
+            value={startQuestionIndex}
+            onChange={(e) => setStartQuestionIndex(Number(e.target.value))}
+          />
+        </LabelGroup>
+      )}
+
+      {!isQuizContext && ( // Conditionally render wordRangeCount
+        <LabelGroup>
+          <SettingTitle>單字數量上限:</SettingTitle>
+          <input
+            type="number"
+            min="1"
+            value={wordRangeCount}
+            onChange={(e) => setWordRangeCount(Number(e.target.value))}
+          />
         </LabelGroup>
       )}
     </PanelContainer>

@@ -5,6 +5,8 @@ import {
   SET_PLAYBACK_CONTENT,
   SET_AUTO_PROCEED,
   SET_QUIZ_SCOPE,
+  SET_START_QUESTION_INDEX, // New import
+  SET_WORD_RANGE_COUNT,     // New import
 } from "./actions";
 
 export const initialState = {
@@ -23,6 +25,8 @@ export const initialState = {
   playbackContent: "jp",
   autoProceed: true,
   quizScope: "all",
+  startQuestionIndex: 1, // New state variable, default to 1 (data index 0)
+  wordRangeCount: 9999,   // New state variable, default to 9999
 };
 
 function reducer(state = initialState, action) {
@@ -60,6 +64,16 @@ function reducer(state = initialState, action) {
       return {
         ...state,
         quizScope: action.payload,
+      };
+    case SET_START_QUESTION_INDEX:
+      return {
+        ...state,
+        startQuestionIndex: action.payload,
+      };
+    case SET_WORD_RANGE_COUNT:
+      return {
+        ...state,
+        wordRangeCount: action.payload,
       };
     default:
       return state;

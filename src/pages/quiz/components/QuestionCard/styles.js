@@ -67,7 +67,6 @@ export const WordContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 5px;
   font-size: 30px;
   justify-content: center; /* 水平置中 */
 `;

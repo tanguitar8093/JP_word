@@ -13,6 +13,8 @@ import { // Import actions from systemSettings reducer
   setPlaybackSpeed,
   setAutoProceed,
   setQuizScope,
+  setStartQuestionIndex, // New import
+  setWordRangeCount,     // New import
 } from "./reducer";
 
 const HomeIcon = styled(SettingsToggle)`
@@ -29,6 +31,8 @@ function SystemSettingsPage() {
     playbackSpeed,
     autoProceed,
     quizScope,
+    startQuestionIndex, // Destructure new state variable
+    wordRangeCount,     // Destructure new state variable
   } = systemSettings; // Destructure systemSettings
 
   const navigate = useNavigate();
@@ -51,6 +55,10 @@ function SystemSettingsPage() {
         }
         quizScope={quizScope}
         setQuizScope={(newScope) => dispatch(setQuizScope(newScope))}
+        startQuestionIndex={startQuestionIndex} // Pass new prop
+        setStartQuestionIndex={(newIndex) => dispatch(setStartQuestionIndex(newIndex))} // Pass new setter
+        wordRangeCount={wordRangeCount} // Pass new prop
+        setWordRangeCount={(newCount) => dispatch(setWordRangeCount(newCount))} // Pass new setter
       />
     </AppContainer>
   );

@@ -4,6 +4,8 @@ export const SET_PLAYBACK_SPEED = "systemSettings/SET_PLAYBACK_SPEED";
 export const SET_PLAYBACK_CONTENT = "systemSettings/SET_PLAYBACK_CONTENT";
 export const SET_AUTO_PROCEED = "systemSettings/SET_AUTO_PROCEED";
 export const SET_QUIZ_SCOPE = "systemSettings/SET_QUIZ_SCOPE";
+export const SET_START_QUESTION_INDEX = "systemSettings/SET_START_QUESTION_INDEX"; // New action type
+export const SET_WORD_RANGE_COUNT = "systemSettings/SET_WORD_RANGE_COUNT";     // New action type
 
 export const setPlaybackOptions = (options) => ({
   type: SET_PLAYBACK_OPTIONS,
@@ -33,4 +35,14 @@ export const setAutoProceed = (autoProceed) => ({
 export const setQuizScope = (scope) => ({
   type: SET_QUIZ_SCOPE,
   payload: scope,
+});
+
+export const setStartQuestionIndex = (index) => ({
+  type: SET_START_QUESTION_INDEX,
+  payload: index,
+});
+
+export const setWordRangeCount = (count) => ({
+  type: SET_WORD_RANGE_COUNT,
+  payload: count,
 });
