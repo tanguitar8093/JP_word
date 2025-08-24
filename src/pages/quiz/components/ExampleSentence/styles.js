@@ -32,8 +32,13 @@ export const SpeakButton = styled.span`
   cursor: pointer;
   font-size: 18px;
   user-select: none;
+  transition: transform 0.1s;
 
   &:hover {
     color: #007bff;
+  }
+
+  &:active {
+    transform: scale(0.9);
   }
 `;

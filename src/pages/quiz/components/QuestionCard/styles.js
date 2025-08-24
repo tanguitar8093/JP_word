@@ -73,6 +73,12 @@ export const WordContainer = styled.div`
 
 export const SpeakButton = styled.span`
   cursor: pointer;
+  user-select: none;
+  transition: transform 0.1s;
+
+  &:active {
+    transform: scale(0.9);
+  }
 `;
 
 // 選項按鈕

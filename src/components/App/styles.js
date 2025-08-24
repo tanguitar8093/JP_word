@@ -30,7 +30,7 @@ export const SettingsToggle = styled.span`
   cursor: pointer;
   font-size: 20px;
   user-select: none;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease, transform 0.1s;
   position: absolute;
   top: 10px;
   right: 55px; /* 改成右上角 */
@@ -39,6 +39,10 @@ export const SettingsToggle = styled.span`
   &:hover {
     opacity: 0.8;
   }
+
+  &:active {
+    transform: scale(0.9);
+  }
 `;
 
 // info 按鈕
@@ -46,7 +50,7 @@ export const InfoToggle = styled.span`
   cursor: pointer;
   font-size: 20px;
   user-select: none;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease, transform 0.1s;
   position: absolute;
   top: 10px;
   right: 30px; 
@@ -54,6 +58,10 @@ export const InfoToggle = styled.span`
   
   &:hover {
     opacity: 0.8;
+  }
+
+  &:active {
+    transform: scale(0.9);
   }
 `;
 

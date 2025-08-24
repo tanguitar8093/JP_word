@@ -17,15 +17,17 @@ export const IconButton = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  user-select: none;
 
   border: ${(props) => (props.round ? '2px solid #333' : '2px solid #333')};
   border-radius: ${(props) => (props.round ? '50%' : '4px')};
 
   background: #fff;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, transform 0.1s;
 
   &:active {
     background-color: #eee;
+    transform: scale(0.95);
   }
 `;
 
@@ -39,9 +41,15 @@ export const InfoButton = styled.div`
   border-radius: 4px;
   padding: 2px 6px;
   cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s, transform 0.1s;
 
   &:hover {
     background-color: #f5f5f5;
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 `;
 
