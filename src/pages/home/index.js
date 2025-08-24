@@ -4,9 +4,17 @@ import styled from "styled-components";
 import { AppContainer, Title } from "../../components/App/styles";
 
 const Container = styled(AppContainer)`
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   padding: 20px;
   max-width: 800px;
   margin: 0 auto;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 `;
 
 const MainTitle = styled(Title)`
@@ -31,12 +39,13 @@ const Grid = styled.div`
 
 const Card = styled.div`
   background: white;
-  border-radius: 8px;
   padding: 12px 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   
   @media (max-width: 768px) {
     padding: 8px;
@@ -44,7 +53,7 @@ const Card = styled.div`
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 `;
 
