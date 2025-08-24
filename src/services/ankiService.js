@@ -1,4 +1,8 @@
 export const calculateNextState = (card, rating, ankiSettings) => {
+  console.log("--- calculateNextState Debugging ---");
+  console.log("Input card:", card);
+  console.log("Input rating:", rating);
+  console.log("Input ankiSettings:", ankiSettings);
   const { learningSteps, graduatingInterval, lapseInterval } = ankiSettings;
   let newCard = { ...card };
   const now = Date.now();
@@ -86,6 +90,7 @@ export const calculateNextState = (card, rating, ankiSettings) => {
   }
 
   newCard.lastReview = now; // Update last review time
+  console.log("Output newCard:", newCard); // Debugging
 
   return newCard;
 };

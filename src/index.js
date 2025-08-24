@@ -10,6 +10,7 @@ import WordManagementPage from "./pages/wordManagement";
 import SystemSettingsPage from "./pages/systemSettings";
 import NotebookManagementPage from "./pages/notebookManagement";
 import AudioRecorderPage from "./pages/AudioRecorder";
+import AnkiTest from "./pages/AnkiTest";
 
 const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
@@ -47,6 +48,10 @@ const router = createBrowserRouter(
         {
           path: "recorder",
           element: <AudioRecorderPage />,
+        },
+        {
+          path: "test",
+          element: <AnkiTest />,
         },
       ],
     },

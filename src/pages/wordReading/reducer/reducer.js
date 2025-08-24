@@ -25,6 +25,9 @@ const sortCards = (cards, sortOrder) => {
 };
 
 function reducer(state = initialState, action) {
+  console.log("--- Reducer Debugging ---");
+  console.log("Action:", action.type, action.payload);
+  console.log("State before:", state);
   switch (action.type) {
     case START_SESSION: { // Added curly braces
       const { cards, sortOrder } = action.payload; // Destructure payload
@@ -67,6 +70,10 @@ function reducer(state = initialState, action) {
         newQueue.sort((a, b) => a.due - b.due);
       }
 
+      console.log("Card to update:", cardToUpdate);
+      console.log("Updated card from calculateNextState:", updatedCard);
+      console.log("Cards array after update:", updatedCards);
+      console.log("Queue after update:", newQueue);
       return {
         ...state,
         cards: updatedCards, // Update the main cards array

@@ -167,16 +167,14 @@ const WordReadingPage = () => {
 
   const handleAnswer = (cardId, rating) => {
     // Dispatch an action to update the card proficiency and schedule it
+    console.log("--- handleAnswer Debugging ---");
+    console.log("Input: cardId =", cardId, ", rating =", rating);
+    console.log("Current currentCard state:", currentCard);
+    console.log("Current state.systemSettings:", state.systemSettings);
     dispatch(answerCard(cardId, rating, state.systemSettings)); // Let the reducer handle calculateNextState and state update
 
-    // Play content based on playbackOptions
-    // Note: playCardSequence should ideally use the *updated* card state after reducer processes it.
-    // However, for immediate feedback, we might need to pass currentCard or fetch it from state after dispatch.
-    // For now, we'll use currentCard for speech, as the actual state update happens asynchronously.
-    playCardSequence(currentCard, playbackOptions).then(() => {
-      // Only proceed to next card after speech finishes
-      dispatch(nextCard());
-    });
+    // Play content based on playbackOptions (moved here, not tied to nextCard)
+    playCardSequence(currentCard, playbackOptions); // No .then() and no dispatch(nextCard()) here
   };
 
   const speakManually = useCallback(
