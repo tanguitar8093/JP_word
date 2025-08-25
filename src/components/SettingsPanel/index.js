@@ -9,9 +9,15 @@ import {
   setWordRangeCount,
   setSortOrder,
   setWordType,
+  setReadingStudyMode,
+  setReadingRecordWord,
+  setReadingRecordSentence,
+  setReadingPlayBeep,
+  setReadingWordRecordTime,
+  setReadingSentenceRecordTime,
 } from "./reducer";
 
-export default function SettingsPanel({ isQuizContext }) {
+export default function SettingsPanel({ context }) { // Changed from isQuizContext to context
   const { state, dispatch } = useApp();
   const { systemSettings } = state;
   const {
@@ -23,6 +29,12 @@ export default function SettingsPanel({ isQuizContext }) {
     wordRangeCount,
     sortOrder,
     wordType,
+    readingStudyMode,
+    readingRecordWord,
+    readingRecordSentence,
+    readingPlayBeep,
+    readingWordRecordTime,
+    readingSentenceRecordTime,
   } = systemSettings;
 
   const handleProficiencyChange = (level) => {
@@ -34,8 +46,98 @@ export default function SettingsPanel({ isQuizContext }) {
     );
   };
 
+  const isQuizContext = context === 'quiz'; // Determine from context
+
   return (
     <PanelContainer>
+      {context === 'reading' && (
+        <>
+          <SettingTitle>閱讀頁面設定</SettingTitle>
+          <LabelGroup>
+            <SettingTitle>學習模式:</SettingTitle>
+            <div>
+              <label>
+                <input
+                  type="radio"
+                  name="readingStudyMode"
+                  value="manual"
+                  checked={readingStudyMode === "manual"}
+                  onChange={(e) => dispatch(setReadingStudyMode(e.target.value))}
+                />
+                手動模式
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="readingStudyMode"
+                  value="auto"
+                  checked={readingStudyMode === "auto"}
+                  onChange={(e) => dispatch(setReadingStudyMode(e.target.value))}
+                />
+                自動模式 (發音練習)
+              </label>
+            </div>
+          </LabelGroup>
+
+          {readingStudyMode === 'auto' && (
+            <>
+              <LabelGroup>
+                <SettingTitle>自動模式選項:</SettingTitle>
+                <div>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={readingRecordWord}
+                      onChange={(e) => dispatch(setReadingRecordWord(e.target.checked))}
+                    />
+                    錄製單字發音
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={readingRecordSentence}
+                      onChange={(e) => dispatch(setReadingRecordSentence(e.target.checked))}
+                    />
+                    錄製例句發音
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={readingPlayBeep}
+                      onChange={(e) => dispatch(setReadingPlayBeep(e.target.checked))}
+                    />
+                    錄音前播放提示音
+                  </label>
+                </div>
+              </LabelGroup>
+              <LabelGroup>
+                <SettingTitle>單字錄音秒數: {readingWordRecordTime}s</SettingTitle>
+                <RangeInput
+                  type="range"
+                  min="1"
+                  max="5"
+                  step="0.5"
+                  value={readingWordRecordTime}
+                  onChange={(e) => dispatch(setReadingWordRecordTime(Number(e.target.value)))}
+                />
+              </LabelGroup>
+              <LabelGroup>
+                <SettingTitle>句子錄音秒數: {readingSentenceRecordTime}s</SettingTitle>
+                <RangeInput
+                  type="range"
+                  min="1"
+                  max="10"
+                  step="0.5"
+                  value={readingSentenceRecordTime}
+                  onChange={(e) => dispatch(setReadingSentenceRecordTime(Number(e.target.value)))}
+                />
+              </LabelGroup>
+            </>
+          )}
+        </>
+      )}
+
+      <SettingTitle>通用設定</SettingTitle>
       <LabelGroup>
         <SettingTitle>播放速度: {playbackSpeed}</SettingTitle>
         <RangeInput
@@ -113,7 +215,7 @@ export default function SettingsPanel({ isQuizContext }) {
           </label>
         </div>
       </LabelGroup>
-      {autoProceed !== undefined && (
+      {autoProceed !== undefined && !isQuizContext && context !== 'reading' && (
         <LabelGroup>
           <SettingTitle>自動下一題：</SettingTitle>
           <label>
@@ -158,7 +260,7 @@ export default function SettingsPanel({ isQuizContext }) {
           </div>
         </LabelGroup>
       )}
-      {!isQuizContext && (
+      {!isQuizContext && ( // Conditionally render
         <LabelGroup>
           <SettingTitle>排序設定:</SettingTitle>
           <div>
@@ -216,7 +318,7 @@ export default function SettingsPanel({ isQuizContext }) {
             type="number"
             min="1"
             value={wordRangeCount}
-            onChange={(e) => setWordRangeCount(Number(e.target.value))}
+            onChange={(e) => dispatch(setWordRangeCount(Number(e.target.value)))}
           />
         </LabelGroup>
       )}

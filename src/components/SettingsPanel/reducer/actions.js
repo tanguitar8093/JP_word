@@ -15,6 +15,14 @@ export const SET_LEARNING_STEPS = "systemSettings/SET_LEARNING_STEPS";
 export const SET_GRADUATING_INTERVAL = "systemSettings/SET_GRADUATING_INTERVAL";
 export const SET_LAPSE_INTERVAL = "systemSettings/SET_LAPSE_INTERVAL";
 
+// Reading Page Settings Actions
+export const SET_READING_STUDY_MODE = "systemSettings/SET_READING_STUDY_MODE";
+export const SET_READING_RECORD_WORD = "systemSettings/SET_READING_RECORD_WORD";
+export const SET_READING_RECORD_SENTENCE = "systemSettings/SET_READING_RECORD_SENTENCE";
+export const SET_READING_PLAY_BEEP = "systemSettings/SET_READING_PLAY_BEEP";
+export const SET_READING_WORD_RECORD_TIME = "systemSettings/SET_READING_WORD_RECORD_TIME";
+export const SET_READING_SENTENCE_RECORD_TIME = "systemSettings/SET_READING_SENTENCE_RECORD_TIME";
+
 export const setWordType = (wordType) => ({
   type: SET_JP_WORD_TYPE,
   payload: wordType,
@@ -74,4 +82,35 @@ export const setGraduatingInterval = (interval) => ({
 export const setLapseInterval = (interval) => ({
   type: SET_LAPSE_INTERVAL,
   payload: interval,
+});
+
+// Reading Page Settings Action Creators
+export const setReadingStudyMode = (mode) => ({
+  type: SET_READING_STUDY_MODE,
+  payload: mode,
+});
+
+export const setReadingRecordWord = (value) => ({
+  type: SET_READING_RECORD_WORD,
+  payload: value,
+});
+
+export const setReadingRecordSentence = (value) => ({
+  type: SET_READING_RECORD_SENTENCE,
+  payload: value,
+});
+
+export const setReadingPlayBeep = (value) => ({
+  type: SET_READING_PLAY_BEEP,
+  payload: value,
+});
+
+export const setReadingWordRecordTime = (time) => ({
+  type: SET_READING_WORD_RECORD_TIME,
+  payload: time,
+});
+
+export const setReadingSentenceRecordTime = (time) => ({
+  type: SET_READING_SENTENCE_RECORD_TIME,
+  payload: time,
 });

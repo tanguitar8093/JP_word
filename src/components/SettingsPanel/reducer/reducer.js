@@ -11,6 +11,12 @@ import {
   SET_GRADUATING_INTERVAL,
   SET_LAPSE_INTERVAL,
   SET_JP_WORD_TYPE,
+  SET_READING_STUDY_MODE,
+  SET_READING_RECORD_WORD,
+  SET_READING_RECORD_SENTENCE,
+  SET_READING_PLAY_BEEP,
+  SET_READING_WORD_RECORD_TIME,
+  SET_READING_SENTENCE_RECORD_TIME,
 } from "./actions";
 
 export const initialState = {
@@ -37,6 +43,14 @@ export const initialState = {
   learningSteps: [1 * 60 * 1000, 10 * 60 * 1000], // 1 minute, 10 minutes in milliseconds
   graduatingInterval: 1, // 1 day
   lapseInterval: 1 * 60 * 1000, // 1 minute in milliseconds
+
+  // Reading page specific settings
+  readingStudyMode: "auto", // 'manual' or 'auto'
+  readingRecordWord: true,
+  readingRecordSentence: true,
+  readingPlayBeep: true,
+  readingWordRecordTime: 2, // in seconds
+  readingSentenceRecordTime: 3.5, // in seconds
 };
 
 function reducer(state = initialState, action) {
@@ -96,6 +110,21 @@ function reducer(state = initialState, action) {
       return { ...state, graduatingInterval: action.payload };
     case SET_LAPSE_INTERVAL:
       return { ...state, lapseInterval: action.payload };
+
+    // Reading page specific settings
+    case SET_READING_STUDY_MODE:
+      return { ...state, readingStudyMode: action.payload };
+    case SET_READING_RECORD_WORD:
+      return { ...state, readingRecordWord: action.payload };
+    case SET_READING_RECORD_SENTENCE:
+      return { ...state, readingRecordSentence: action.payload };
+    case SET_READING_PLAY_BEEP:
+      return { ...state, readingPlayBeep: action.payload };
+    case SET_READING_WORD_RECORD_TIME:
+      return { ...state, readingWordRecordTime: action.payload };
+    case SET_READING_SENTENCE_RECORD_TIME:
+      return { ...state, readingSentenceRecordTime: action.payload };
+
     default:
       return state;
   }

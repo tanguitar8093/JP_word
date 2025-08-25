@@ -75,11 +75,16 @@ function QuizContent() {
   const {
     playbackOptions,
     playbackSpeed,
-    autoProceed,
     proficiencyFilter,
     startQuestionIndex,
     wordRangeCount,
     sortOrder,
+    readingStudyMode,
+    readingRecordWord,
+    readingRecordSentence,
+    readingPlayBeep,
+    readingWordRecordTime,
+    readingSentenceRecordTime,
   } = state.systemSettings;
   const { notebooks, currentNotebookId } = state.shared;
   const question = questions[currentQuestionIndex];
@@ -126,7 +131,6 @@ function QuizContent() {
     onNext: () => dispatch(nextQuestionGame()), // Changed dispatch type
     playbackOptions, // Now from global state
     rate: playbackSpeed, // Use playbackSpeed from global state
-    autoProceed, // Pass autoProceed from global state
   });
 
   const playBeep = () => {
@@ -160,21 +164,53 @@ function QuizContent() {
 
     const autoPlaySequence = async () => {
       try {
-        if (quizCompleted || !question) return;
+        if (quizCompleted || !question || readingStudyMode !== 'auto') return;
 
-        if (autoProceed) {
-          // --- WORD PART ---
+        // --- WORD PART ---
+        if (readingRecordWord) {
           await playSequence(null, question, { jp: true }, { skipSound: true });
           if (isCancelled) return;
 
-          playBeep();
-          await cancellableWait(200); // Short pause after beep
-          if (isCancelled) return;
+          if (readingPlayBeep) {
+            playBeep();
+            await cancellableWait(200);
+            if (isCancelled) return;
+          }
 
           if (recorderRef.current) await recorderRef.current.startRecording();
           if (isCancelled) return;
 
-          await cancellableWait(2000);
+          await cancellableWait(readingWordRecordTime * 1000);
+          if (isCancelled) return;
+
+          if (recorderRef.current) await recorderRef.current.stopRecording();
+          if (isCancelled) return;
+
+          if (recorderRef.current) await recorderRef.current.play();
+          if (isCancelled) return;
+        }
+
+        await playSequence(null, question, { jp: true }, { skipSound: true });
+        if (isCancelled) return;
+
+        await playSequence(null, question, { ch: true }, { skipSound: true });
+        if (isCancelled) return;
+
+        // --- SENTENCE PART ---
+        if (question.jp_ex_statement && readingRecordSentence) {
+          await playSequence(null, question, { jpEx: true }, { skipSound: true });
+          if (isCancelled) return;
+
+          if (readingPlayBeep) {
+            playBeep();
+            await cancellableWait(200);
+            if (isCancelled) return;
+          }
+
+          if (recorderRef.current) await recorderRef.current.startRecording();
+          if (isCancelled) return;
+
+          await cancellableWait(readingSentenceRecordTime * 1000);
           if (isCancelled) return;
 
           if (recorderRef.current) await recorderRef.current.stopRecording();
@@ -183,46 +219,18 @@ function QuizContent() {
           if (recorderRef.current) await recorderRef.current.play();
           if (isCancelled) return;
 
-          await playSequence(null, question, { jp: true }, { skipSound: true });
+          await playSequence(null, question, { jpEx: true }, { skipSound: true });
           if (isCancelled) return;
 
-          await playSequence(null, question, { ch: true }, { skipSound: true });
+          await playSequence(null, question, { chEx: true }, { skipSound: true });
           if (isCancelled) return;
-
-          // --- SENTENCE PART ---
-          if (question.jp_ex_statement) {
-            await playSequence(null, question, { jpEx: true }, { skipSound: true });
-            if (isCancelled) return;
-
-            playBeep();
-            await cancellableWait(200);
-            if (isCancelled) return;
-
-            if (recorderRef.current) await recorderRef.current.startRecording();
-            if (isCancelled) return;
-
-            await cancellableWait(3500);
-            if (isCancelled) return;
-
-            if (recorderRef.current) await recorderRef.current.stopRecording();
-            if (isCancelled) return;
-
-            if (recorderRef.current) await recorderRef.current.play();
-            if (isCancelled) return;
-
-            await playSequence(null, question, { jpEx: true }, { skipSound: true });
-            if (isCancelled) return;
-
-            await playSequence(null, question, { chEx: true }, { skipSound: true });
-            if (isCancelled) return;
-          }
-
-          // --- END PART ---
-          await cancellableWait(2000);
-          if (isCancelled) return;
-
-          dispatch(nextQuestionGame());
         }
+
+        // --- END PART ---
+        await cancellableWait(2000);
+        if (isCancelled) return;
+
+        dispatch(nextQuestionGame());
       } catch (error) {
         if (!isCancelled) {
           console.error("Error in autoPlaySequence:", error);
@@ -240,7 +248,7 @@ function QuizContent() {
       }
       cancelPlayback(); // Stop any ongoing speech
     };
-  }, [currentQuestionIndex, autoProceed, quizCompleted, dispatch, playSequence, question, playbackOptions, cancelPlayback]);
+  }, [currentQuestionIndex, readingStudyMode, readingRecordWord, readingRecordSentence, readingPlayBeep, readingWordRecordTime, readingSentenceRecordTime, quizCompleted, dispatch, playSequence, question, playbackOptions, cancelPlayback]);
 
 
   const speakManually = useCallback(
@@ -279,21 +287,7 @@ function QuizContent() {
         <>
           <Overlay onClick={() => setShowSettings(false)} />
           <FloatingSettingsPanel>
-            <SettingsPanel
-              playbackSpeed={playbackSpeed}
-              setPlaybackSpeed={(newSpeed) =>
-                dispatch(setPlaybackSpeed(newSpeed))
-              }
-              playbackOptions={playbackOptions}
-              setPlaybackOptions={(newOptions) =>
-                dispatch(setPlaybackOptions(newOptions))
-              }
-              autoProceed={autoProceed} // Pass autoProceed from global state
-              setAutoProceed={(newAutoProceed) =>
-                dispatch(setAutoProceed(newAutoProceed))
-              } // Pass setAutoProceed from global state
-              isQuizContext={true} // New prop
-            />
+            <SettingsPanel context="reading" />
           </FloatingSettingsPanel>
         </>
       )}
@@ -308,6 +302,9 @@ function QuizContent() {
         speakManually={speakManually}
         cancelPlayback={cancelPlayback}
         question={question}
+        studyMode={readingStudyMode}
+        playbackOptions={playbackOptions}
+        playSequence={playSequence}
       />
 
       <Modal

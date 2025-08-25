@@ -1,6 +1,6 @@
 import React, { useState, useEffect, forwardRef } from "react";
 import { useApp } from "../../../../store/contexts/AppContext"; // Changed from useQuiz
-import { checkAnswer, nextQuestionGame } from "../../../quiz/reducer/actions"; // Import quiz actions
+import { nextQuestionGame } from "../../../quiz/reducer/actions"; // Import quiz actions
 import { updatePendingProficiency } from "../../../../store/reducer/actions"; // Import updatePendingProficiency
 import {
   CardContainer,
@@ -10,8 +10,6 @@ import {
   HiraganaText,
   WordContainer,
   SpeakButton,
-  OptionsContainer,
-  OptionButton,
   ResultContainer,
   AnswerText,
   NextButton,
@@ -20,28 +18,30 @@ import {
   ProficiencyButton,
 } from "./styles";
 import ExampleSentence from "../ExampleSentence";
-import AnswerSound from "../AnswerSound";
 import AudioRecorderPage from "../../../AudioRecorder";
 
-const ReadingCard = forwardRef(({ speakManually, question }, ref) => {
+const ReadingCard = forwardRef(({ speakManually, question, studyMode, playbackOptions, playSequence }, ref) => {
   const { state, dispatch } = useApp(); // Changed from useQuiz
-  const { questions, currentQuestionIndex, selectedAnswer, result } =
+  const { questions, currentQuestionIndex, result } =
     state.quiz;
   const { pendingProficiencyUpdates } = state.shared;
   const { wordType } = state.systemSettings;
   const q = questions[currentQuestionIndex];
 
   const [showHiragana, setShowHiragana] = useState(false);
+  const [isAnswerVisible, setIsAnswerVisible] = useState(studyMode === 'auto');
 
   useEffect(() => {
     setShowHiragana(false);
-  }, [q]);
+    // Reset answer visibility when question changes or mode changes
+    setIsAnswerVisible(studyMode === 'auto');
+  }, [q, studyMode]);
 
-  const handleCheckAnswer = (answer) => {
-    dispatch(checkAnswer(answer));
-  };
-
-  const handleNextQuestion = () => {
+  const handleNextQuestion = async () => {
+    if (studyMode === 'manual') {
+      // In manual mode, play sounds for the current card before moving to the next
+      await playSequence(null, q, playbackOptions, { skipSound: true });
+    }
     dispatch(nextQuestionGame());
   };
 
@@ -49,11 +49,21 @@ const ReadingCard = forwardRef(({ speakManually, question }, ref) => {
     dispatch(updatePendingProficiency(question.id, proficiency));
   };
 
+  const handleCardClick = () => {
+    if (studyMode === 'manual' && !isAnswerVisible) {
+      setIsAnswerVisible(true);
+    }
+  };
+
   const currentProficiency =
     pendingProficiencyUpdates[question.id] || question.proficiency;
 
+  if (!q) {
+    return null; // Don't render if there is no question
+  }
+
   return (
-    <CardContainer>
+    <CardContainer onClick={handleCardClick}>
       {/* 熟練度 */}
       <ProficiencyControlContainer>
         <ProficiencyButton
@@ -129,21 +139,24 @@ const ReadingCard = forwardRef(({ speakManually, question }, ref) => {
           🔊
         </SpeakButton>
       </WordContainer>
-      <AudioRecorderPage ref={ref} triggerReset={currentQuestionIndex} />
+      
+      {studyMode === 'auto' && <AudioRecorderPage ref={ref} triggerReset={currentQuestionIndex} />}
 
-      <ResultContainer>
-        <SubCard>
-          <AnswerText correct={result === "⭕"}> 
-            {q.ch_word} [{q.type}]
-          </AnswerText>
-        </SubCard>
-        <ExampleSentence
-          jp_ex={q.jp_ex_statement}
-          ch_ex={q.ch_ex_statement}
-          speak={speakManually}
-        />
-        <NextButton onClick={handleNextQuestion}>下一題</NextButton>
-      </ResultContainer>
+      {isAnswerVisible && (
+        <ResultContainer>
+          <SubCard>
+            <AnswerText correct={result === "⭕"}> 
+              {q.ch_word} [{q.type}]
+            </AnswerText>
+          </SubCard>
+          <ExampleSentence
+            jp_ex={q.jp_ex_statement}
+            ch_ex={q.ch_ex_statement}
+            speak={speakManually}
+          />
+          <NextButton onClick={handleNextQuestion}>下一題</NextButton>
+        </ResultContainer>
+      )}
     </CardContainer>
   );
 });
