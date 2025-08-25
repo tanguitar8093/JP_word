@@ -17,6 +17,7 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
   const audioChunks = useRef([]);
   const audioPlayerRef = useRef(null);
   const stopResolver = useRef(null);
+  const playResolver = useRef(null);
 
   // Expose functions to parent component
   useImperativeHandle(ref, () => ({
@@ -28,9 +29,14 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
       });
     },
     play: () => {
-      if (audioPlayerRef.current) {
-        audioPlayerRef.current.play();
-      }
+      return new Promise((resolve) => {
+        if (audioPlayerRef.current) {
+          playResolver.current = resolve;
+          audioPlayerRef.current.play();
+        } else {
+          resolve();
+        }
+      });
     },
   }));
 
@@ -119,7 +125,7 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
 
   const stopRecordingInternal = () => {
     setIsRecording(false);
-    if (mediaRecorder.current) {
+    if (mediaRecorder.current && mediaRecorder.current.state !== 'inactive') {
       mediaRecorder.current.stop();
 
       mediaRecorder.current.onstop = () => {
@@ -175,6 +181,12 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
             if (stopResolver.current) {
               stopResolver.current();
               stopResolver.current = null;
+            }
+          }}
+          onEnded={() => {
+            if (playResolver.current) {
+              playResolver.current();
+              playResolver.current = null;
             }
           }}
         />

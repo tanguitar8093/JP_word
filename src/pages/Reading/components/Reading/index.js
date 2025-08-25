@@ -130,51 +130,75 @@ function QuizContent() {
   });
 
   useEffect(() => {
-    let timerId;
-    let recordingStopTimerId;
+    let timers = [];
     let isCancelled = false;
+
+    const cancellableWait = (duration) => {
+      return new Promise((resolve) => {
+        const timer = setTimeout(resolve, duration);
+        timers.push(timer);
+      });
+    };
 
     const autoPlaySequence = async () => {
       try {
         if (quizCompleted || !question) return;
 
-        // 1. Initial playback
-        await playSequence(null, question, playbackOptions, { skipSound: true });
+        // --- WORD PART ---
+        await playSequence(null, question, { jp: true }, { skipSound: true });
         if (isCancelled) return;
 
         if (autoProceed) {
-          // 2. Start recording
-          if (recorderRef.current) {
-            await recorderRef.current.startRecording();
-            if (isCancelled) return;
-          }
+          if (recorderRef.current) await recorderRef.current.startRecording();
+          if (isCancelled) return;
 
-          // 3. Wait 2 seconds then stop recording
-          recordingStopTimerId = setTimeout(async () => {
-            if (recorderRef.current) {
-              await recorderRef.current.stopRecording();
-            }
-            if (isCancelled) return;
+          await cancellableWait(2000);
+          if (isCancelled) return;
 
-            // 4. Second playback
-            await playSequence(null, question, playbackOptions, { skipSound: true });
-            if (isCancelled) return;
+          if (recorderRef.current) await recorderRef.current.stopRecording();
+          if (isCancelled) return;
 
-            // 5. Play recorded audio
-            if (recorderRef.current) {
-              recorderRef.current.play();
-            }
+          await playSequence(null, question, { jp: true }, { skipSound: true });
+          if (isCancelled) return;
 
-            // 6. Wait 2 seconds then go to next question
-            timerId = setTimeout(() => {
-              if (!isCancelled) {
-                dispatch(nextQuestionGame());
-              }
-            }, 2000);
-          }, 2000);
+          if (recorderRef.current) await recorderRef.current.play();
+          if (isCancelled) return;
+
+          await playSequence(null, question, { ch: true }, { skipSound: true });
+          if (isCancelled) return;
+
+          // --- SENTENCE PART ---
+          await playSequence(null, question, { jpEx: true }, { skipSound: true });
+          if (isCancelled) return;
+
+          if (recorderRef.current) await recorderRef.current.startRecording();
+          if (isCancelled) return;
+
+          await cancellableWait(4000);
+          if (isCancelled) return;
+
+          if (recorderRef.current) await recorderRef.current.stopRecording();
+          if (isCancelled) return;
+
+          await playSequence(null, question, { jpEx: true }, { skipSound: true });
+          if (isCancelled) return;
+
+          if (recorderRef.current) await recorderRef.current.play();
+          if (isCancelled) return;
+
+          await playSequence(null, question, { chEx: true }, { skipSound: true });
+          if (isCancelled) return;
+
+          // --- END PART ---
+          await cancellableWait(2000);
+          if (isCancelled) return;
+
+          dispatch(nextQuestionGame());
         }
       } catch (error) {
-        console.error("Error in autoPlaySequence:", error);
+        if (!isCancelled) {
+          console.error("Error in autoPlaySequence:", error);
+        }
       }
     };
 
@@ -182,12 +206,11 @@ function QuizContent() {
 
     return () => {
       isCancelled = true;
-      if (recordingStopTimerId) clearTimeout(recordingStopTimerId);
-      if (timerId) clearTimeout(timerId);
+      timers.forEach(clearTimeout);
       if (recorderRef.current) {
-        recorderRef.current.stopRecording();
+        recorderRef.current.stopRecording(); // Stop any ongoing recording
       }
-      cancelPlayback();
+      cancelPlayback(); // Stop any ongoing speech
     };
   }, [currentQuestionIndex, autoProceed, quizCompleted, dispatch, playSequence, question, playbackOptions, cancelPlayback]);
 
