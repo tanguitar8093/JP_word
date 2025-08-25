@@ -128,6 +128,36 @@ function QuizContent() {
     autoProceed, // Pass autoProceed from global state
   });
 
+  useEffect(() => {
+    let timer;
+
+    const autoPlay = async () => {
+      if (quizCompleted || !question) return;
+
+      // Speak the word.
+      await playSequence(null, question, playbackOptions, { skipSound: true });
+
+      // If auto-play is enabled, start a timer for the next question.
+      if (autoProceed) {
+        timer = setTimeout(() => {
+          dispatch(nextQuestionGame());
+        }, 2000);
+      }
+    };
+
+    autoPlay();
+
+    // Cleanup function
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+      // Also cancel any ongoing speech when the component re-renders or unmounts
+      cancelPlayback();
+    };
+  }, [currentQuestionIndex, autoProceed, quizCompleted, dispatch, playSequence, question, playbackOptions, cancelPlayback]);
+
+
   const speakManually = useCallback(
     (text, lang) => {
       const options = {};
