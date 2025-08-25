@@ -129,6 +129,24 @@ function QuizContent() {
     autoProceed, // Pass autoProceed from global state
   });
 
+  const playBeep = () => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    if (!audioContext) return;
+
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 pitch
+    gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1); // Beep for 0.1 seconds
+  };
+
   useEffect(() => {
     let timers = [];
     let isCancelled = false;
@@ -144,11 +162,15 @@ function QuizContent() {
       try {
         if (quizCompleted || !question) return;
 
-        // --- WORD PART ---
-        await playSequence(null, question, { jp: true }, { skipSound: true });
-        if (isCancelled) return;
-
         if (autoProceed) {
+          // --- WORD PART ---
+          await playSequence(null, question, { jp: true }, { skipSound: true });
+          if (isCancelled) return;
+
+          playBeep();
+          await cancellableWait(200); // Short pause after beep
+          if (isCancelled) return;
+
           if (recorderRef.current) await recorderRef.current.startRecording();
           if (isCancelled) return;
 
@@ -158,36 +180,42 @@ function QuizContent() {
           if (recorderRef.current) await recorderRef.current.stopRecording();
           if (isCancelled) return;
 
-          await playSequence(null, question, { jp: true }, { skipSound: true });
+          if (recorderRef.current) await recorderRef.current.play();
           if (isCancelled) return;
 
-          if (recorderRef.current) await recorderRef.current.play();
+          await playSequence(null, question, { jp: true }, { skipSound: true });
           if (isCancelled) return;
 
           await playSequence(null, question, { ch: true }, { skipSound: true });
           if (isCancelled) return;
 
           // --- SENTENCE PART ---
-          await playSequence(null, question, { jpEx: true }, { skipSound: true });
-          if (isCancelled) return;
+          if (question.jp_ex_statement) {
+            await playSequence(null, question, { jpEx: true }, { skipSound: true });
+            if (isCancelled) return;
 
-          if (recorderRef.current) await recorderRef.current.startRecording();
-          if (isCancelled) return;
+            playBeep();
+            await cancellableWait(200);
+            if (isCancelled) return;
 
-          await cancellableWait(4000);
-          if (isCancelled) return;
+            if (recorderRef.current) await recorderRef.current.startRecording();
+            if (isCancelled) return;
 
-          if (recorderRef.current) await recorderRef.current.stopRecording();
-          if (isCancelled) return;
+            await cancellableWait(3500);
+            if (isCancelled) return;
 
-          await playSequence(null, question, { jpEx: true }, { skipSound: true });
-          if (isCancelled) return;
+            if (recorderRef.current) await recorderRef.current.stopRecording();
+            if (isCancelled) return;
 
-          if (recorderRef.current) await recorderRef.current.play();
-          if (isCancelled) return;
+            if (recorderRef.current) await recorderRef.current.play();
+            if (isCancelled) return;
 
-          await playSequence(null, question, { chEx: true }, { skipSound: true });
-          if (isCancelled) return;
+            await playSequence(null, question, { jpEx: true }, { skipSound: true });
+            if (isCancelled) return;
+
+            await playSequence(null, question, { chEx: true }, { skipSound: true });
+            if (isCancelled) return;
+          }
 
           // --- END PART ---
           await cancellableWait(2000);
