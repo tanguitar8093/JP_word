@@ -64,7 +64,8 @@ function QuizContent() {
   const [showSettings, setShowSettings] = useState(false);
   const [showExitConfirmModal, setShowExitConfirmModal] = useState(false); // State for modal visibility
   const [showInfoModal, setShowInfoModal] = useState(false); // New state for info modal
-
+  const [showPauseConfirmModal, setShowPauseConfirmModal] = useState(false); // State for modal visibility
+  const [exitQuiz, setExitQuiz] = useState(false);
   const navigate = useNavigate();
 
   // Correct: Get state and dispatch from the context using useApp hook
@@ -99,14 +100,22 @@ function QuizContent() {
     window.location.reload();
   }, [blocker, dispatch]);
 
+  const handleConfirmPause = useCallback(() => {
+    blocker.proceed();
+    setShowPauseConfirmModal(false);
+  }, [blocker, dispatch]);
+
   const handleCancelExit = useCallback(() => {
     blocker.reset();
     setShowExitConfirmModal(false);
+    setExitQuiz(false);
   }, [blocker]);
 
   useEffect(() => {
-    if (blocker.state === "blocked") {
-      setShowExitConfirmModal(true); // Show modal instead of alert
+    if (blocker.state === "blocked" && !exitQuiz) {
+      setShowPauseConfirmModal(true);
+    } else if (blocker.state === "blocked" && exitQuiz) {
+      setShowExitConfirmModal(true); // Show modal    instead of alert
     }
   }, [blocker]);
 
@@ -140,7 +149,14 @@ function QuizContent() {
           <SettingsToggle onClick={() => setShowSettings((s) => !s)}>
             ⚙️
           </SettingsToggle>
-          <HomeIcon onClick={() => navigate("/")}>↩️</HomeIcon>
+          <HomeIcon
+            onClick={() => {
+              setExitQuiz(true);
+              navigate("/");
+            }}
+          >
+            ↩️
+          </HomeIcon>
           <InfoToggle onClick={() => setShowInfoModal(true)}>ℹ️</InfoToggle>
         </IconGroup>
       </IconContainer>
@@ -179,10 +195,17 @@ function QuizContent() {
       />
 
       <Modal
-        message="測驗尚未完成，確定要離開嗎？"
+        message="要終止測驗，並儲存熟練標籤離開嗎？"
         onConfirm={handleConfirmExit}
         onCancel={handleCancelExit}
         isVisible={showExitConfirmModal}
+      />
+
+      <Modal
+        message="提醒: 若有標記熟練度, 需結束測驗才會儲存"
+        onConfirm={handleConfirmPause}
+        disableCancel
+        isVisible={showPauseConfirmModal}
       />
 
       <Modal
