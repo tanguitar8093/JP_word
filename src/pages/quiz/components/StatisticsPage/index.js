@@ -112,6 +112,20 @@ const StatisticsPage = ({
                     !item.question.kanji_jp_word &&
                     item.question.jp_word}
                   {wordType == "jp_word" && item.question.jp_word}
+                  {wordType == "jp_context" && (
+                    <span>
+                      {item.question.jp_context.map((part, index) =>
+                        part.kanji ? (
+                          <ruby key={index}>
+                            {part.kanji}
+                            <rt>{part.hiragana}</rt>
+                          </ruby>
+                        ) : (
+                          <span key={index}>{part.hiragana}</span>
+                        )
+                      )}
+                    </span>
+                  )}
                   🔊
                 </QuestionText>
               </SpeakButton>

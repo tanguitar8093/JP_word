@@ -232,6 +232,16 @@ export default function SettingsPanel({
               />
               包含漢字
             </label>
+            <label>
+              <input
+                type="radio"
+                name="wordType"
+                value="jp_context"
+                checked={wordType === "jp_context"}
+                onChange={(e) => setWordType(e.target.value)}
+              />
+              同時顯示
+            </label>
           </div>
         </LabelGroup>
       )}

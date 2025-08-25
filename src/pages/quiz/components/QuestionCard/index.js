@@ -114,6 +114,20 @@ export default function QuestionCard({ speakManually, question }) {
           <span>{q.kanji_jp_word || q.jp_word}</span>
         )}
         {wordType == "jp_word" && <span>{q.jp_word}</span>}
+        {wordType == "jp_context" && (
+          <span>
+            {q.jp_context.map((part, index) =>
+              part.kanji ? (
+                <ruby key={index}>
+                  {part.kanji}
+                  <rt>{part.hiragana}</rt>
+                </ruby>
+              ) : (
+                <span key={index}>{part.hiragana}</span>
+              )
+            )}
+          </span>
+        )}
         <SpeakButton onClick={() => speakManually(q.jp_word, "ja")}>
           🔊
         </SpeakButton>

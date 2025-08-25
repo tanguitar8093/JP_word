@@ -97,16 +97,11 @@ const notebookService = {
               ch_ex_statement: "你好，祝你有美好的一天！",
               type: "greeting",
               options: ["a", "b", "c"],
-              proficiency: 1, // Added proficiency with default value
-              // Anki fields
-              status: "new",
-              due: Date.now(),
-              interval: 0,
-              easeFactor: 2.5,
-              reps: 0,
-              lapses: 0,
-              learningStep: 0,
-              lastReview: null,
+              proficiency: 1,
+              jp_context: [
+                { kanji: "今日", hiragana: "こんにち" },
+                { kanji: "", hiragana: "は" },
+              ],
             },
           ],
         },
