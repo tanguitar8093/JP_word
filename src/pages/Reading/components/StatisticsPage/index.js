@@ -4,7 +4,7 @@ import { useApp } from "../../../../store/contexts/AppContext"; // Import useApp
 import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actions"; // Import commitPendingProficiencyUpdates
 import { updateWordInNotebook } from "../../../../store/reducer/actions"; // Import updateWordInNotebook
 import notebookService from "../../../../services/notebookService"; // Import notebookService
-import { restartQuiz } from "../../../quiz/reducer/actions"; // Import restartQuiz from quiz actions
+import { restartQuiz } from "../../../../pages/quiz/reducer/actions"; // Import restartQuiz from quiz actions
 import {
   StatisticsContainer,
   ScoreDisplay,

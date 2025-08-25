@@ -1,24 +1,36 @@
+## Feature:
+- 單字卡朗讀
+設定:
+  - 自動播放: checkbox
+  - 單字播放次數: 1 2 3 radio button,default 1
+  - 循環播放: checkbox
+
+介面:
+    - 
+
+
+
+
+
+
+
+
+
+############ Future ############
+- 單字卡朗讀:
+自動錄音和比對功能
+
+單字互動功能:
+- 填空遊戲
+- anki
+- 語言互換[low]
+- 漢字顯示讀音[normal]
+
 筆記本功能:
-    - storage:
-        - 正式版本: 串接使用 database (firebase)/backend (vercel)
-        - 參考 https://codesandbox.io/p/sandbox/react-firebase-authentication-kbn8v
-    - feature:
-    - 通用功能
-        - 收藏功能:by record id,[high] 
-        - 擴充例句:limit 3, str-> array [normal] 
-        - 顯示卡片內容: 例句,補充(未實作)[low,tbd]
-        - 熟練度功能 [normal]
-        - bug [low]
-    - 填空遊戲
-    - 選擇遊戲
-        - 開頭發音提示設定[normal] 
-        - 語言互換[low]
-        - bug 自動下一題,按鈕要隱藏 [normal]
-        - 分數頁面旁的單字也要有和題目相同的發音icon 和發音功能 [normaal]
-        - 在分數和測試頁面顯示當前筆記本名稱 [normaal]
-    - 系統設定
-        - localstorage 記憶設定
+- storage:
+    - 正式版本: 串接使用 database (firebase)/backend (vercel)
+    - 參考 https://codesandbox.io/p/sandbox/react-firebase-authentication-kbn8v
+通用功能
+- 擴充例句:limit 3, str-> array [low] 
+- 顯示卡片內容: 例句,補充(未實作)[low]
 
-        - bug icon 會跳類似估狗翻譯的東西
-
----

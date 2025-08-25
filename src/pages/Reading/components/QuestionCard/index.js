@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useApp } from "../../../../store/contexts/AppContext"; // Changed from useQuiz
-import { checkAnswer, nextQuestionGame } from "../../../quiz/reducer/actions"; // Import quiz actions
+import {
+  checkAnswer,
+  nextQuestionGame,
+} from "../../../../pages/quiz/reducer/actions"; // Import quiz actions
 import { updatePendingProficiency } from "../../../../store/reducer/actions"; // Import updatePendingProficiency
 import {
   CardContainer,
@@ -10,6 +13,8 @@ import {
   HiraganaText,
   WordContainer,
   SpeakButton,
+  OptionsContainer,
+  OptionButton,
   ResultContainer,
   AnswerText,
   NextButton,
@@ -18,18 +23,18 @@ import {
   ProficiencyButton,
 } from "./styles";
 import ExampleSentence from "../ExampleSentence";
-import AnswerSound from "../AnswerSound";
 import AudioRecorderPage from "../../../AudioRecorder";
 
 export default function QuestionCard({ speakManually, question }) {
   const { state, dispatch } = useApp(); // Changed from useQuiz
-  const { questions, currentQuestionIndex, result } = state.quiz;
+  const { questions, currentQuestionIndex, selectedAnswer, result } =
+    state.quiz;
   const { pendingProficiencyUpdates } = state.shared;
-  const { wordType, autoProceed } = state.systemSettings;
+  const { wordType } = state.systemSettings;
   const q = questions[currentQuestionIndex];
 
   const [showHiragana, setShowHiragana] = useState(false);
-  const [showInfo, setInfo] = useState(false);
+
   useEffect(() => {
     setShowHiragana(false);
   }, [q]);
@@ -51,6 +56,13 @@ export default function QuestionCard({ speakManually, question }) {
 
   return (
     <CardContainer>
+      <div>
+        <ruby>
+          今日
+          <rt>こんにち</rt>
+        </ruby>
+        は
+      </div>
       {/* 熟練度 */}
       <ProficiencyControlContainer>
         <ProficiencyButton
@@ -72,7 +84,6 @@ export default function QuestionCard({ speakManually, question }) {
           高
         </ProficiencyButton>
       </ProficiencyControlContainer>
-
       {wordType == "jp_word" && (
         <>
           <HiraganaToggleContainer>
@@ -87,7 +98,6 @@ export default function QuestionCard({ speakManually, question }) {
           )}
         </>
       )}
-
       {q.kanji_jp_word && wordType == "kanji_jp_word" && (
         <>
           <HiraganaToggleContainer>
@@ -102,7 +112,6 @@ export default function QuestionCard({ speakManually, question }) {
           )}
         </>
       )}
-
       <WordContainer>
         {wordType == "kanji_jp_word" && (
           <span>{q.kanji_jp_word || q.jp_word}</span>
@@ -111,34 +120,22 @@ export default function QuestionCard({ speakManually, question }) {
         <SpeakButton onClick={() => speakManually(q.jp_word, "ja")}>
           🔊
         </SpeakButton>
-      </WordContainer>
+      </WordContainer>{" "}
+      handleCheckAnswer(opt)
       <AudioRecorderPage triggerReset={currentQuestionIndex} />
-      {!showInfo && (
-        <NextButton
-          onClick={() => {
-            setInfo(true);
-            speakManually(null, null, q);
-          }}
-        >
-          顯示細節
-        </NextButton>
-      )}
-      {showInfo && (
-        <ResultContainer>
-          <SubCard>
-            <AnswerText correct={"⭕"}>
-              {q.ch_word} [{q.type}]
-            </AnswerText>
-          </SubCard>
-          <ExampleSentence
-            jp_ex={q.jp_ex_statement}
-            ch_ex={q.ch_ex_statement}
-            speak={speakManually}
-          />
-          <NextButton onClick={() => setInfo(false)}>隱藏細節</NextButton>
-        </ResultContainer>
-      )}
-      <NextButton onClick={handleNextQuestion}>下一題</NextButton>
+      <ResultContainer>
+        <SubCard>
+          <AnswerText correct={"⭕"}>
+            {q.ch_word} [{q.type}]
+          </AnswerText>
+        </SubCard>
+        <ExampleSentence
+          jp_ex={q.jp_ex_statement}
+          ch_ex={q.ch_ex_statement}
+          speak={speakManually}
+        />
+        <NextButton onClick={handleNextQuestion}>下一題</NextButton>
+      </ResultContainer>
     </CardContainer>
   );
 }

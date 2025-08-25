@@ -20,7 +20,7 @@ import {
   nextQuestionGame, // Changed from NEXT_QUESTION
   restartQuiz,
   startQuiz,
-} from "../../../quiz/reducer/actions"; // Import quiz actions
+} from "../../../../pages/quiz/reducer/actions"; // Import quiz actions
 
 import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actions"; // Import commitPendingProficiencyUpdates
 
@@ -46,7 +46,7 @@ import {
   setPlaybackOptions,
   setPlaybackSpeed,
   setAutoProceed,
-} from "../../../systemSettings/reducer"; // Import actions
+} from "../../../../pages/systemSettings/reducer"; // Import actions
 
 const proficiencyMap = {
   1: "低",
@@ -117,11 +117,10 @@ function QuizContent() {
     playbackOptions, // Now from global state
     rate: playbackSpeed, // Use playbackSpeed from global state
     autoProceed, // Pass autoProceed from global state
-    currentQuestionIndex,
   });
 
   const speakManually = useCallback(
-    (text, lang, q) => {
+    (text, lang) => {
       const options = {};
       if (lang === "ja") {
         options.jp = true;
@@ -129,8 +128,6 @@ function QuizContent() {
       } else if (lang === "zh") {
         options.ch = true;
         playSequence(null, { ch_word: text }, options, { skipSound: true });
-      } else if (q) {
-        playSequence(true, q, playbackOptions, { skipSound: true });
       }
     },
     [playSequence]
@@ -170,7 +167,7 @@ function QuizContent() {
         </>
       )}
 
-      <Title>單字朗讀</Title>
+      <Title>單字練習</Title>
       <Progress>
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
