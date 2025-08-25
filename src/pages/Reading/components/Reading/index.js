@@ -41,21 +41,22 @@ const HomeIcon = styled(SettingsToggle)`
   right: 5px;
 `;
 
-const StartButton = styled.button`
-  font-size: 2rem;
-  padding: 20px 40px;
+const MinimalistButton = styled.button`
+  font-size: 1.5rem;
+  padding: 15px 30px;
   cursor: pointer;
-  border-radius: 10px;
-  border: none;
-  background-color: #4caf50;
-  color: white;
+  border-radius: 8px;
+  border: 2px solid #333;
+  background-color: white;
+  color: #333;
   margin: 20px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  transition: all 0.3s ease;
+  font-weight: bold;
+  transition: all 0.2s ease-in-out;
 
   &:hover {
-    background-color: #45a049;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    background-color: #f0f0f0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   }
 `;
 
@@ -80,6 +81,7 @@ function QuizContent() {
   const navigate = useNavigate();
   const recorderRef = useRef(null);
   const [isAutoPlayActive, setIsAutoPlayActive] = useState(false);
+  const [isSequencePaused, setIsSequencePaused] = useState(false);
 
   // Correct: Get state and dispatch from the context using useApp hook
   const { state, dispatch } = useApp(); // Changed from useQuiz
@@ -176,7 +178,7 @@ function QuizContent() {
 
     const autoPlaySequence = async () => {
       try {
-        if (quizCompleted || !question || readingStudyMode !== 'auto' || !isAutoPlayActive) return;
+        if (quizCompleted || !question || readingStudyMode !== 'auto' || !isAutoPlayActive || isSequencePaused) return;
 
         // --- WORD PART ---
         if (readingRecordWord) {
@@ -260,7 +262,7 @@ function QuizContent() {
       }
       cancelPlayback(); // Stop any ongoing speech
     };
-  }, [currentQuestionIndex, readingStudyMode, readingRecordWord, readingRecordSentence, readingPlayBeep, readingWordRecordTime, readingSentenceRecordTime, quizCompleted, dispatch, playSequence, question, playbackOptions, cancelPlayback, isAutoPlayActive]);
+  }, [currentQuestionIndex, readingStudyMode, readingRecordWord, readingRecordSentence, readingPlayBeep, readingWordRecordTime, readingSentenceRecordTime, quizCompleted, dispatch, playSequence, question, playbackOptions, cancelPlayback, isAutoPlayActive, isSequencePaused]);
 
 
   const handleStartAutoPlay = async () => {
@@ -319,7 +321,12 @@ function QuizContent() {
       </Progress>
 
       {readingStudyMode === 'auto' && !isAutoPlayActive && (
-        <StartButton onClick={handleStartAutoPlay}>開始播放 ▶️</StartButton>
+        <MinimalistButton onClick={handleStartAutoPlay}>開始播放 ▶</MinimalistButton>
+      )}
+      {readingStudyMode === 'auto' && isAutoPlayActive && (
+        <MinimalistButton onClick={() => setIsSequencePaused(!isSequencePaused)}>
+          {isSequencePaused ? "繼續 ▶" : "暫停 ⏸"}
+        </MinimalistButton>
       )}
 
       <ReadingCard
