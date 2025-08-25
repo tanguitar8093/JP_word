@@ -1,9 +1,9 @@
 import styled from "styled-components";
 
 const proficiencyColors = {
-  1: '#007bff', // blue
-  2: '#ffc107', // orange
-  3: '#dc3545', // red
+  1: "#007bff", // blue
+  2: "#ffc107", // orange
+  3: "#dc3545", // red
 };
 
 // 容器
@@ -21,8 +21,8 @@ export const ProficiencyBadge = styled.div`
   top: 8px;
   right: 8px;
   padding: 2px 6px;
-  border: 1px solid ${(props) => proficiencyColors[props.level] || '#ccc'};
-  color: ${(props) => proficiencyColors[props.level] || '#ccc'};
+  border: 1px solid ${(props) => proficiencyColors[props.level] || "#ccc"};
+  color: ${(props) => proficiencyColors[props.level] || "#ccc"};
   border-radius: 4px;
   font-size: 12px;
   font-weight: bold;
@@ -90,22 +90,64 @@ export const OptionsContainer = styled.div`
 `;
 
 export const OptionButton = styled.button`
-  padding: 10px 16px;
-  font-size: 16px;
-  border: 1px solid #007bff;
-  border-radius: 6px;
-  background-color: #f9f9f9;
+  padding: 16px 20px;
+  font-size: 17px;
+  border: 2px solid #e0e0e0;
+  border-radius: 14px;
+  background: #fff;
+  color: #222;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.22s cubic-bezier(0.4, 2, 0.6, 1);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  z-index: 1;
 
-  &:hover {
-    background-color: #007bff;
-    color: white;
+  &:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: linear-gradient(180deg, #007bff 0%, #00c6ff 100%);
+    border-radius: 14px 0 0 14px;
+    opacity: 0;
+    transition: opacity 0.22s;
+    z-index: 2;
+  }
+
+  &:hover,
+  &:focus {
+    border-color: #007bff;
+    background: linear-gradient(90deg, #f0f6ff 0%, #f8f9ff 100%);
+    color: #007bff;
+    box-shadow: 0 4px 16px rgba(0, 123, 255, 0.1);
+    outline: none;
+  }
+  &:hover:before,
+  &:focus:before {
+    opacity: 1;
   }
 
   &:active {
-    background-color: #0056b3;
-    color: white;
+    background: #e6f0ff;
+    color: #0056b3;
+    transform: scale(0.98);
+  }
+
+  @media (max-width: 600px) {
+    font-size: 16px;
+    padding: 12px 10px;
+    border-radius: 10px;
+    &:before {
+      border-radius: 10px 0 0 10px;
+    }
   }
 `;
 

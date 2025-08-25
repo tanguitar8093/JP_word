@@ -25,7 +25,7 @@ export default function QuestionCard({ speakManually, question }) {
   const { state, dispatch } = useApp(); // Changed from useQuiz
   const { questions, currentQuestionIndex, result } = state.quiz;
   const { pendingProficiencyUpdates } = state.shared;
-  const { wordType } = state.systemSettings;
+  const { wordType, autoProceed } = state.systemSettings;
   const q = questions[currentQuestionIndex];
 
   const [showHiragana, setShowHiragana] = useState(false);
