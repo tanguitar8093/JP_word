@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useApp } from "../../../../store/contexts/AppContext"; // Changed from useQuiz
-import {
-  checkAnswer,
-  nextQuestionGame,
-} from "../../../../pages/quiz/reducer/actions"; // Import quiz actions
+import { checkAnswer, nextQuestionGame } from "../../../quiz/reducer/actions"; // Import quiz actions
 import { updatePendingProficiency } from "../../../../store/reducer/actions"; // Import updatePendingProficiency
 import {
   CardContainer,
@@ -23,9 +20,10 @@ import {
   ProficiencyButton,
 } from "./styles";
 import ExampleSentence from "../ExampleSentence";
+import AnswerSound from "../AnswerSound";
 import AudioRecorderPage from "../../../AudioRecorder";
 
-export default function QuestionCard({ speakManually, question }) {
+export default function ReadingCard({ speakManually, question }) {
   const { state, dispatch } = useApp(); // Changed from useQuiz
   const { questions, currentQuestionIndex, selectedAnswer, result } =
     state.quiz;
@@ -56,13 +54,6 @@ export default function QuestionCard({ speakManually, question }) {
 
   return (
     <CardContainer>
-      <div>
-        <ruby>
-          今日
-          <rt>こんにち</rt>
-        </ruby>
-        は
-      </div>
       {/* 熟練度 */}
       <ProficiencyControlContainer>
         <ProficiencyButton
@@ -84,6 +75,7 @@ export default function QuestionCard({ speakManually, question }) {
           高
         </ProficiencyButton>
       </ProficiencyControlContainer>
+
       {wordType == "jp_word" && (
         <>
           <HiraganaToggleContainer>
@@ -98,6 +90,7 @@ export default function QuestionCard({ speakManually, question }) {
           )}
         </>
       )}
+
       {q.kanji_jp_word && wordType == "kanji_jp_word" && (
         <>
           <HiraganaToggleContainer>
@@ -112,20 +105,35 @@ export default function QuestionCard({ speakManually, question }) {
           )}
         </>
       )}
+
       <WordContainer>
         {wordType == "kanji_jp_word" && (
           <span>{q.kanji_jp_word || q.jp_word}</span>
         )}
         {wordType == "jp_word" && <span>{q.jp_word}</span>}
+        {wordType == "jp_context" && (
+          <span>
+            {q.jp_context.map((part, index) =>
+              part.kanji ? (
+                <ruby key={index}>
+                  {part.kanji}
+                  <rt>{part.hiragana}</rt>
+                </ruby>
+              ) : (
+                <span key={index}>{part.hiragana}</span>
+              )
+            )}
+          </span>
+        )}
         <SpeakButton onClick={() => speakManually(q.jp_word, "ja")}>
           🔊
         </SpeakButton>
-      </WordContainer>{" "}
-      handleCheckAnswer(opt)
+      </WordContainer>
       <AudioRecorderPage triggerReset={currentQuestionIndex} />
+
       <ResultContainer>
         <SubCard>
-          <AnswerText correct={"⭕"}>
+          <AnswerText correct={result === "⭕"}>
             {q.ch_word} [{q.type}]
           </AnswerText>
         </SubCard>

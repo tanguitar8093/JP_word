@@ -4,7 +4,7 @@ import { useApp } from "../../../../store/contexts/AppContext"; // Import useApp
 import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actions"; // Import commitPendingProficiencyUpdates
 import { updateWordInNotebook } from "../../../../store/reducer/actions"; // Import updateWordInNotebook
 import notebookService from "../../../../services/notebookService"; // Import notebookService
-import { restartQuiz } from "../../../../pages/quiz/reducer/actions"; // Import restartQuiz from quiz actions
+import { restartQuiz } from "../../../quiz/reducer/actions"; // Import restartQuiz from quiz actions
 import {
   StatisticsContainer,
   ScoreDisplay,
@@ -112,6 +112,20 @@ const StatisticsPage = ({
                     !item.question.kanji_jp_word &&
                     item.question.jp_word}
                   {wordType == "jp_word" && item.question.jp_word}
+                  {wordType == "jp_context" && (
+                    <span>
+                      {item.question.jp_context.map((part, index) =>
+                        part.kanji ? (
+                          <ruby key={index}>
+                            {part.kanji}
+                            <rt>{part.hiragana}</rt>
+                          </ruby>
+                        ) : (
+                          <span key={index}>{part.hiragana}</span>
+                        )
+                      )}
+                    </span>
+                  )}
                   🔊
                 </QuestionText>
               </SpeakButton>
