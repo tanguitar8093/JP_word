@@ -31,12 +31,7 @@ import {
   setLearningSteps, // New import
   setGraduatingInterval, // New import
   setLapseInterval, // New import
-} from "../../pages/systemSettings/reducer/actions";
-import correctSound from "../../assets/sounds/correct.mp3";
-import wrongSound from "../../assets/sounds/wrong.mp3";
-import { calculateNextState } from "../../services/ankiService";
-
-import { CounterContainer, CounterItem } from "./styles";
+} from "../../components/SettingsPanel/reducer/actions";
 
 const IconContainer = styled.div`
   position: absolute;

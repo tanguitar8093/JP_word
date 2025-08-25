@@ -1,11 +1,18 @@
-import { createContext, useContext, useReducer, useEffect, useCallback, useRef } from "react";
-import notebookService from '../../services/notebookService';
-import { getNotebooks, setCurrentNotebook } from '../reducer/actions';
+import {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
+import notebookService from "../../services/notebookService";
+import { getNotebooks, setCurrentNotebook } from "../reducer/actions";
 
 // Import individual reducers
 import { reducer as quizReducer } from "../../pages/quiz/reducer";
 import { reducer as wordManagementReducer } from "../../pages/wordManagement/reducer";
-import { reducer as systemSettingsReducer } from "../../pages/systemSettings/reducer";
+import { reducer as systemSettingsReducer } from "../../components/SettingsPanel/reducer";
 import { reducer as wordReadingReducer } from "../../pages/wordReading/reducer";
 import { reducer as sharedReducer } from "../reducer";
 
@@ -39,7 +46,7 @@ const rootReducer = combineReducers({
 const initialAppState = (() => {
   let savedSettings = {};
   try {
-    const storedSettings = localStorage.getItem('jp_word_settings');
+    const storedSettings = localStorage.getItem("jp_word_settings");
     if (storedSettings) {
       savedSettings = JSON.parse(storedSettings);
     }
@@ -83,12 +90,15 @@ export function AppProvider({ children }) {
   }, [state]);
 
   // Simple thunk middleware
-  const enhancedDispatch = useCallback((action) => {
-    if (typeof action === 'function') {
-      return action(enhancedDispatch, () => stateRef.current); // Use stateRef.current for getState
-    }
-    return dispatch(action);
-  }, [dispatch]); // Removed state from dependencies
+  const enhancedDispatch = useCallback(
+    (action) => {
+      if (typeof action === "function") {
+        return action(enhancedDispatch, () => stateRef.current); // Use stateRef.current for getState
+      }
+      return dispatch(action);
+    },
+    [dispatch]
+  ); // Removed state from dependencies
 
   useEffect(() => {
     notebookService.init();
@@ -102,14 +112,19 @@ export function AppProvider({ children }) {
   // Save systemSettings to localStorage whenever it changes
   useEffect(() => {
     try {
-      localStorage.setItem('jp_word_settings', JSON.stringify(state.systemSettings));
+      localStorage.setItem(
+        "jp_word_settings",
+        JSON.stringify(state.systemSettings)
+      );
     } catch (error) {
       console.error("Failed to save settings to localStorage", error);
     }
   }, [state.systemSettings]);
 
   return (
-    <AppContext.Provider value={{ state, dispatch: enhancedDispatch }}> {/* Provide enhancedDispatch */}
+    <AppContext.Provider value={{ state, dispatch: enhancedDispatch }}>
+      {" "}
+      {/* Provide enhancedDispatch */}
       {children}
     </AppContext.Provider>
   );

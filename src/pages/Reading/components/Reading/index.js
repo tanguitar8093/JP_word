@@ -46,7 +46,7 @@ import {
   setPlaybackOptions,
   setPlaybackSpeed,
   setAutoProceed,
-} from "../../../../pages/systemSettings/reducer"; // Import actions
+} from "../../../../components/SettingsPanel/reducer"; // Import actions
 
 const proficiencyMap = {
   1: "低",

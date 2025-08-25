@@ -1,35 +1,37 @@
 import { PanelContainer, LabelGroup, RangeInput, SettingTitle } from "./styles"; // Import SettingTitle
-
-export default function SettingsPanel({
-  setWordType,
-  playbackSpeed,
-  setPlaybackSpeed,
-  playbackOptions,
+import { useApp } from "../../store/contexts/AppContext"; // Import useApp
+import {
   setPlaybackOptions,
-  proficiencyFilter,
-  setProficiencyFilter,
-  autoProceed,
+  setPlaybackSpeed,
   setAutoProceed,
-  startQuestionIndex,
+  setProficiencyFilter,
   setStartQuestionIndex,
-  wordRangeCount,
   setWordRangeCount,
-  sortOrder,
-  wordType,
   setSortOrder,
-  learningSteps, // New Anki prop
-  setLearningSteps, // New Anki prop
-  graduatingInterval, // New Anki prop
-  setGraduatingInterval, // New Anki prop
-  lapseInterval, // New Anki prop
-  setLapseInterval, // New Anki prop
-  isQuizContext,
-}) {
+  setWordType,
+} from "./reducer";
+
+export default function SettingsPanel({ isQuizContext }) {
+  const { state, dispatch } = useApp();
+  const { systemSettings } = state;
+  const {
+    playbackOptions,
+    playbackSpeed,
+    autoProceed,
+    proficiencyFilter,
+    startQuestionIndex,
+    wordRangeCount,
+    sortOrder,
+    wordType,
+  } = systemSettings;
+
   const handleProficiencyChange = (level) => {
-    setProficiencyFilter({
-      ...proficiencyFilter,
-      [level]: !proficiencyFilter[level],
-    });
+    dispatch(
+      setProficiencyFilter({
+        ...proficiencyFilter,
+        [level]: !proficiencyFilter[level],
+      })
+    );
   };
 
   return (
@@ -42,7 +44,7 @@ export default function SettingsPanel({
           max="2"
           step="0.1"
           value={playbackSpeed}
-          onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
+          onChange={(e) => dispatch(setPlaybackSpeed(Number(e.target.value)))}
         />
       </LabelGroup>
 
@@ -54,10 +56,12 @@ export default function SettingsPanel({
               type="checkbox"
               checked={playbackOptions.jp}
               onChange={(e) =>
-                setPlaybackOptions({
-                  ...playbackOptions,
-                  jp: e.target.checked,
-                })
+                dispatch(
+                  setPlaybackOptions({
+                    ...playbackOptions,
+                    jp: e.target.checked,
+                  })
+                )
               }
             />
             日文
@@ -67,10 +71,12 @@ export default function SettingsPanel({
               type="checkbox"
               checked={playbackOptions.ch}
               onChange={(e) =>
-                setPlaybackOptions({
-                  ...playbackOptions,
-                  ch: e.target.checked,
-                })
+                dispatch(
+                  setPlaybackOptions({
+                    ...playbackOptions,
+                    ch: e.target.checked,
+                  })
+                )
               }
             />
             中文
@@ -80,10 +86,12 @@ export default function SettingsPanel({
               type="checkbox"
               checked={playbackOptions.jpEx}
               onChange={(e) =>
-                setPlaybackOptions({
-                  ...playbackOptions,
-                  jpEx: e.target.checked,
-                })
+                dispatch(
+                  setPlaybackOptions({
+                    ...playbackOptions,
+                    jpEx: e.target.checked,
+                  })
+                )
               }
             />
             日文例句
@@ -93,10 +101,12 @@ export default function SettingsPanel({
               type="checkbox"
               checked={playbackOptions.chEx}
               onChange={(e) =>
-                setPlaybackOptions({
-                  ...playbackOptions,
-                  chEx: e.target.checked,
-                })
+                dispatch(
+                  setPlaybackOptions({
+                    ...playbackOptions,
+                    chEx: e.target.checked,
+                  })
+                )
               }
             />
             中文例句
@@ -110,7 +120,7 @@ export default function SettingsPanel({
             <input
               type="checkbox"
               checked={autoProceed}
-              onChange={(e) => setAutoProceed(e.target.checked)}
+              onChange={(e) => dispatch(setAutoProceed(e.target.checked))}
             />
             開啟
           </label>
@@ -158,7 +168,7 @@ export default function SettingsPanel({
                 name="sortOrder"
                 value="none"
                 checked={sortOrder === "none"}
-                onChange={(e) => setSortOrder(e.target.value)}
+                onChange={(e) => dispatch(setSortOrder(e.target.value))}
               />
               預設
             </label>
@@ -168,7 +178,7 @@ export default function SettingsPanel({
                 name="sortOrder"
                 value="random"
                 checked={sortOrder === "random"}
-                onChange={(e) => setSortOrder(e.target.value)}
+                onChange={(e) => dispatch(setSortOrder(e.target.value))}
               />
               隨機
             </label>
@@ -178,7 +188,7 @@ export default function SettingsPanel({
                 name="sortOrder"
                 value="aiueo"
                 checked={sortOrder === "aiueo"}
-                onChange={(e) => setSortOrder(e.target.value)}
+                onChange={(e) => dispatch(setSortOrder(e.target.value))}
               />
               あいうえお
             </label>
@@ -192,7 +202,9 @@ export default function SettingsPanel({
             type="number"
             min="1"
             value={startQuestionIndex}
-            onChange={(e) => setStartQuestionIndex(Number(e.target.value))}
+            onChange={(e) =>
+              dispatch(setStartQuestionIndex(Number(e.target.value)))
+            }
           />
         </LabelGroup>
       )}
@@ -208,80 +220,41 @@ export default function SettingsPanel({
           />
         </LabelGroup>
       )}
-      {!isQuizContext && (
-        <LabelGroup>
-          <SettingTitle>主單字顯示:</SettingTitle>
-          <div>
-            <label>
-              <input
-                type="radio"
-                name="wordType"
-                value="jp_word"
-                checked={wordType === "jp_word"}
-                onChange={(e) => setWordType(e.target.value)}
-              />
-              純平/片假名
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="wordType"
-                value="kanji_jp_word"
-                checked={wordType === "kanji_jp_word"}
-                onChange={(e) => setWordType(e.target.value)}
-              />
-              包含漢字
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="wordType"
-                value="jp_context"
-                checked={wordType === "jp_context"}
-                onChange={(e) => setWordType(e.target.value)}
-              />
-              同時顯示
-            </label>
-          </div>
-        </LabelGroup>
-      )}
-
-      {/* Anki Algorithm Settings */}
-      {/* {learningSteps !== undefined && ( // Conditionally render Anki settings
-        <>
-          <SettingTitle>Anki 演算法設定</SettingTitle>
-          <LabelGroup>
-            <SettingTitle>學習步驟 (毫秒, 逗號分隔):</SettingTitle>
+      <LabelGroup>
+        <SettingTitle>主單字顯示:</SettingTitle>
+        <div>
+          <label>
             <input
-              type="text"
-              value={learningSteps.join(", ")}
-              onChange={(e) =>
-                setLearningSteps(
-                  e.target.value.split(",").map((s) => Number(s.trim()))
-                )
-              }
+              type="radio"
+              name="wordType"
+              value="jp_word"
+              checked={wordType === "jp_word"}
+              onChange={(e) => dispatch(setWordType(e.target.value))}
             />
-          </LabelGroup>
-          <LabelGroup>
-            <SettingTitle>畢業間隔 (天):</SettingTitle>
+            純平/片假名
+          </label>
+          <label>
             <input
-              type="number"
-              min="1"
-              value={graduatingInterval}
-              onChange={(e) => setGraduatingInterval(Number(e.target.value))}
+              type="radio"
+              name="wordType"
+              value="kanji_jp_word"
+              checked={wordType === "kanji_jp_word"}
+              onChange={(e) => dispatch(setWordType(e.target.value))}
             />
-          </LabelGroup>
-          <LabelGroup>
-            <SettingTitle>重學間隔 (毫秒):</SettingTitle>
+            包含漢字
+          </label>
+          <label>
             <input
-              type="number"
-              min="1"
-              value={lapseInterval}
-              onChange={(e) => setLapseInterval(Number(e.target.value))}
+              type="radio"
+              name="wordType"
+              value="jp_context"
+              checked={wordType === "jp_context"}
+              onChange={(e) => dispatch(setWordType(e.target.value))}
             />
-          </LabelGroup>
-        </>
-      )} */}
+            同時顯示
+          </label>
+        </div>
+      </LabelGroup>
     </PanelContainer>
   );
 }
