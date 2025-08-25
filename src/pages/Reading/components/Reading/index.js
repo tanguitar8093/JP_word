@@ -41,12 +41,23 @@ const HomeIcon = styled(SettingsToggle)`
   right: 5px;
 `;
 
-// The actual UI component that consumes the context
-import {
-  setPlaybackOptions,
-  setPlaybackSpeed,
-  setAutoProceed,
-} from "../../../../components/SettingsPanel/reducer"; // Import actions
+const StartButton = styled.button`
+  font-size: 2rem;
+  padding: 20px 40px;
+  cursor: pointer;
+  border-radius: 10px;
+  border: none;
+  background-color: #4caf50;
+  color: white;
+  margin: 20px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: #45a049;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+  }
+`;
 
 const proficiencyMap = {
   1: "低",
@@ -68,6 +79,7 @@ function QuizContent() {
   const [exitQuiz, setExitQuiz] = useState(false);
   const navigate = useNavigate();
   const recorderRef = useRef(null);
+  const [isAutoPlayActive, setIsAutoPlayActive] = useState(false);
 
   // Correct: Get state and dispatch from the context using useApp hook
   const { state, dispatch } = useApp(); // Changed from useQuiz
@@ -164,7 +176,7 @@ function QuizContent() {
 
     const autoPlaySequence = async () => {
       try {
-        if (quizCompleted || !question || readingStudyMode !== 'auto') return;
+        if (quizCompleted || !question || readingStudyMode !== 'auto' || !isAutoPlayActive) return;
 
         // --- WORD PART ---
         if (readingRecordWord) {
@@ -248,8 +260,17 @@ function QuizContent() {
       }
       cancelPlayback(); // Stop any ongoing speech
     };
-  }, [currentQuestionIndex, readingStudyMode, readingRecordWord, readingRecordSentence, readingPlayBeep, readingWordRecordTime, readingSentenceRecordTime, quizCompleted, dispatch, playSequence, question, playbackOptions, cancelPlayback]);
+  }, [currentQuestionIndex, readingStudyMode, readingRecordWord, readingRecordSentence, readingPlayBeep, readingWordRecordTime, readingSentenceRecordTime, quizCompleted, dispatch, playSequence, question, playbackOptions, cancelPlayback, isAutoPlayActive]);
 
+
+  const handleStartAutoPlay = async () => {
+    if (recorderRef.current) {
+      const stream = await recorderRef.current.getMicrophonePermission();
+      if (stream) {
+        setIsAutoPlayActive(true);
+      }
+    }
+  };
 
   const speakManually = useCallback(
     (text, lang) => {
@@ -297,6 +318,10 @@ function QuizContent() {
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
 
+      {readingStudyMode === 'auto' && !isAutoPlayActive && (
+        <StartButton onClick={handleStartAutoPlay}>開始播放 ▶️</StartButton>
+      )}
+
       <ReadingCard
         ref={recorderRef}
         speakManually={speakManually}
@@ -305,6 +330,7 @@ function QuizContent() {
         studyMode={readingStudyMode}
         playbackOptions={playbackOptions}
         playSequence={playSequence}
+        isPaused={readingStudyMode === 'auto' && !isAutoPlayActive}
       />
 
       <Modal

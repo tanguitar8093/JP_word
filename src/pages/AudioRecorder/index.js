@@ -19,6 +19,23 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
   const stopResolver = useRef(null);
   const playResolver = useRef(null);
 
+  const getMicrophonePermission = async () => {
+    if ('MediaRecorder' in window) {
+      try {
+        const streamData = await navigator.mediaDevices.getUserMedia({ audio: true });
+        setPermission(true);
+        setStream(streamData);
+        return streamData; // Return stream on success
+      } catch (err) {
+        alert(err.message);
+        return null; // Return null on error
+      }
+    } else {
+      alert('您的瀏覽器不支援錄音功能。');
+      return null;
+    }
+  };
+
   // Expose functions to parent component
   useImperativeHandle(ref, () => ({
     startRecording,
@@ -38,6 +55,7 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
         }
       });
     },
+    getMicrophonePermission,
   }));
 
   // Reset function
@@ -79,23 +97,6 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
       resetRecorder();
     }
   }, [triggerReset]);
-
-  const getMicrophonePermission = async () => {
-    if ('MediaRecorder' in window) {
-      try {
-        const streamData = await navigator.mediaDevices.getUserMedia({ audio: true });
-        setPermission(true);
-        setStream(streamData);
-        return streamData; // Return stream on success
-      } catch (err) {
-        alert(err.message);
-        return null; // Return null on error
-      }
-    } else {
-      alert('您的瀏覽器不支援錄音功能。');
-      return null;
-    }
-  };
 
   const startRecording = async () => {
     let currentStream = stream;

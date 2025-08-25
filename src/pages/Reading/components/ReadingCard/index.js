@@ -20,7 +20,7 @@ import {
 import ExampleSentence from "../ExampleSentence";
 import AudioRecorderPage from "../../../AudioRecorder";
 
-const ReadingCard = forwardRef(({ speakManually, question, studyMode, playbackOptions, playSequence }, ref) => {
+const ReadingCard = forwardRef(({ speakManually, question, studyMode, playbackOptions, playSequence, isPaused }, ref) => {
   const { state, dispatch } = useApp(); // Changed from useQuiz
   const { questions, currentQuestionIndex, result } =
     state.quiz;
@@ -63,7 +63,7 @@ const ReadingCard = forwardRef(({ speakManually, question, studyMode, playbackOp
   }
 
   return (
-    <CardContainer onClick={handleCardClick}>
+    <CardContainer onClick={handleCardClick} style={{ visibility: isPaused ? 'hidden' : 'visible' }}>
       {/* 熟練度 */}
       <ProficiencyControlContainer>
         <ProficiencyButton
