@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useBlocker } from "react-router-dom"; // Import useBlocker
 import { useApp } from "../../../../store/contexts/AppContext"; // Changed from QuizContext
 import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
@@ -67,6 +67,7 @@ function QuizContent() {
   const [showPauseConfirmModal, setShowPauseConfirmModal] = useState(false); // State for modal visibility
   const [exitQuiz, setExitQuiz] = useState(false);
   const navigate = useNavigate();
+  const recorderRef = useRef(null);
 
   // Correct: Get state and dispatch from the context using useApp hook
   const { state, dispatch } = useApp(); // Changed from useQuiz
@@ -129,30 +130,63 @@ function QuizContent() {
   });
 
   useEffect(() => {
-    let timer;
+    let timerId;
+    let recordingStopTimerId;
+    let isCancelled = false;
 
-    const autoPlay = async () => {
-      if (quizCompleted || !question) return;
+    const autoPlaySequence = async () => {
+      try {
+        if (quizCompleted || !question) return;
 
-      // Speak the word.
-      await playSequence(null, question, playbackOptions, { skipSound: true });
+        // 1. Initial playback
+        await playSequence(null, question, playbackOptions, { skipSound: true });
+        if (isCancelled) return;
 
-      // If auto-play is enabled, start a timer for the next question.
-      if (autoProceed) {
-        timer = setTimeout(() => {
-          dispatch(nextQuestionGame());
-        }, 2000);
+        if (autoProceed) {
+          // 2. Start recording
+          if (recorderRef.current) {
+            await recorderRef.current.startRecording();
+            if (isCancelled) return;
+          }
+
+          // 3. Wait 2 seconds then stop recording
+          recordingStopTimerId = setTimeout(async () => {
+            if (recorderRef.current) {
+              await recorderRef.current.stopRecording();
+            }
+            if (isCancelled) return;
+
+            // 4. Second playback
+            await playSequence(null, question, playbackOptions, { skipSound: true });
+            if (isCancelled) return;
+
+            // 5. Play recorded audio
+            if (recorderRef.current) {
+              recorderRef.current.play();
+            }
+
+            // 6. Wait 2 seconds then go to next question
+            timerId = setTimeout(() => {
+              if (!isCancelled) {
+                dispatch(nextQuestionGame());
+              }
+            }, 2000);
+          }, 2000);
+        }
+      } catch (error) {
+        console.error("Error in autoPlaySequence:", error);
       }
     };
 
-    autoPlay();
+    autoPlaySequence();
 
-    // Cleanup function
     return () => {
-      if (timer) {
-        clearTimeout(timer);
+      isCancelled = true;
+      if (recordingStopTimerId) clearTimeout(recordingStopTimerId);
+      if (timerId) clearTimeout(timerId);
+      if (recorderRef.current) {
+        recorderRef.current.stopRecording();
       }
-      // Also cancel any ongoing speech when the component re-renders or unmounts
       cancelPlayback();
     };
   }, [currentQuestionIndex, autoProceed, quizCompleted, dispatch, playSequence, question, playbackOptions, cancelPlayback]);
@@ -219,6 +253,7 @@ function QuizContent() {
       </Progress>
 
       <ReadingCard
+        ref={recorderRef}
         speakManually={speakManually}
         cancelPlayback={cancelPlayback}
         question={question}

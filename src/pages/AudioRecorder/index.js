@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import {
   ButtonContainer,
   IconButton,
@@ -8,13 +8,31 @@ import {
   RecordIcon
 } from './styles';
 
-const AudioRecorderPage = ({ triggerReset }) => {
+const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
   const [permission, setPermission] = useState(false);
   const [stream, setStream] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [audioURL, setAudioURL] = useState('');
   const mediaRecorder = useRef(null);
   const audioChunks = useRef([]);
+  const audioPlayerRef = useRef(null);
+  const stopResolver = useRef(null);
+
+  // Expose functions to parent component
+  useImperativeHandle(ref, () => ({
+    startRecording,
+    stopRecording: () => {
+      return new Promise((resolve) => {
+        stopResolver.current = resolve;
+        stopRecordingInternal();
+      });
+    },
+    play: () => {
+      if (audioPlayerRef.current) {
+        audioPlayerRef.current.play();
+      }
+    },
+  }));
 
   // Reset function
   const resetRecorder = () => {
@@ -62,18 +80,24 @@ const AudioRecorderPage = ({ triggerReset }) => {
         const streamData = await navigator.mediaDevices.getUserMedia({ audio: true });
         setPermission(true);
         setStream(streamData);
+        return streamData; // Return stream on success
       } catch (err) {
         alert(err.message);
+        return null; // Return null on error
       }
     } else {
       alert('您的瀏覽器不支援錄音功能。');
+      return null;
     }
   };
 
   const startRecording = async () => {
-    if (stream === null) {
-      await getMicrophonePermission();
+    let currentStream = stream;
+    if (currentStream === null) {
+      currentStream = await getMicrophonePermission();
     }
+
+    if (!currentStream) return; // Don't start if permission is denied
 
     setIsRecording(true);
     if (audioURL) {
@@ -82,7 +106,7 @@ const AudioRecorderPage = ({ triggerReset }) => {
     setAudioURL('');
     audioChunks.current = [];
 
-    const media = new MediaRecorder(stream, { type: 'audio/webm' });
+    const media = new MediaRecorder(currentStream, { type: 'audio/webm' });
     mediaRecorder.current = media;
     mediaRecorder.current.start();
 
@@ -93,7 +117,7 @@ const AudioRecorderPage = ({ triggerReset }) => {
     };
   };
 
-  const stopRecording = () => {
+  const stopRecordingInternal = () => {
     setIsRecording(false);
     if (mediaRecorder.current) {
       mediaRecorder.current.stop();
@@ -104,7 +128,16 @@ const AudioRecorderPage = ({ triggerReset }) => {
         setAudioURL(audioUrl);
         audioChunks.current = [];
       };
+    } else {
+      if (stopResolver.current) {
+        stopResolver.current();
+        stopResolver.current = null;
+      }
     }
+  };
+
+  const stopRecording = () => {
+    stopRecordingInternal();
   };
 
   return (
@@ -117,7 +150,7 @@ const AudioRecorderPage = ({ triggerReset }) => {
       )}
 
       {/* 已取得權限但尚未錄音 */}
-      {permission && !isRecording && (
+      {permission && !isRecording && !audioURL && (
         <InfoButton onClick={startRecording}>
           <RecordIcon recording={false} /> 點擊開始錄音
         </InfoButton>
@@ -134,10 +167,20 @@ const AudioRecorderPage = ({ triggerReset }) => {
 
       {/* 播放 bar，只在錄音完成後顯示 */}
       {permission && !isRecording && audioURL && (
-        <AudioPlayer src={audioURL} controls />
+        <AudioPlayer
+          ref={audioPlayerRef}
+          src={audioURL}
+          controls
+          onCanPlayThrough={() => {
+            if (stopResolver.current) {
+              stopResolver.current();
+              stopResolver.current = null;
+            }
+          }}
+        />
       )}
     </ButtonContainer>
   );
-};
+});
 
 export default AudioRecorderPage;

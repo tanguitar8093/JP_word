@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, forwardRef } from "react";
 import { useApp } from "../../../../store/contexts/AppContext"; // Changed from useQuiz
 import { checkAnswer, nextQuestionGame } from "../../../quiz/reducer/actions"; // Import quiz actions
 import { updatePendingProficiency } from "../../../../store/reducer/actions"; // Import updatePendingProficiency
@@ -23,7 +23,7 @@ import ExampleSentence from "../ExampleSentence";
 import AnswerSound from "../AnswerSound";
 import AudioRecorderPage from "../../../AudioRecorder";
 
-export default function ReadingCard({ speakManually, question }) {
+const ReadingCard = forwardRef(({ speakManually, question }, ref) => {
   const { state, dispatch } = useApp(); // Changed from useQuiz
   const { questions, currentQuestionIndex, selectedAnswer, result } =
     state.quiz;
@@ -129,11 +129,11 @@ export default function ReadingCard({ speakManually, question }) {
           🔊
         </SpeakButton>
       </WordContainer>
-      <AudioRecorderPage triggerReset={currentQuestionIndex} />
+      <AudioRecorderPage ref={ref} triggerReset={currentQuestionIndex} />
 
       <ResultContainer>
         <SubCard>
-          <AnswerText correct={result === "⭕"}>
+          <AnswerText correct={result === "⭕"}> 
             {q.ch_word} [{q.type}]
           </AnswerText>
         </SubCard>
@@ -146,4 +146,6 @@ export default function ReadingCard({ speakManually, question }) {
       </ResultContainer>
     </CardContainer>
   );
-}
+});
+
+export default ReadingCard;
