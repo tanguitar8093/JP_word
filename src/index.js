@@ -5,8 +5,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import App from "./components/App"; // Import App component
 import HomePage from "./pages/home";
 import Quiz from "./pages/quiz/components/Quiz";
-import WordReadingPage from "./pages/wordReading";
-import WordManagementPage from "./pages/wordManagement";
+
 import SystemSettingsPage from "./pages/systemSettings";
 import NotebookManagementPage from "./pages/notebookManagement";
 import AudioRecorderPage from "./pages/AudioRecorder";
@@ -28,14 +27,6 @@ const router = createBrowserRouter(
         {
           path: "quiz",
           element: <Quiz />,
-        },
-        {
-          path: "word-reading",
-          element: <WordReadingPage />,
-        },
-        {
-          path: "word-management",
-          element: <WordManagementPage />,
         },
         {
           path: "notebook-management",

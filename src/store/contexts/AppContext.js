@@ -11,9 +11,7 @@ import { getNotebooks, setCurrentNotebook } from "../reducer/actions";
 
 // Import individual reducers
 import { reducer as quizReducer } from "../../pages/quiz/reducer";
-import { reducer as wordManagementReducer } from "../../pages/wordManagement/reducer";
 import { reducer as systemSettingsReducer } from "../../components/SettingsPanel/reducer";
-import { reducer as wordReadingReducer } from "../../pages/wordReading/reducer";
 import { reducer as sharedReducer } from "../reducer";
 
 export const AppContext = createContext();
@@ -36,9 +34,7 @@ const combineReducers = (reducers) => {
 // Combine all reducers into a rootReducer
 const rootReducer = combineReducers({
   quiz: quizReducer,
-  wordManagement: wordManagementReducer,
   systemSettings: systemSettingsReducer,
-  wordReading: wordReadingReducer,
   shared: sharedReducer,
 });
 
@@ -70,9 +66,7 @@ const initialAppState = (() => {
 
   return {
     quiz: quizReducer(undefined, {}), // Get initial state from each reducer
-    wordManagement: wordManagementReducer(undefined, {}),
     systemSettings: mergedSystemSettings, // Pass the fully merged state here
-    wordReading: wordReadingReducer(undefined, {}),
     shared: {
       ...sharedReducer(undefined, {}), // Get initial state from shared reducer
       pendingProficiencyUpdates: {}, // Add new temporary storage
