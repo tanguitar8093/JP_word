@@ -63,16 +63,6 @@ const _ensureContextIds = (context) => {
     if (!newWord.id && Object.keys(newWord).length > 0) {
       newWord.id = uuidv4();
     }
-    // Ensure Anki fields are present for all words
-    newWord.status = newWord.status || "new";
-    newWord.due = newWord.due || Date.now();
-    newWord.interval = newWord.interval || 0;
-    newWord.easeFactor = newWord.easeFactor || 2.5;
-    newWord.reps = newWord.reps || 0;
-    newWord.lapses = newWord.lapses || 0;
-    newWord.learningStep = newWord.learningStep || 0;
-    newWord.lastReview = newWord.lastReview || null; // Use null for initial lastReview
-
     return newWord;
   });
 };
