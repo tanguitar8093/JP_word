@@ -1,545 +1,309 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 import notebookService from "../../services/notebookService";
 import { useApp } from "../../store/contexts/AppContext";
 import { getNotebooks, setCurrentNotebook } from "../../store/reducer/actions";
 import { AppContainer } from "../../components/App/styles";
+import NotebookTable from "./components/NotebookTable";
 
 const Container = styled(AppContainer)`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
   background: transparent;
-  border: none;
-  box-shadow: none;
-
-  @media (max-width: 768px) {
-    padding: 12px 8px;
-    width: 100%;
-  }
+  gap: 24px;
 `;
 
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  width: 100%;
+  padding: 20px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 
   h1 {
     margin: 0;
     font-size: 1.8em;
-    color: #333;
+    color: #2c3e50;
+    font-weight: 600;
   }
+`;
+
+const ContentArea = styled.div`
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+  min-height: 0;
 
   @media (max-width: 768px) {
-    h1 {
-      font-size: 1.5em;
-    }
+    grid-template-columns: 1fr;
   }
 `;
 
-const BackButton = styled.button`
-  background: transparent;
-  border: 1px solid #4caf50;
-  color: #4caf50;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: #4caf50;
-    color: white;
-  }
-`;
-
-const Section = styled.div`
+const Sidebar = styled.div`
   background: white;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  height: calc(100vh - 200px);
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
 
   h2 {
-    margin: 0 0 16px 0;
-    color: #333;
+    margin: 0 0 20px;
+    color: #2c3e50;
     font-size: 1.4em;
+    font-weight: 600;
+  }
+`;
+
+const MainContent = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  height: calc(100vh - 200px);
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 8px;
   }
 
-  @media (max-width: 768px) {
-    padding: 12px;
-    h2 {
-      font-size: 1.2em;
-    }
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+
+  h2 {
+    margin: 0 0 24px;
+    color: #2c3e50;
+    font-size: 1.4em;
+    font-weight: 600;
   }
 `;
 
 const Input = styled.input`
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-right: 8px;
-  width: ${(props) => (props.fullWidth ? "100%" : "auto")};
-  max-width: ${(props) => (props.fullWidth ? "100%" : "300px")};
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 1em;
+  transition: all 0.2s ease;
 
-  @media (max-width: 768px) {
-    margin-bottom: 8px;
-    width: 100%;
+  &:focus {
+    outline: none;
+    border-color: #4caf50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
   }
 `;
 
 const Button = styled.button`
-  background: #4caf50;
-  color: white;
+  padding: 10px 20px;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: 8px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin: 0 4px;
+  transition: all 0.2s ease;
+
+  ${(props) => {
+    if (props.variant === "secondary") {
+      return `
+        background: #f8f9fa;
+        color: #2c3e50;
+        border: 1px solid #e9ecef;
+        
+        &:hover {
+          background: #e9ecef;
+        }
+      `;
+    } else {
+      return `
+        background: #4caf50;
+        color: white;
+        
+        &:hover {
+          background: #45a049;
+        }
+      `;
+    }
+  }}
 
   &:hover {
-    background: #45a049;
+    transform: translateY(-1px);
   }
 
-  &:disabled {
-    background: #cccccc;
-    cursor: not-allowed;
-  }
-
-  ${(props) =>
-    props.secondary &&
-    `
-    background: white;
-    border: 1px solid #4CAF50;
-    color: #4CAF50;
-
-    &:hover {
-      background: #f0f0f0;
-    }
-  `}
-
-  ${(props) =>
-    props.danger &&
-    `
-    background: #ff4444;
-    
-    &:hover {
-      background: #cc0000;
-    }
-  `}
-
-  @media (max-width: 768px) {
-    width: 100%;
-    margin: 4px 0;
+  &:active {
+    transform: translateY(0);
   }
 `;
 
-const FlexContainer = styled.div`
+const ButtonGroup = styled.div`
   display: flex;
-  gap: 20px;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
+  gap: 12px;
+  margin-top: 16px;
 `;
-
-const SidePanel = styled.div`
-  width: 30%;
-  min-width: 250px;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    min-width: unset;
-  }
-`;
-
-const MainPanel = styled.div`
-  flex: 1;
-`;
-
-const NotebookList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
-
-const NotebookItem = styled.li`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px;
-  margin-bottom: 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: ${(props) => (props.selected ? "#e8f5e9" : "transparent")};
-
-  &:hover {
-    background: #f5f5f5;
-  }
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    text-align: center;
-    gap: 8px;
-  }
-`;
-
-const TextArea = styled.textarea`
-  width: 100%;
-  min-height: 200px;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #f8f8f8;
-  font-family: monospace;
-  margin-bottom: 12px;
-  resize: vertical;
-`;
-
-const FilterButtons = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-
-  @media (max-width: 768px) {
-    flex-wrap: wrap;
-  }
-`;
-
-const WordList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
-
-const WordItem = styled.li`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  margin-bottom: 8px;
-  background: #f8f8f8;
-  border-radius: 4px;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    text-align: center;
-    gap: 8px;
-  }
-`;
-
-const ProficiencyBadge = styled.span`
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 0.8em;
-  background: ${(props) => {
-    switch (props.level) {
-      case 1:
-        return "#ffebee";
-      case 2:
-        return "#fff3e0";
-      case 3:
-        return "#e8f5e9";
-      default:
-        return "#f5f5f5";
-    }
-  }};
-  color: ${(props) => {
-    switch (props.level) {
-      case 1:
-        return "#c62828";
-      case 2:
-        return "#ef6c00";
-      case 3:
-        return "#2e7d32";
-      default:
-        return "#333";
-    }
-  }};
-`;
-
-const NotebookManagementPage = ({ onExit }) => {
+function NotebookManagement() {
+  const navigate = useNavigate();
   const { state, dispatch } = useApp();
-  const { notebooks, currentNotebookId } = state.shared;
+  const [notebooks, setNotebooks] = useState([]);
   const [newNotebookName, setNewNotebookName] = useState("");
-  const [selectedNotebook, setSelectedNotebook] = useState(null);
-  const [editingName, setEditingName] = useState("");
-  const [editingContext, setEditingContext] = useState("");
-  const [proficiencyFilter, setProficiencyFilter] = useState(0); // 0 for all, 1 for low, 2 for medium, 3 for high
+  const [editingNotebook, setEditingNotebook] = useState(null);
 
   useEffect(() => {
-    const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
-    if (currentNotebook) {
-      handleSelectNotebook(currentNotebook);
-    }
-  }, [currentNotebookId, notebooks]);
-
-  const refreshNotebooks = (currentId) => {
-    const allNotebooks = notebookService.getNotebooks();
-    dispatch(getNotebooks(allNotebooks));
-    if (currentId) {
-      dispatch(setCurrentNotebook(currentId));
-      notebookService.setCurrentNotebookId(currentId);
-    }
-  };
-
-  const handleSelectNotebook = (notebook) => {
-    setSelectedNotebook(notebook);
-    setEditingName(notebook.name);
-    setEditingContext(JSON.stringify(notebook.context, null, 2));
-    dispatch(setCurrentNotebook(notebook.id));
-    notebookService.setCurrentNotebookId(notebook.id);
-  };
+    // Get all notebooks when component mounts
+    const loadedNotebooks = notebookService.getNotebooks();
+    setNotebooks(loadedNotebooks);
+  }, []);
 
   const handleCreateNotebook = () => {
-    try {
-      const newNotebook = notebookService.createNotebook(newNotebookName);
-      setNewNotebookName("");
-      refreshNotebooks(newNotebook.id); // Select the new notebook
-    } catch (error) {
-      alert(error.message);
-    }
+    if (!newNotebookName.trim()) return;
+
+    // Create a new notebook
+    const newNotebook = notebookService.createNotebook(newNotebookName);
+
+    // Update state
+    setNotebooks((prevNotebooks) => [...prevNotebooks, newNotebook]);
+    setNewNotebookName("");
+
+    // Update global state
+    dispatch(getNotebooks(notebookService.getNotebooks()));
   };
 
-  const handleDeleteNotebook = (id) => {
-    if (window.confirm("Are you sure you want to delete this notebook?")) {
-      notebookService.deleteNotebook(id);
-      refreshNotebooks(null); // Deselect
-    }
+  const handleEditNotebook = (notebook) => {
+    setEditingNotebook(notebook);
+    setNewNotebookName(notebook.name);
   };
 
-  const handleUpdateName = () => {
-    try {
-      notebookService.updateNotebook(selectedNotebook.id, {
-        name: editingName,
-      });
-      refreshNotebooks(selectedNotebook.id);
-    } catch (error) {
-      alert(error.message);
-    }
+  const handleUpdateNotebook = () => {
+    if (!newNotebookName.trim() || !editingNotebook) return;
+
+    // Update the notebook
+    notebookService.updateNotebook(editingNotebook.id, {
+      name: newNotebookName,
+    });
+
+    // Update state
+    setNotebooks((prevNotebooks) =>
+      prevNotebooks.map((nb) =>
+        nb.id === editingNotebook.id ? { ...nb, name: newNotebookName } : nb
+      )
+    );
+
+    // Reset form
+    setEditingNotebook(null);
+    setNewNotebookName("");
+
+    // Update global state
+    dispatch(getNotebooks(notebookService.getNotebooks()));
   };
 
-  const handleUpdateContext = () => {
-    try {
-      const newContextData = JSON.parse(editingContext);
-      const originalContext = selectedNotebook.context;
-      const contextMap = new Map(
-        originalContext.map((word) => [word.id, word])
+  const handleDeleteNotebook = (notebookId) => {
+    if (window.confirm("確定要刪除這個筆記本嗎？")) {
+      // Delete the notebook
+      notebookService.deleteNotebook(notebookId);
+
+      // Update state
+      setNotebooks((prevNotebooks) =>
+        prevNotebooks.filter((notebook) => notebook.id !== notebookId)
       );
 
-      const itemsToUpdate = Array.isArray(newContextData)
-        ? newContextData
-        : [newContextData];
-
-      for (const item of itemsToUpdate) {
-        if (item && typeof item === "object" && item.id) {
-          contextMap.set(item.id, item);
-        } else if (item && typeof item === "object" && !item.id) {
-          // Optional: handle adding new words that don't have an ID yet
-          // For now, we only update existing ones based on ID.
-        }
-      }
-
-      const finalContext = Array.from(contextMap.values());
-      notebookService.updateNotebook(selectedNotebook.id, {
-        context: finalContext,
-      });
-      refreshNotebooks(selectedNotebook.id);
-      // also update the textarea to reflect the formatted, saved data
-      setEditingContext(JSON.stringify(finalContext, null, 2));
-      alert("Context updated successfully!");
-    } catch (error) {
-      alert(`Error updating context: ${error.message}`);
+      // Update global state
+      dispatch(getNotebooks(notebookService.getNotebooks()));
     }
   };
 
-  const handleDeleteWord = (wordId) => {
-    if (window.confirm("Are you sure you want to delete this word?")) {
-      try {
-        notebookService.deleteWordsFromNotebook(selectedNotebook.id, [wordId]);
-        refreshNotebooks(selectedNotebook.id);
-      } catch (error) {
-        alert(error.message);
-      }
-    }
+  const handleSelectNotebook = (notebookId) => {
+    dispatch(setCurrentNotebook(notebookId));
+    navigate("/word-management");
   };
-
-  const handleImport = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    try {
-      const newNotebook = await notebookService.importNotebook(file);
-      refreshNotebooks(newNotebook.id);
-      alert("Notebook imported successfully!");
-    } catch (error) {
-      alert(error.message);
-    }
-    event.target.value = null;
-  };
-
-  const filteredContext =
-    selectedNotebook?.context.filter((word) => {
-      if (proficiencyFilter === 0) return true;
-      return word.proficiency === proficiencyFilter;
-    }) || [];
 
   return (
     <Container>
       <Header>
-        <h1>筆記本管理</h1>
-        <BackButton onClick={onExit}>返回</BackButton>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <Button variant="secondary" onClick={() => navigate("/")}>
+            返回
+          </Button>
+          <h1>筆記本管理</h1>
+        </div>
       </Header>
 
-      <FlexContainer>
-        <SidePanel>
-          <Section>
-            <h2>建立筆記本</h2>
-            <Input
-              type="text"
-              value={newNotebookName}
-              onChange={(e) => setNewNotebookName(e.target.value)}
-              placeholder="輸入筆記本名稱（最多20字）"
-              maxLength="20"
-              fullWidth
-            />
-            <Button onClick={handleCreateNotebook}>建立</Button>
-          </Section>
-
-          <Section>
-            <h2>匯入筆記本</h2>
-            <Input
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              fullWidth
-            />
-          </Section>
-
-          <Section>
-            <h2>筆記本列表</h2>
-            {notebooks.length === 0 ? (
-              <p>尚未建立筆記本</p>
-            ) : (
-              <NotebookList>
-                {notebooks.map((notebook) => (
-                  <NotebookItem
-                    key={notebook.id}
-                    selected={currentNotebookId === notebook.id}
-                  >
-                    <span onClick={() => handleSelectNotebook(notebook)}>
-                      {notebook.name}
-                    </span>
-                    <Button
-                      danger
-                      onClick={() => handleDeleteNotebook(notebook.id)}
-                    >
-                      刪除
-                    </Button>
-                  </NotebookItem>
-                ))}
-              </NotebookList>
-            )}
-          </Section>
-        </SidePanel>
-
-        <MainPanel>
-          <Section>
-            <h2>筆記本詳情</h2>
-            {selectedNotebook ? (
+      <ContentArea>
+        <Sidebar>
+          <h2>新增筆記本</h2>
+          <Input
+            type="text"
+            placeholder="輸入筆記本名稱"
+            value={newNotebookName}
+            onChange={(e) => setNewNotebookName(e.target.value)}
+            maxLength={20}
+          />
+          <ButtonGroup>
+            {editingNotebook ? (
               <>
-                <div style={{ marginBottom: "20px" }}>
-                  <Input
-                    type="text"
-                    value={editingName}
-                    onChange={(e) => setEditingName(e.target.value)}
-                    maxLength="20"
-                    placeholder="筆記本名稱"
-                  />
-                  <Button onClick={handleUpdateName}>更新名稱</Button>
-                </div>
-
-                {process.env.NODE_ENV === "development" && (
-                  <>
-                    <h3>內容（JSON）：</h3>
-                    <TextArea
-                      value={editingContext}
-                      onChange={(e) => setEditingContext(e.target.value)}
-                      placeholder="貼上完整陣列或單一物件（需包含 id）進行更新/合併"
-                    />
-                    <Button onClick={handleUpdateContext}>儲存內容</Button>
-                  </>
-                )}
-
-                <h3 style={{ marginTop: "24px" }}>單字列表：</h3>
-                <FilterButtons>
-                  <Button
-                    secondary={proficiencyFilter !== 0}
-                    onClick={() => setProficiencyFilter(0)}
-                  >
-                    全部
-                  </Button>
-                  <Button
-                    secondary={proficiencyFilter !== 1}
-                    onClick={() => setProficiencyFilter(1)}
-                  >
-                    初級
-                  </Button>
-                  <Button
-                    secondary={proficiencyFilter !== 2}
-                    onClick={() => setProficiencyFilter(2)}
-                  >
-                    中級
-                  </Button>
-                  <Button
-                    secondary={proficiencyFilter !== 3}
-                    onClick={() => setProficiencyFilter(3)}
-                  >
-                    高級
-                  </Button>
-                </FilterButtons>
-
-                {filteredContext && filteredContext.length > 0 ? (
-                  <WordList>
-                    {filteredContext.map((word) => (
-                      <WordItem key={word.id}>
-                        <div>
-                          <strong>{word.jp_word}</strong> - {word.ch_word}
-                          <ProficiencyBadge level={word.proficiency}>
-                            {word.proficiency === 1
-                              ? "初級"
-                              : word.proficiency === 2
-                              ? "中級"
-                              : "高級"}
-                          </ProficiencyBadge>
-                        </div>
-                        <Button
-                          danger
-                          onClick={() => handleDeleteWord(word.id)}
-                        >
-                          刪除
-                        </Button>
-                      </WordItem>
-                    ))}
-                  </WordList>
-                ) : (
-                  <p>目前沒有符合條件的單字</p>
-                )}
+                <Button onClick={handleUpdateNotebook}>更新</Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setEditingNotebook(null);
+                    setNewNotebookName("");
+                  }}
+                >
+                  取消
+                </Button>
               </>
             ) : (
-              <p>請選擇一個筆記本查看詳情</p>
+              <Button onClick={handleCreateNotebook}>新增筆記本</Button>
             )}
-          </Section>
-        </MainPanel>
-      </FlexContainer>
+          </ButtonGroup>
+        </Sidebar>
+
+        <MainContent>
+          <h2>筆記本列表</h2>
+          <NotebookTable
+            notebooks={notebooks}
+            onEditNotebook={handleEditNotebook}
+            onDeleteNotebook={handleDeleteNotebook}
+            onSelectNotebook={handleSelectNotebook}
+            currentNotebookId={state.shared.currentNotebookId}
+          />
+        </MainContent>
+      </ContentArea>
     </Container>
   );
-};
+}
 
-export default NotebookManagementPage;
+export default NotebookManagement;

@@ -1,26 +1,24 @@
 import styled from "styled-components";
 
 export const TableContainer = styled.div`
-  max-height: 600px;
+  width: 100%;
+  height: calc(100vh - 280px); // 减去header、标题和其他元素的高度
   overflow-y: auto;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-top: 20px;
-  
+
   &::-webkit-scrollbar {
     width: 8px;
   }
-
+  
   &::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 4px;
   }
-
+  
   &::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 4px;
   }
-
+  
   &::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
   }
@@ -33,6 +31,7 @@ export const Table = styled.table`
   background: white;
   border-radius: 12px;
   overflow: hidden;
+  margin-bottom: 8px;
 `;
 
 export const TableHeader = styled.tr`
@@ -61,10 +60,10 @@ export const TableHeader = styled.tr`
 export const TableRow = styled.tr`
   cursor: pointer;
   transition: all 0.2s ease;
-  background: ${(props) => (props.isOverdue ? "#fff5f5" : "white")};
+  background: ${(props) => (props.isSelected ? "#e8f5e9" : "white")};
 
   &:hover {
-    background: ${(props) => (props.isOverdue ? "#ffe3e3" : "#f8f9fa")};
+    background: ${(props) => (props.isSelected ? "#e8f5e9" : "#f8f9fa")};
     transform: translateY(-1px);
   }
 
@@ -87,46 +86,59 @@ export const TableCell = styled.td`
   &:last-child {
     padding-right: 24px;
   }
+`;
 
-  // 日文單字樣式
-  &:nth-child(1) {
-    font-size: 1.1em;
-  }
+export const NoDataMessage = styled.div`
+  text-align: center;
+  padding: 40px 20px;
+  color: #7f8c8d;
+  font-size: 0.95em;
+`;
 
-  // 漢字樣式
-  &:nth-child(2) {
-    font-family: "Noto Sans JP", sans-serif;
-    color: #34495e;
-  }
+export const ActionsCell = styled(TableCell)`
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+`;
 
-  // 中文樣式
-  &:nth-child(3) {
-    color: #7f8c8d;
-  }
+export const ActionButton = styled.button`
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 
-  // 狀態樣式
-  &:nth-child(4) {
-    font-weight: 500;
-  }
-
-  // 熟練度樣式
-  &:nth-child(5) {
-    text-align: center;
-
-    &[data-proficiency="1"] {
-      color: #e74c3c;
+  ${(props) => {
+    if (props.variant === "edit") {
+      return `
+        background: #f8f9fa;
+        color: #2c3e50;
+        border: 1px solid #e9ecef;
+        
+        &:hover {
+          background: #e9ecef;
+        }
+      `;
+    } else if (props.variant === "delete") {
+      return `
+        background: #fff5f5;
+        color: #e53e3e;
+        border: 1px solid #fee2e2;
+        
+        &:hover {
+          background: #fee2e2;
+        }
+      `;
     }
-    &[data-proficiency="2"] {
-      color: #f39c12;
-    }
-    &[data-proficiency="3"] {
-      color: #27ae60;
-    }
+  }}
+
+  &:hover {
+    transform: translateY(-1px);
   }
 
-  // 下次複習樣式
-  &:nth-child(6) {
-    font-size: 0.9em;
-    color: ${(props) => (props.isOverdue ? "#e74c3c" : "#7f8c8d")};
+  &:active {
+    transform: translateY(0);
   }
 `;

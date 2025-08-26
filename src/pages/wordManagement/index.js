@@ -13,18 +13,14 @@ import {
   NotebookInfo,
   FilterGroup,
   FilterButton,
+  ContentArea,
+  WordList,
+  NotebookList,
 } from "./styles";
-import {
-  setCurrentWord,
-  updateWordStatus,
-  setWordFilter,
-  updateWordProficiency,
-} from "./reducer/actions";
-import { commitPendingProficiencyUpdates } from "../../store/reducer/actions";
+import notebookService from "../../services/notebookService";
 
 function WordManagementPage() {
   const { state, dispatch } = useApp();
-  const { systemSettings, wordManagement = {} } = state;
   const navigate = useNavigate();
 
   // 取得當前筆記本 context
@@ -35,147 +31,79 @@ function WordManagementPage() {
     [notebooks, currentNotebookId]
   );
 
-  // 設定相關
-  const [showSetting, setShowSetting] = useState(false);
-  const [studyMode, setStudyMode] = useState(false);
-  const [proficiencyFilter, setProficiencyFilter] = useState(0);
-
-  // 根據篩選條件取得單字列表
   const words = useMemo(() => {
-    const allWords = currentNotebook?.context || [];
-    return allWords.filter((word) => {
-      if (proficiencyFilter === 0) return true;
-      return word.proficiency === proficiencyFilter;
-    });
-  }, [currentNotebook, proficiencyFilter]);
+    return currentNotebook?.context || [];
+  }, [currentNotebook]);
 
-  // 當前學習的單字
-  const [currentWord, setCurrentWordState] = useState(null);
-
-  useEffect(() => {
-    if (studyMode && words.length > 0 && !currentWord) {
-      // 找出最需要複習的單字（到期或即將到期）
-      const now = Date.now();
-      const sortedWords = [...words].sort((a, b) => {
-        const aDue = a.due || now;
-        const bDue = b.due || now;
-        return aDue - bDue;
+  const handleDeleteWord = (wordId) => {
+    try {
+      notebookService.deleteWordsFromNotebook(currentNotebookId, [wordId]);
+      // 重新加載當前筆記本
+      const updatedNotebook = notebookService.getNotebook(currentNotebookId);
+      dispatch({ 
+        type: 'shared/UPDATE_NOTEBOOK',
+        payload: updatedNotebook
       });
-      setCurrentWordState(sortedWords[0]);
-    }
-  }, [studyMode, words, currentWord]);
-
-  // 處理評分
-  const handleRate = (rating) => {
-    if (!currentWord) return;
-
-    // 更新單字狀態
-    dispatch(updateWordProficiency(currentWord.id, rating));
-
-    // 更新到筆記本
-    dispatch(
-      commitPendingProficiencyUpdates([
-        {
-          notebookId: currentNotebookId,
-          wordId: currentWord.id,
-          changes: currentWord,
-        },
-      ])
-    );
-
-    // 找下一個單字
-    const currentIndex = words.findIndex((w) => w.id === currentWord.id);
-    const nextWord = words[currentIndex + 1];
-    setCurrentWordState(nextWord || null);
-
-    if (!nextWord) {
-      setStudyMode(false);
+    } catch (error) {
+      alert(error.message);
     }
   };
 
   return (
     <PageContainer>
       <Header>
-        <Button onClick={() => navigate(-1)}>返回</Button>
-        <Title>單字管理</Title>
-        <ButtonGroup>
-          <Button onClick={() => setStudyMode(!studyMode)}>
-            {studyMode ? "返回列表" : "開始學習"}
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <Button secondary onClick={() => navigate(-1)}>
+            返回
           </Button>
-          <Button onClick={() => setShowSetting(true)}>設定</Button>
-          <Button
-            onClick={() =>
-              alert(
-                "單字管理頁面：可以查看、管理單字卡片，以及使用間隔重複系統學習。"
-              )
-            }
-          >
-            Info
-          </Button>
-        </ButtonGroup>
+          <Title>單字管理</Title>
+        </div>
       </Header>
 
-      <NotebookInfo>
-        <b>當前筆記本：</b>
-        {currentNotebook?.name || "未選擇"}
-      </NotebookInfo>
+      <ContentArea>
+        <NotebookList>
+          <h2
+            style={{
+              margin: "0 0 20px",
+              color: "#2c3e50",
+              fontSize: "1.4em",
+              fontWeight: 600,
+            }}
+          >
+            筆記本資訊
+          </h2>
+          {currentNotebook && (
+            <NotebookInfo>
+              <b>目前筆記本:</b> {currentNotebook.name}
+              <div style={{ marginTop: "8px", color: "#666" }}>
+                <b>單字數量:</b> {words.length}
+              </div>
+            </NotebookInfo>
+          )}
+        </NotebookList>
 
-      {!studyMode ? (
-        <>
-          <FilterGroup>
-            <FilterButton
-              active={proficiencyFilter === 0}
-              onClick={() => setProficiencyFilter(0)}
-            >
-              全部
-            </FilterButton>
-            <FilterButton
-              active={proficiencyFilter === 1}
-              onClick={() => setProficiencyFilter(1)}
-            >
-              初學
-            </FilterButton>
-            <FilterButton
-              active={proficiencyFilter === 2}
-              onClick={() => setProficiencyFilter(2)}
-            >
-              學習中
-            </FilterButton>
-            <FilterButton
-              active={proficiencyFilter === 3}
-              onClick={() => setProficiencyFilter(3)}
-            >
-              熟練
-            </FilterButton>
-          </FilterGroup>
-
+        <WordList>
           {words.length === 0 ? (
-            <div>此筆記本沒有單字。</div>
+            <div
+              style={{
+                textAlign: "center",
+                padding: "40px 20px",
+                color: "#2c3e50",
+                background: "#f8f9fa",
+                borderRadius: "12px",
+                border: "1px solid #e9ecef",
+              }}
+            >
+              此筆記本沒有單字。
+            </div>
           ) : (
             <WordTable
               words={words}
-              onWordSelect={(word) => {
-                setCurrentWordState(word);
-                setStudyMode(true);
-              }}
+              onDeleteWord={handleDeleteWord}
             />
           )}
-        </>
-      ) : currentWord ? (
-        <WordCard word={currentWord} onRating={handleRate} />
-      ) : (
-        <div>
-          太棒了！你已經完成了所有單字的複習。
-          <Button onClick={() => setStudyMode(false)}>返回列表</Button>
-        </div>
-      )}
-
-      {showSetting && (
-        <SettingsPanel
-          {...systemSettings}
-          onClose={() => setShowSetting(false)}
-        />
-      )}
+        </WordList>
+      </ContentArea>
     </PageContainer>
   );
 }
