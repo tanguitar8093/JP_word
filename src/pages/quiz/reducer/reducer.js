@@ -66,7 +66,8 @@ function reducer(state = initialState, action) {
       };
     case "quiz/CHECK_ANSWER": {
       const currentQuestion = state.questions[state.currentQuestionIndex];
-      const isCorrect = action.payload === currentQuestion.ch_word; // Check against ch_word from useQuizGame
+      // const isCorrect = action.payload === currentQuestion.ch_word;
+      const isCorrect = currentQuestion.ch_word.includes(action.payload);
       const newAnsweredQuestions = [
         ...state.answeredQuestions,
         { question: currentQuestion, isCorrect },
@@ -76,16 +77,7 @@ function reducer(state = initialState, action) {
         action.payload === currentQuestion.correctOption
           ? state.points + currentQuestion.points
           : state.points;
-      console.log("???", {
-        ...state,
-        selectedAnswer: action.payload,
-        result: isCorrect ? "⭕" : "❌",
-        correctAnswersCount: isCorrect
-          ? state.correctAnswersCount + 1
-          : state.correctAnswersCount,
-        answeredQuestions: newAnsweredQuestions,
-        points: newPoints,
-      });
+
       return {
         ...state,
         selectedAnswer: action.payload,
