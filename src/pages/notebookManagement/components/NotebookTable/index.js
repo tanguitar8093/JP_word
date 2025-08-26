@@ -46,7 +46,15 @@ const NotebookTable = ({
               >
                 <TableCell>{notebook.name}</TableCell>
                 <TableCell>
-                  {new Date(notebook.createdAt).toLocaleDateString()}
+                  {notebook.createdAt
+                    ? new Date(notebook.createdAt).toLocaleString("zh-TW", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "---"}
                 </TableCell>
                 <TableCell>{notebook.context?.length || 0}</TableCell>
                 <ActionsCell>

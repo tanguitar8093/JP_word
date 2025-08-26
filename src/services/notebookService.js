@@ -87,6 +87,7 @@ const notebookService = {
         [id]: {
           id,
           name: "Hello JP word",
+          createdAt: Date.now(),
           context: [
             {
               id: uuidv4(),
@@ -150,6 +151,7 @@ const notebookService = {
     notebooks[id] = {
       id,
       name,
+      createdAt: Date.now(),
       context: [{}],
     };
     _saveNotebooksToStorage(notebooks);
@@ -242,7 +244,10 @@ const notebookService = {
           const newNotebook = notebookService.createNotebook(json.name);
           const updatedNotebook = notebookService.updateNotebook(
             newNotebook.id,
-            { context: json.context }
+            {
+              context: json.context,
+              createdAt: json.createdAt || Date.now(), // Use original creation time if available
+            }
           );
           resolve(updatedNotebook);
         } catch (error) {
