@@ -15,6 +15,7 @@ import {
   setReadingPlayBeep,
   setReadingWordRecordTime,
   setReadingSentenceRecordTime,
+  setReadingPlaybackRepeatCount,
 } from "./reducer";
 
 export default function SettingsPanel({ context }) { // Changed from isQuizContext to context
@@ -35,6 +36,7 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
     readingPlayBeep,
     readingWordRecordTime,
     readingSentenceRecordTime,
+    readingPlaybackRepeatCount,
   } = systemSettings;
 
   const handleProficiencyChange = (level) => {
@@ -131,6 +133,41 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
                   value={readingSentenceRecordTime}
                   onChange={(e) => dispatch(setReadingSentenceRecordTime(Number(e.target.value)))}
                 />
+              </LabelGroup>
+              <LabelGroup>
+                <SettingTitle>重複播放次數:</SettingTitle>
+                <div>
+                  <label>
+                    <input
+                      type="radio"
+                      name="readingPlaybackRepeatCount"
+                      value={1}
+                      checked={readingPlaybackRepeatCount === 1}
+                      onChange={(e) => dispatch(setReadingPlaybackRepeatCount(Number(e.target.value)))}
+                    />
+                    1次
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="readingPlaybackRepeatCount"
+                      value={2}
+                      checked={readingPlaybackRepeatCount === 2}
+                      onChange={(e) => dispatch(setReadingPlaybackRepeatCount(Number(e.target.value)))}
+                    />
+                    2次
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="readingPlaybackRepeatCount"
+                      value={3}
+                      checked={readingPlaybackRepeatCount === 3}
+                      onChange={(e) => dispatch(setReadingPlaybackRepeatCount(Number(e.target.value)))}
+                    />
+                    3次
+                  </label>
+                </div>
               </LabelGroup>
             </>
           )}

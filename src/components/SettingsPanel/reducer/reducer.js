@@ -17,6 +17,7 @@ import {
   SET_READING_PLAY_BEEP,
   SET_READING_WORD_RECORD_TIME,
   SET_READING_SENTENCE_RECORD_TIME,
+  SET_READING_PLAYBACK_REPEAT_COUNT,
 } from "./actions";
 
 export const initialState = {
@@ -51,6 +52,7 @@ export const initialState = {
   readingPlayBeep: true,
   readingWordRecordTime: 2, // in seconds
   readingSentenceRecordTime: 3.5, // in seconds
+  readingPlaybackRepeatCount: 1,
 };
 
 function reducer(state = initialState, action) {
@@ -124,6 +126,9 @@ function reducer(state = initialState, action) {
       return { ...state, readingWordRecordTime: action.payload };
     case SET_READING_SENTENCE_RECORD_TIME:
       return { ...state, readingSentenceRecordTime: action.payload };
+
+    case SET_READING_PLAYBACK_REPEAT_COUNT:
+      return { ...state, readingPlaybackRepeatCount: action.payload };
 
     default:
       return state;

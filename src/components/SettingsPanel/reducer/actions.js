@@ -22,6 +22,7 @@ export const SET_READING_RECORD_SENTENCE = "systemSettings/SET_READING_RECORD_SE
 export const SET_READING_PLAY_BEEP = "systemSettings/SET_READING_PLAY_BEEP";
 export const SET_READING_WORD_RECORD_TIME = "systemSettings/SET_READING_WORD_RECORD_TIME";
 export const SET_READING_SENTENCE_RECORD_TIME = "systemSettings/SET_READING_SENTENCE_RECORD_TIME";
+export const SET_READING_PLAYBACK_REPEAT_COUNT = "systemSettings/SET_READING_PLAYBACK_REPEAT_COUNT";
 
 export const setWordType = (wordType) => ({
   type: SET_JP_WORD_TYPE,
@@ -113,4 +114,9 @@ export const setReadingWordRecordTime = (time) => ({
 export const setReadingSentenceRecordTime = (time) => ({
   type: SET_READING_SENTENCE_RECORD_TIME,
   payload: time,
+});
+
+export const setReadingPlaybackRepeatCount = (count) => ({
+  type: SET_READING_PLAYBACK_REPEAT_COUNT,
+  payload: count,
 });

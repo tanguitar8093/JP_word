@@ -99,6 +99,7 @@ function QuizContent() {
     readingPlayBeep,
     readingWordRecordTime,
     readingSentenceRecordTime,
+    readingPlaybackRepeatCount,
   } = state.systemSettings;
   const { notebooks, currentNotebookId } = state.shared;
   const question = questions[currentQuestionIndex];
@@ -180,8 +181,15 @@ function QuizContent() {
       try {
         if (quizCompleted || !question || readingStudyMode !== 'auto' || !isAutoPlayActive || isSequencePaused) return;
 
+        const repeatPlayback = async (playbackFn) => {
+          for (let i = 0; i < readingPlaybackRepeatCount; i++) {
+            if (isCancelled) return;
+            await playbackFn();
+          }
+        };
+
         // --- WORD PART ---
-        await playSequence(null, question, { jp: true }, { skipSound: true });
+        await repeatPlayback(() => playSequence(null, question, { jp: true }, { skipSound: true }));
         if (isCancelled) return;
 
         if (readingRecordWord) {
@@ -203,7 +211,7 @@ function QuizContent() {
           if (recorderRef.current) await recorderRef.current.play();
           if (isCancelled) return;
 
-          await playSequence(null, question, { jp: true }, { skipSound: true });
+          await repeatPlayback(() => playSequence(null, question, { jp: true }, { skipSound: true }));
           if (isCancelled) return;
         } else {
           await cancellableWait(1000);
@@ -215,12 +223,12 @@ function QuizContent() {
 
         // --- SENTENCE PART ---
         if (question.jp_ex_statement) {
-          await playSequence(
+          await repeatPlayback(() => playSequence(
             null,
             question,
             { jpEx: true },
             { skipSound: true }
-          );
+          ));
           if (isCancelled) return;
 
           if (readingRecordSentence) {
@@ -244,12 +252,12 @@ function QuizContent() {
             if (recorderRef.current) await recorderRef.current.play();
             if (isCancelled) return;
 
-            await playSequence(
+            await repeatPlayback(() => playSequence(
               null,
               question,
               { jpEx: true },
               { skipSound: true }
-            );
+            ));
             if (isCancelled) return;
           } else {
             await cancellableWait(1000);
@@ -287,7 +295,7 @@ function QuizContent() {
       }
       cancelPlayback(); // Stop any ongoing speech
     };
-  }, [currentQuestionIndex, readingStudyMode, readingRecordWord, readingRecordSentence, readingPlayBeep, readingWordRecordTime, readingSentenceRecordTime, quizCompleted, dispatch, playSequence, question, playbackOptions, cancelPlayback, isAutoPlayActive, isSequencePaused]);
+  }, [currentQuestionIndex, readingStudyMode, readingRecordWord, readingRecordSentence, readingPlayBeep, readingWordRecordTime, readingSentenceRecordTime, readingPlaybackRepeatCount, quizCompleted, dispatch, playSequence, question, playbackOptions, cancelPlayback, isAutoPlayActive, isSequencePaused]);
 
 
   const handleStartAutoPlay = async () => {
