@@ -170,6 +170,7 @@ const ReadingCard = forwardRef(
               jp_ex={q.jp_ex_statement}
               ch_ex={q.ch_ex_statement}
               speak={speakManually}
+              jp_ex_context={q.jp_ex_statement_context}
             />
             <NextButton onClick={handleNextQuestion}>下一題</NextButton>
           </ResultContainer>

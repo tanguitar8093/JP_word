@@ -1,11 +1,25 @@
 import { Container, LabelRow, TextRow, SpeakButton } from "./styles";
 
-export default function ExampleSentence({ jp_ex, ch_ex, speak }) {
+export default function ExampleSentence({
+  jp_ex,
+  ch_ex,
+  speak,
+  jp_ex_context,
+}) {
   return (
     <Container>
       <LabelRow>例句（日）:</LabelRow>
       <TextRow>
-        {jp_ex}
+        {jp_ex_context.map((part, index) =>
+          part.kanji ? (
+            <ruby key={index}>
+              {part.kanji}
+              <rt>{part.hiragana}</rt>
+            </ruby>
+          ) : (
+            <span key={index}>{part.hiragana}</span>
+          )
+        )}
         <SpeakButton onClick={() => speak(jp_ex, "ja")}>🔊</SpeakButton>
       </TextRow>
       <LabelRow>{ch_ex}</LabelRow>

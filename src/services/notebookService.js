@@ -41,13 +41,18 @@ const _validateContext = (context) => {
       "ch_ex_statement",
       "type",
       "options",
+      "jp_ex_statement_context",
+      "proficiency",
     ];
     for (const key of requiredKeys) {
       if (!(key in word)) {
         throw new Error(`Invalid word object: missing key \"${key}\".`);
       }
     }
-    if (!Array.isArray(word.options)) {
+    if (
+      !Array.isArray(word.options) ||
+      !Array.isArray(word.jp_ex_statement_context)
+    ) {
       throw new Error('Invalid word object: "options" must be an array.');
     }
   }
@@ -87,10 +92,19 @@ const notebookService = {
               ch_ex_statement: "你好，祝你有美好的一天！",
               type: "greeting",
               options: ["a", "b", "c"],
-              proficiency: 1,
+              proficiency: 3,
               jp_context: [
                 { kanji: "今日", hiragana: "こんにち" },
                 { kanji: "", hiragana: "は" },
+              ],
+              jp_ex_statement_context: [
+                { kanji: "今日", hiragana: "こんにち" },
+                { kanji: "", hiragana: "は" },
+                { kanji: "良", hiragana: "よ" },
+                { kanji: "い", hiragana: "い" },
+                { kanji: "一日", hiragana: "いちにち" },
+                { kanji: "", hiragana: "を" },
+                { kanji: "", hiragana: "！" },
               ],
             },
           ],
