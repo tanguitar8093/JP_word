@@ -1,18 +1,24 @@
-import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import {
   ButtonContainer,
   IconButton,
   Status,
   AudioPlayer,
   InfoButton,
-  RecordIcon
-} from './styles';
+  RecordIcon,
+} from "./styles";
 
 const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
   const [permission, setPermission] = useState(false);
   const [stream, setStream] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [audioURL, setAudioURL] = useState('');
+  const [audioURL, setAudioURL] = useState("");
   const mediaRecorder = useRef(null);
   const audioChunks = useRef([]);
   const audioPlayerRef = useRef(null);
@@ -20,9 +26,11 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
   const playResolver = useRef(null);
 
   const getMicrophonePermission = async () => {
-    if ('MediaRecorder' in window) {
+    if ("MediaRecorder" in window) {
       try {
-        const streamData = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const streamData = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
         setPermission(true);
         setStream(streamData);
         return streamData; // Return stream on success
@@ -31,7 +39,7 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
         return null; // Return null on error
       }
     } else {
-      alert('您的瀏覽器不支援錄音功能。');
+      alert("您的瀏覽器不支援錄音功能。");
       return null;
     }
   };
@@ -76,7 +84,7 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
         URL.revokeObjectURL(audioURL); // 釋放 blob URL
       }
       setIsRecording(false);
-      setAudioURL('');
+      setAudioURL("");
       audioChunks.current = [];
     } else {
       // 沒有權限 → 完全回到初始狀態
@@ -86,7 +94,7 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
       if (audioURL) {
         URL.revokeObjectURL(audioURL);
       }
-      setAudioURL('');
+      setAudioURL("");
       audioChunks.current = [];
     }
   };
@@ -95,11 +103,13 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
   useEffect(() => {
     const tryGetPermission = async () => {
       try {
-        const currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const currentStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
         setPermission(true);
         setStream(currentStream);
       } catch (err) {
-        console.log('無法自動取得麥克風權限:', err);
+        console.log("無法自動取得麥克風權限:", err);
         // 這裡不顯示錯誤訊息，讓使用者可以手動點擊按鈕取得權限
       }
     };
@@ -125,10 +135,10 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
     if (audioURL) {
       URL.revokeObjectURL(audioURL); // 清掉舊的 URL
     }
-    setAudioURL('');
+    setAudioURL("");
     audioChunks.current = [];
 
-    const media = new MediaRecorder(currentStream, { type: 'audio/webm' });
+    const media = new MediaRecorder(currentStream, { type: "audio/webm" });
     mediaRecorder.current = media;
     mediaRecorder.current.start();
 
@@ -141,11 +151,11 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
 
   const stopRecordingInternal = () => {
     setIsRecording(false);
-    if (mediaRecorder.current && mediaRecorder.current.state !== 'inactive') {
+    if (mediaRecorder.current && mediaRecorder.current.state !== "inactive") {
       mediaRecorder.current.stop();
 
       mediaRecorder.current.onstop = () => {
-        const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
+        const audioBlob = new Blob(audioChunks.current, { type: "audio/webm" });
         const audioUrl = URL.createObjectURL(audioBlob);
         setAudioURL(audioUrl);
         audioChunks.current = [];
@@ -172,7 +182,7 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
       )}
 
       {/* 已取得權限但尚未錄音 */}
-      {permission && !isRecording && !audioURL && (
+      {permission && !isRecording && (
         <InfoButton onClick={startRecording}>
           <RecordIcon recording={false} /> 點擊開始錄音
         </InfoButton>

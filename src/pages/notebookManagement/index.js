@@ -1,10 +1,9 @@
-
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import notebookService from '../../services/notebookService';
-import { useApp } from '../../store/contexts/AppContext';
-import { getNotebooks, setCurrentNotebook } from '../../store/reducer/actions';
-import { AppContainer } from '../../components/App/styles';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import notebookService from "../../services/notebookService";
+import { useApp } from "../../store/contexts/AppContext";
+import { getNotebooks, setCurrentNotebook } from "../../store/reducer/actions";
+import { AppContainer } from "../../components/App/styles";
 
 const Container = styled(AppContainer)`
   min-height: 100vh;
@@ -16,7 +15,7 @@ const Container = styled(AppContainer)`
   background: transparent;
   border: none;
   box-shadow: none;
-  
+
   @media (max-width: 768px) {
     padding: 12px 8px;
     width: 100%;
@@ -45,15 +44,15 @@ const Header = styled.div`
 
 const BackButton = styled.button`
   background: transparent;
-  border: 1px solid #4CAF50;
-  color: #4CAF50;
+  border: 1px solid #4caf50;
+  color: #4caf50;
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
-    background: #4CAF50;
+    background: #4caf50;
     color: white;
   }
 `;
@@ -84,8 +83,8 @@ const Input = styled.input`
   border: 1px solid #ddd;
   border-radius: 4px;
   margin-right: 8px;
-  width: ${props => props.fullWidth ? '100%' : 'auto'};
-  max-width: ${props => props.fullWidth ? '100%' : '300px'};
+  width: ${(props) => (props.fullWidth ? "100%" : "auto")};
+  max-width: ${(props) => (props.fullWidth ? "100%" : "300px")};
 
   @media (max-width: 768px) {
     margin-bottom: 8px;
@@ -94,7 +93,7 @@ const Input = styled.input`
 `;
 
 const Button = styled.button`
-  background: #4CAF50;
+  background: #4caf50;
   color: white;
   border: none;
   padding: 8px 16px;
@@ -112,7 +111,9 @@ const Button = styled.button`
     cursor: not-allowed;
   }
 
-  ${props => props.secondary && `
+  ${(props) =>
+    props.secondary &&
+    `
     background: white;
     border: 1px solid #4CAF50;
     color: #4CAF50;
@@ -122,7 +123,9 @@ const Button = styled.button`
     }
   `}
 
-  ${props => props.danger && `
+  ${(props) =>
+    props.danger &&
+    `
     background: #ff4444;
     
     &:hover {
@@ -139,7 +142,7 @@ const Button = styled.button`
 const FlexContainer = styled.div`
   display: flex;
   gap: 20px;
-  
+
   @media (max-width: 768px) {
     flex-direction: column;
   }
@@ -148,7 +151,7 @@ const FlexContainer = styled.div`
 const SidePanel = styled.div`
   width: 30%;
   min-width: 250px;
-  
+
   @media (max-width: 768px) {
     width: 100%;
     min-width: unset;
@@ -174,7 +177,7 @@ const NotebookItem = styled.li`
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: ${props => props.selected ? '#e8f5e9' : 'transparent'};
+  background: ${(props) => (props.selected ? "#e8f5e9" : "transparent")};
 
   &:hover {
     background: #f5f5f5;
@@ -203,7 +206,7 @@ const FilterButtons = styled.div`
   display: flex;
   gap: 8px;
   margin-bottom: 16px;
-  
+
   @media (max-width: 768px) {
     flex-wrap: wrap;
   }
@@ -223,7 +226,7 @@ const WordItem = styled.li`
   margin-bottom: 8px;
   background: #f8f8f8;
   border-radius: 4px;
-  
+
   @media (max-width: 768px) {
     flex-direction: column;
     text-align: center;
@@ -235,20 +238,28 @@ const ProficiencyBadge = styled.span`
   padding: 4px 8px;
   border-radius: 12px;
   font-size: 0.8em;
-  background: ${props => {
+  background: ${(props) => {
     switch (props.level) {
-      case 1: return '#ffebee';
-      case 2: return '#fff3e0';
-      case 3: return '#e8f5e9';
-      default: return '#f5f5f5';
+      case 1:
+        return "#ffebee";
+      case 2:
+        return "#fff3e0";
+      case 3:
+        return "#e8f5e9";
+      default:
+        return "#f5f5f5";
     }
   }};
-  color: ${props => {
+  color: ${(props) => {
     switch (props.level) {
-      case 1: return '#c62828';
-      case 2: return '#ef6c00';
-      case 3: return '#2e7d32';
-      default: return '#333';
+      case 1:
+        return "#c62828";
+      case 2:
+        return "#ef6c00";
+      case 3:
+        return "#2e7d32";
+      default:
+        return "#333";
     }
   }};
 `;
@@ -256,26 +267,25 @@ const ProficiencyBadge = styled.span`
 const NotebookManagementPage = ({ onExit }) => {
   const { state, dispatch } = useApp();
   const { notebooks, currentNotebookId } = state.shared;
-  const [newNotebookName, setNewNotebookName] = useState('');
+  const [newNotebookName, setNewNotebookName] = useState("");
   const [selectedNotebook, setSelectedNotebook] = useState(null);
-  const [editingName, setEditingName] = useState('');
-  const [editingContext, setEditingContext] = useState('');
+  const [editingName, setEditingName] = useState("");
+  const [editingContext, setEditingContext] = useState("");
   const [proficiencyFilter, setProficiencyFilter] = useState(0); // 0 for all, 1 for low, 2 for medium, 3 for high
 
   useEffect(() => {
-    const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
+    const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
     if (currentNotebook) {
-        handleSelectNotebook(currentNotebook);
+      handleSelectNotebook(currentNotebook);
     }
-
   }, [currentNotebookId, notebooks]);
 
   const refreshNotebooks = (currentId) => {
     const allNotebooks = notebookService.getNotebooks();
     dispatch(getNotebooks(allNotebooks));
     if (currentId) {
-        dispatch(setCurrentNotebook(currentId));
-        notebookService.setCurrentNotebookId(currentId);
+      dispatch(setCurrentNotebook(currentId));
+      notebookService.setCurrentNotebookId(currentId);
     }
   };
 
@@ -290,7 +300,7 @@ const NotebookManagementPage = ({ onExit }) => {
   const handleCreateNotebook = () => {
     try {
       const newNotebook = notebookService.createNotebook(newNotebookName);
-      setNewNotebookName('');
+      setNewNotebookName("");
       refreshNotebooks(newNotebook.id); // Select the new notebook
     } catch (error) {
       alert(error.message);
@@ -298,7 +308,7 @@ const NotebookManagementPage = ({ onExit }) => {
   };
 
   const handleDeleteNotebook = (id) => {
-    if (window.confirm('Are you sure you want to delete this notebook?')) {
+    if (window.confirm("Are you sure you want to delete this notebook?")) {
       notebookService.deleteNotebook(id);
       refreshNotebooks(null); // Deselect
     }
@@ -306,52 +316,60 @@ const NotebookManagementPage = ({ onExit }) => {
 
   const handleUpdateName = () => {
     try {
-        notebookService.updateNotebook(selectedNotebook.id, { name: editingName });
-        refreshNotebooks(selectedNotebook.id);
+      notebookService.updateNotebook(selectedNotebook.id, {
+        name: editingName,
+      });
+      refreshNotebooks(selectedNotebook.id);
     } catch (error) {
-        alert(error.message);
+      alert(error.message);
     }
   };
 
   const handleUpdateContext = () => {
     try {
-        const newContextData = JSON.parse(editingContext);
-        const originalContext = selectedNotebook.context;
-        const contextMap = new Map(originalContext.map(word => [word.id, word]));
+      const newContextData = JSON.parse(editingContext);
+      const originalContext = selectedNotebook.context;
+      const contextMap = new Map(
+        originalContext.map((word) => [word.id, word])
+      );
 
-        const itemsToUpdate = Array.isArray(newContextData) ? newContextData : [newContextData];
+      const itemsToUpdate = Array.isArray(newContextData)
+        ? newContextData
+        : [newContextData];
 
-        for (const item of itemsToUpdate) {
-            if (item && typeof item === 'object' && item.id) {
-                contextMap.set(item.id, item);
-            } else if (item && typeof item === 'object' && !item.id) {
-                // Optional: handle adding new words that don't have an ID yet
-                // For now, we only update existing ones based on ID.
-            }
+      for (const item of itemsToUpdate) {
+        if (item && typeof item === "object" && item.id) {
+          contextMap.set(item.id, item);
+        } else if (item && typeof item === "object" && !item.id) {
+          // Optional: handle adding new words that don't have an ID yet
+          // For now, we only update existing ones based on ID.
         }
+      }
 
-        const finalContext = Array.from(contextMap.values());
-        notebookService.updateNotebook(selectedNotebook.id, { context: finalContext });
-        refreshNotebooks(selectedNotebook.id);
-        // also update the textarea to reflect the formatted, saved data
-        setEditingContext(JSON.stringify(finalContext, null, 2));
-        alert('Context updated successfully!');
+      const finalContext = Array.from(contextMap.values());
+      notebookService.updateNotebook(selectedNotebook.id, {
+        context: finalContext,
+      });
+      refreshNotebooks(selectedNotebook.id);
+      // also update the textarea to reflect the formatted, saved data
+      setEditingContext(JSON.stringify(finalContext, null, 2));
+      alert("Context updated successfully!");
     } catch (error) {
-        alert(`Error updating context: ${error.message}`);
+      alert(`Error updating context: ${error.message}`);
     }
   };
 
   const handleDeleteWord = (wordId) => {
-    if (window.confirm('Are you sure you want to delete this word?')) {
-        try {
-            notebookService.deleteWordsFromNotebook(selectedNotebook.id, [wordId]);
-            refreshNotebooks(selectedNotebook.id);
-        } catch (error) {
-            alert(error.message);
-        }
+    if (window.confirm("Are you sure you want to delete this word?")) {
+      try {
+        notebookService.deleteWordsFromNotebook(selectedNotebook.id, [wordId]);
+        refreshNotebooks(selectedNotebook.id);
+      } catch (error) {
+        alert(error.message);
+      }
     }
   };
-  
+
   const handleImport = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -359,17 +377,18 @@ const NotebookManagementPage = ({ onExit }) => {
     try {
       const newNotebook = await notebookService.importNotebook(file);
       refreshNotebooks(newNotebook.id);
-      alert('Notebook imported successfully!');
+      alert("Notebook imported successfully!");
     } catch (error) {
       alert(error.message);
     }
     event.target.value = null;
   };
 
-  const filteredContext = selectedNotebook?.context.filter(word => {
-    if (proficiencyFilter === 0) return true;
-    return word.proficiency === proficiencyFilter;
-  }) || [];
+  const filteredContext =
+    selectedNotebook?.context.filter((word) => {
+      if (proficiencyFilter === 0) return true;
+      return word.proficiency === proficiencyFilter;
+    }) || [];
 
   return (
     <Container>
@@ -395,7 +414,12 @@ const NotebookManagementPage = ({ onExit }) => {
 
           <Section>
             <h2>匯入筆記本</h2>
-            <Input type="file" accept=".json" onChange={handleImport} fullWidth />
+            <Input
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              fullWidth
+            />
           </Section>
 
           <Section>
@@ -404,15 +428,20 @@ const NotebookManagementPage = ({ onExit }) => {
               <p>尚未建立筆記本</p>
             ) : (
               <NotebookList>
-                {notebooks.map(notebook => (
-                  <NotebookItem 
-                    key={notebook.id} 
+                {notebooks.map((notebook) => (
+                  <NotebookItem
+                    key={notebook.id}
                     selected={currentNotebookId === notebook.id}
                   >
                     <span onClick={() => handleSelectNotebook(notebook)}>
                       {notebook.name}
                     </span>
-                    <Button danger onClick={() => handleDeleteNotebook(notebook.id)}>刪除</Button>
+                    <Button
+                      danger
+                      onClick={() => handleDeleteNotebook(notebook.id)}
+                    >
+                      刪除
+                    </Button>
                   </NotebookItem>
                 ))}
               </NotebookList>
@@ -425,7 +454,7 @@ const NotebookManagementPage = ({ onExit }) => {
             <h2>筆記本詳情</h2>
             {selectedNotebook ? (
               <>
-                <div style={{ marginBottom: '20px' }}>
+                <div style={{ marginBottom: "20px" }}>
                   <Input
                     type="text"
                     value={editingName}
@@ -436,36 +465,40 @@ const NotebookManagementPage = ({ onExit }) => {
                   <Button onClick={handleUpdateName}>更新名稱</Button>
                 </div>
 
-                <h3>內容（JSON）：</h3>
-                <TextArea
-                  value={editingContext}
-                  onChange={(e) => setEditingContext(e.target.value)}
-                  placeholder="貼上完整陣列或單一物件（需包含 id）進行更新/合併"
-                />
-                <Button onClick={handleUpdateContext}>儲存內容</Button>
+                {process.env.NODE_ENV === "development" && (
+                  <>
+                    <h3>內容（JSON）：</h3>
+                    <TextArea
+                      value={editingContext}
+                      onChange={(e) => setEditingContext(e.target.value)}
+                      placeholder="貼上完整陣列或單一物件（需包含 id）進行更新/合併"
+                    />
+                    <Button onClick={handleUpdateContext}>儲存內容</Button>
+                  </>
+                )}
 
-                <h3 style={{ marginTop: '24px' }}>單字列表：</h3>
+                <h3 style={{ marginTop: "24px" }}>單字列表：</h3>
                 <FilterButtons>
-                  <Button 
-                    secondary={proficiencyFilter !== 0} 
+                  <Button
+                    secondary={proficiencyFilter !== 0}
                     onClick={() => setProficiencyFilter(0)}
                   >
                     全部
                   </Button>
-                  <Button 
-                    secondary={proficiencyFilter !== 1} 
+                  <Button
+                    secondary={proficiencyFilter !== 1}
                     onClick={() => setProficiencyFilter(1)}
                   >
                     初級
                   </Button>
-                  <Button 
-                    secondary={proficiencyFilter !== 2} 
+                  <Button
+                    secondary={proficiencyFilter !== 2}
                     onClick={() => setProficiencyFilter(2)}
                   >
                     中級
                   </Button>
-                  <Button 
-                    secondary={proficiencyFilter !== 3} 
+                  <Button
+                    secondary={proficiencyFilter !== 3}
                     onClick={() => setProficiencyFilter(3)}
                   >
                     高級
@@ -474,16 +507,24 @@ const NotebookManagementPage = ({ onExit }) => {
 
                 {filteredContext && filteredContext.length > 0 ? (
                   <WordList>
-                    {filteredContext.map(word => (
+                    {filteredContext.map((word) => (
                       <WordItem key={word.id}>
                         <div>
                           <strong>{word.jp_word}</strong> - {word.ch_word}
                           <ProficiencyBadge level={word.proficiency}>
-                            {word.proficiency === 1 ? '初級' : 
-                             word.proficiency === 2 ? '中級' : '高級'}
+                            {word.proficiency === 1
+                              ? "初級"
+                              : word.proficiency === 2
+                              ? "中級"
+                              : "高級"}
                           </ProficiencyBadge>
                         </div>
-                        <Button danger onClick={() => handleDeleteWord(word.id)}>刪除</Button>
+                        <Button
+                          danger
+                          onClick={() => handleDeleteWord(word.id)}
+                        >
+                          刪除
+                        </Button>
                       </WordItem>
                     ))}
                   </WordList>
