@@ -1,12 +1,12 @@
 {
   "files": {
-    "main.js": "/JP_word/static/js/main.c9e1c5bf.js",
+    "main.js": "/JP_word/static/js/main.c72e1dcc.js",
     "static/media/correct.mp3": "/JP_word/static/media/correct.d9f14319b1fc5862ad23.mp3",
     "static/media/wrong.mp3": "/JP_word/static/media/wrong.859b710764013a298c14.mp3",
     "index.html": "/JP_word/index.html",
-    "main.c9e1c5bf.js.map": "/JP_word/static/js/main.c9e1c5bf.js.map"
+    "main.c72e1dcc.js.map": "/JP_word/static/js/main.c72e1dcc.js.map"
   },
   "entrypoints": [
-    "static/js/main.c9e1c5bf.js"
+    "static/js/main.c72e1dcc.js"
   ]
 }
