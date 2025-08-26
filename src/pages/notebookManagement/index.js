@@ -86,7 +86,6 @@ const MainContent = styled.div`
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   height: calc(100vh - 200px);
-  overflow-y: auto;
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -246,8 +245,11 @@ function NotebookManagement() {
   };
 
   const handleSelectNotebook = (notebookId) => {
-    dispatch(setCurrentNotebook(notebookId));
     navigate("/word-management");
+  };
+
+  const handleChangeNotebook = (notebookId) => {
+    dispatch(setCurrentNotebook(notebookId));
   };
 
   const handleImportNotebook = async (file) => {
@@ -324,6 +326,7 @@ function NotebookManagement() {
             onEditNotebook={handleEditNotebook}
             onDeleteNotebook={handleDeleteNotebook}
             onSelectNotebook={handleSelectNotebook}
+            onChangeNotebook={handleChangeNotebook}
             currentNotebookId={state.shared.currentNotebookId}
           />
         </MainContent>

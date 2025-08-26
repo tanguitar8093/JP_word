@@ -29,13 +29,13 @@ export const Table = styled.table`
   border-collapse: separate;
   border-spacing: 0;
   background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 8px;
 `;
 
 export const TableHeader = styled.tr`
   background: #f8f9fa;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 
   th {
     padding: 16px;
@@ -141,4 +141,29 @@ export const ActionButton = styled.button`
   &:active {
     transform: translateY(0);
   }
+`;
+
+export const TableWrapper = styled.div`
+  max-height: 600px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+  border-radius: 12px;
+  border: 2px solid #e9ecef;
 `;
