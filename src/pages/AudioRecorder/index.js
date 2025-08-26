@@ -91,6 +91,21 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
     }
   };
 
+  // 自動嘗試取得麥克風權限
+  useEffect(() => {
+    const tryGetPermission = async () => {
+      try {
+        const currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        setPermission(true);
+        setStream(currentStream);
+      } catch (err) {
+        console.log('無法自動取得麥克風權限:', err);
+        // 這裡不顯示錯誤訊息，讓使用者可以手動點擊按鈕取得權限
+      }
+    };
+    tryGetPermission();
+  }, []);
+
   // 父層觸發 reset
   useEffect(() => {
     if (triggerReset) {
@@ -149,10 +164,10 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
 
   return (
     <ButtonContainer>
-      {/* 未取得權限 */}
-      {!permission && (
+      {/* 未取得權限 - 只在權限被拒絕時顯示 */}
+      {!permission && navigator.permissions && (
         <InfoButton onClick={getMicrophonePermission}>
-          🎤 點擊取得錄音權限
+          🎤 點擊允許錄音功能
         </InfoButton>
       )}
 
