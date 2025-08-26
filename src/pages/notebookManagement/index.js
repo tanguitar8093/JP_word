@@ -250,6 +250,19 @@ function NotebookManagement() {
     navigate("/word-management");
   };
 
+  const handleImportNotebook = async (file) => {
+    try {
+      const newNotebook = await notebookService.importNotebook(file);
+      // 更新本地狀態
+      setNotebooks((prevNotebooks) => [...prevNotebooks, newNotebook]);
+      // 更新全局狀態
+      dispatch(getNotebooks(notebookService.getNotebooks()));
+      alert("筆記本匯入成功！");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   return (
     <Container>
       <Header>
@@ -289,6 +302,19 @@ function NotebookManagement() {
               <Button onClick={handleCreateNotebook}>新增筆記本</Button>
             )}
           </ButtonGroup>
+
+          <h2 style={{ marginTop: "24px" }}>匯入筆記本</h2>
+          <Input
+            type="file"
+            accept=".json"
+            onChange={(event) => {
+              const file = event.target.files[0];
+              if (file) {
+                handleImportNotebook(file);
+                event.target.value = null;
+              }
+            }}
+          />
         </Sidebar>
 
         <MainContent>

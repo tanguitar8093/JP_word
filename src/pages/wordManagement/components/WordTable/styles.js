@@ -1,12 +1,17 @@
 import styled from "styled-components";
 
 export const TableContainer = styled.div`
-  max-height: 600px;
-  overflow-y: auto;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-top: 20px;
-  
+  overflow: hidden;
+  position: relative;
+`;
+
+export const TableWrapper = styled.div`
+  max-height: 600px;
+  overflow-y: auto;
+
   &::-webkit-scrollbar {
     width: 8px;
   }
@@ -31,12 +36,13 @@ export const Table = styled.table`
   border-collapse: separate;
   border-spacing: 0;
   background: white;
-  border-radius: 12px;
-  overflow: hidden;
 `;
 
 export const TableHeader = styled.tr`
   background: #f8f9fa;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 
   th {
     padding: 16px;

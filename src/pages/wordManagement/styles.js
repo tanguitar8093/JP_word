@@ -105,21 +105,21 @@ export const WordList = styled.div`
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   height: calc(100vh - 140px); // 固定高度，减去header和padding的高度
   overflow-y: auto;
-  
+
   &::-webkit-scrollbar {
     width: 8px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 4px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 4px;
   }
-  
+
   &::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
   }
