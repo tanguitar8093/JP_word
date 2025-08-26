@@ -1,8 +1,257 @@
 
 import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
 import notebookService from '../../services/notebookService';
 import { useApp } from '../../store/contexts/AppContext';
 import { getNotebooks, setCurrentNotebook } from '../../store/reducer/actions';
+import { AppContainer } from '../../components/App/styles';
+
+const Container = styled(AppContainer)`
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  
+  @media (max-width: 768px) {
+    padding: 12px 8px;
+    width: 100%;
+  }
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  width: 100%;
+
+  h1 {
+    margin: 0;
+    font-size: 1.8em;
+    color: #333;
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 1.5em;
+    }
+  }
+`;
+
+const BackButton = styled.button`
+  background: transparent;
+  border: 1px solid #4CAF50;
+  color: #4CAF50;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: #4CAF50;
+    color: white;
+  }
+`;
+
+const Section = styled.div`
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  h2 {
+    margin: 0 0 16px 0;
+    color: #333;
+    font-size: 1.4em;
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px;
+    h2 {
+      font-size: 1.2em;
+    }
+  }
+`;
+
+const Input = styled.input`
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-right: 8px;
+  width: ${props => props.fullWidth ? '100%' : 'auto'};
+  max-width: ${props => props.fullWidth ? '100%' : '300px'};
+
+  @media (max-width: 768px) {
+    margin-bottom: 8px;
+    width: 100%;
+  }
+`;
+
+const Button = styled.button`
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0 4px;
+
+  &:hover {
+    background: #45a049;
+  }
+
+  &:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+  }
+
+  ${props => props.secondary && `
+    background: white;
+    border: 1px solid #4CAF50;
+    color: #4CAF50;
+
+    &:hover {
+      background: #f0f0f0;
+    }
+  `}
+
+  ${props => props.danger && `
+    background: #ff4444;
+    
+    &:hover {
+      background: #cc0000;
+    }
+  `}
+
+  @media (max-width: 768px) {
+    width: 100%;
+    margin: 4px 0;
+  }
+`;
+
+const FlexContainer = styled.div`
+  display: flex;
+  gap: 20px;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+`;
+
+const SidePanel = styled.div`
+  width: 30%;
+  min-width: 250px;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    min-width: unset;
+  }
+`;
+
+const MainPanel = styled.div`
+  flex: 1;
+`;
+
+const NotebookList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+`;
+
+const NotebookItem = styled.li`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: ${props => props.selected ? '#e8f5e9' : 'transparent'};
+
+  &:hover {
+    background: #f5f5f5;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+`;
+
+const TextArea = styled.textarea`
+  width: 100%;
+  min-height: 200px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f8f8f8;
+  font-family: monospace;
+  margin-bottom: 12px;
+  resize: vertical;
+`;
+
+const FilterButtons = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+  }
+`;
+
+const WordList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+`;
+
+const WordItem = styled.li`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #f8f8f8;
+  border-radius: 4px;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+`;
+
+const ProficiencyBadge = styled.span`
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  background: ${props => {
+    switch (props.level) {
+      case 1: return '#ffebee';
+      case 2: return '#fff3e0';
+      case 3: return '#e8f5e9';
+      default: return '#f5f5f5';
+    }
+  }};
+  color: ${props => {
+    switch (props.level) {
+      case 1: return '#c62828';
+      case 2: return '#ef6c00';
+      case 3: return '#2e7d32';
+      default: return '#333';
+    }
+  }};
+`;
 
 const NotebookManagementPage = ({ onExit }) => {
   const { state, dispatch } = useApp();
@@ -123,93 +372,132 @@ const NotebookManagementPage = ({ onExit }) => {
   }) || [];
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-      <button onClick={onExit} style={{ float: 'right' }}>Back to App</button>
-      <h1>Notebook Management (Beta)</h1>
+    <Container>
+      <Header>
+        <h1>筆記本管理</h1>
+        <BackButton onClick={onExit}>返回</BackButton>
+      </Header>
 
-      <div style={{ marginBottom: '20px' }}>
-        <h2>Create New Notebook</h2>
-        <input 
-          type="text" 
-          value={newNotebookName} 
-          onChange={(e) => setNewNotebookName(e.target.value)} 
-          placeholder="Enter notebook name (max 20 chars)" 
-          maxLength="20"
-        />
-        <button onClick={handleCreateNotebook}>Create</button>
-      </div>
-      
-      <div style={{ marginBottom: '20px' }}>
-        <h2>Import Notebook</h2>
-        <input type="file" accept=".json" onChange={handleImport} />
-      </div>
+      <FlexContainer>
+        <SidePanel>
+          <Section>
+            <h2>建立筆記本</h2>
+            <Input
+              type="text"
+              value={newNotebookName}
+              onChange={(e) => setNewNotebookName(e.target.value)}
+              placeholder="輸入筆記本名稱（最多20字）"
+              maxLength="20"
+              fullWidth
+            />
+            <Button onClick={handleCreateNotebook}>建立</Button>
+          </Section>
 
-      <hr />
+          <Section>
+            <h2>匯入筆記本</h2>
+            <Input type="file" accept=".json" onChange={handleImport} fullWidth />
+          </Section>
 
-      <div style={{ display: 'flex' }}>
-        <div style={{ width: '30%', borderRight: '1px solid #ccc', paddingRight: '10px' }}>
-          <h2>Notebooks</h2>
-          {notebooks.length === 0 ? <p>No notebooks found.</p> : (
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-              {notebooks.map(notebook => (
-                <li key={notebook.id} style={{ marginBottom: '10px', fontWeight: currentNotebookId === notebook.id ? 'bold' : 'normal' }}>
-                  <span onClick={() => handleSelectNotebook(notebook)} style={{ cursor: 'pointer' }}>
-                    {notebook.name}
-                  </span>
-                  <button onClick={() => handleDeleteNotebook(notebook.id)} style={{ marginLeft: '10px' }}>Delete</button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+          <Section>
+            <h2>筆記本列表</h2>
+            {notebooks.length === 0 ? (
+              <p>尚未建立筆記本</p>
+            ) : (
+              <NotebookList>
+                {notebooks.map(notebook => (
+                  <NotebookItem 
+                    key={notebook.id} 
+                    selected={currentNotebookId === notebook.id}
+                  >
+                    <span onClick={() => handleSelectNotebook(notebook)}>
+                      {notebook.name}
+                    </span>
+                    <Button danger onClick={() => handleDeleteNotebook(notebook.id)}>刪除</Button>
+                  </NotebookItem>
+                ))}
+              </NotebookList>
+            )}
+          </Section>
+        </SidePanel>
 
-        <div style={{ width: '70%', paddingLeft: '10px' }}>
-          <h2>Selected Notebook Details</h2>
-          {selectedNotebook ? (
-            <div>
-              <div>
-                <input 
-                    type="text" 
+        <MainPanel>
+          <Section>
+            <h2>筆記本詳情</h2>
+            {selectedNotebook ? (
+              <>
+                <div style={{ marginBottom: '20px' }}>
+                  <Input
+                    type="text"
                     value={editingName}
                     onChange={(e) => setEditingName(e.target.value)}
                     maxLength="20"
-                />
-                <button onClick={handleUpdateName}>Update Name</button>
-              </div>
-              
-              <h3>Content (JSON - Merge Update):</h3>
-                <textarea 
-                    value={editingContext}
-                    onChange={(e) => setEditingContext(e.target.value)}
-                    rows={15}
-                    style={{width: '95%', background: '#f4f4f4', border: '1px solid #ccc'}}
-                    placeholder="Paste a full array or a single object (with id) to update/merge."
-                />
-                <div>
-                    <button onClick={handleUpdateContext}>Save Context</button>
+                    placeholder="筆記本名稱"
+                  />
+                  <Button onClick={handleUpdateName}>更新名稱</Button>
                 </div>
-              
-              <h4>Words Preview:</h4>
-              <div>
-                <button onClick={() => setProficiencyFilter(0)} style={{ fontWeight: proficiencyFilter === 0 ? 'bold' : 'normal' }}>All</button>
-                <button onClick={() => setProficiencyFilter(1)} style={{ fontWeight: proficiencyFilter === 1 ? 'bold' : 'normal' }}>Low</button>
-                <button onClick={() => setProficiencyFilter(2)} style={{ fontWeight: proficiencyFilter === 2 ? 'bold' : 'normal' }}>Medium</button>
-                <button onClick={() => setProficiencyFilter(3)} style={{ fontWeight: proficiencyFilter === 3 ? 'bold' : 'normal' }}>High</button>
-              </div>
-               {filteredContext && filteredContext.length > 0 ? (
-                <ul>
+
+                <h3>內容（JSON）：</h3>
+                <TextArea
+                  value={editingContext}
+                  onChange={(e) => setEditingContext(e.target.value)}
+                  placeholder="貼上完整陣列或單一物件（需包含 id）進行更新/合併"
+                />
+                <Button onClick={handleUpdateContext}>儲存內容</Button>
+
+                <h3 style={{ marginTop: '24px' }}>單字列表：</h3>
+                <FilterButtons>
+                  <Button 
+                    secondary={proficiencyFilter !== 0} 
+                    onClick={() => setProficiencyFilter(0)}
+                  >
+                    全部
+                  </Button>
+                  <Button 
+                    secondary={proficiencyFilter !== 1} 
+                    onClick={() => setProficiencyFilter(1)}
+                  >
+                    初級
+                  </Button>
+                  <Button 
+                    secondary={proficiencyFilter !== 2} 
+                    onClick={() => setProficiencyFilter(2)}
+                  >
+                    中級
+                  </Button>
+                  <Button 
+                    secondary={proficiencyFilter !== 3} 
+                    onClick={() => setProficiencyFilter(3)}
+                  >
+                    高級
+                  </Button>
+                </FilterButtons>
+
+                {filteredContext && filteredContext.length > 0 ? (
+                  <WordList>
                     {filteredContext.map(word => (
-                        <li key={word.id}>{word.jp_word} - {word.ch_word} (Proficiency: {word.proficiency}) <button onClick={() => handleDeleteWord(word.id)}>Delete</button></li>
+                      <WordItem key={word.id}>
+                        <div>
+                          <strong>{word.jp_word}</strong> - {word.ch_word}
+                          <ProficiencyBadge level={word.proficiency}>
+                            {word.proficiency === 1 ? '初級' : 
+                             word.proficiency === 2 ? '中級' : '高級'}
+                          </ProficiencyBadge>
+                        </div>
+                        <Button danger onClick={() => handleDeleteWord(word.id)}>刪除</Button>
+                      </WordItem>
                     ))}
-                </ul>
-               ) : <p>This notebook is empty or no words match the filter.</p>}
-            </div>
-          ) : (
-            <p>Select a notebook to see its details.</p>
-          )}
-        </div>
-      </div>
-    </div>
+                  </WordList>
+                ) : (
+                  <p>目前沒有符合條件的單字</p>
+                )}
+              </>
+            ) : (
+              <p>請選擇一個筆記本查看詳情</p>
+            )}
+          </Section>
+        </MainPanel>
+      </FlexContainer>
+    </Container>
   );
 };
 
