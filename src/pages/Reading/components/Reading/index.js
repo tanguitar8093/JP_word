@@ -181,10 +181,10 @@ function QuizContent() {
         if (quizCompleted || !question || readingStudyMode !== 'auto' || !isAutoPlayActive || isSequencePaused) return;
 
         // --- WORD PART ---
-        if (readingRecordWord) {
-          await playSequence(null, question, { jp: true }, { skipSound: true });
-          if (isCancelled) return;
+        await playSequence(null, question, { jp: true }, { skipSound: true });
+        if (isCancelled) return;
 
+        if (readingRecordWord) {
           if (readingPlayBeep) {
             playBeep();
             await cancellableWait(200);
@@ -202,41 +202,66 @@ function QuizContent() {
 
           if (recorderRef.current) await recorderRef.current.play();
           if (isCancelled) return;
-        }
 
-        await playSequence(null, question, { jp: true }, { skipSound: true });
-        if (isCancelled) return;
+          await playSequence(null, question, { jp: true }, { skipSound: true });
+          if (isCancelled) return;
+        } else {
+          await cancellableWait(1000);
+          if (isCancelled) return;
+        }
 
         await playSequence(null, question, { ch: true }, { skipSound: true });
         if (isCancelled) return;
 
         // --- SENTENCE PART ---
-        if (question.jp_ex_statement && readingRecordSentence) {
-          await playSequence(null, question, { jpEx: true }, { skipSound: true });
+        if (question.jp_ex_statement) {
+          await playSequence(
+            null,
+            question,
+            { jpEx: true },
+            { skipSound: true }
+          );
           if (isCancelled) return;
 
-          if (readingPlayBeep) {
-            playBeep();
-            await cancellableWait(200);
+          if (readingRecordSentence) {
+            if (readingPlayBeep) {
+              playBeep();
+              await cancellableWait(200);
+              if (isCancelled) return;
+            }
+
+            if (recorderRef.current)
+              await recorderRef.current.startRecording();
+            if (isCancelled) return;
+
+            await cancellableWait(readingSentenceRecordTime * 1000);
+            if (isCancelled) return;
+
+            if (recorderRef.current)
+              await recorderRef.current.stopRecording();
+            if (isCancelled) return;
+
+            if (recorderRef.current) await recorderRef.current.play();
+            if (isCancelled) return;
+
+            await playSequence(
+              null,
+              question,
+              { jpEx: true },
+              { skipSound: true }
+            );
+            if (isCancelled) return;
+          } else {
+            await cancellableWait(1000);
             if (isCancelled) return;
           }
 
-          if (recorderRef.current) await recorderRef.current.startRecording();
-          if (isCancelled) return;
-
-          await cancellableWait(readingSentenceRecordTime * 1000);
-          if (isCancelled) return;
-
-          if (recorderRef.current) await recorderRef.current.stopRecording();
-          if (isCancelled) return;
-
-          if (recorderRef.current) await recorderRef.current.play();
-          if (isCancelled) return;
-
-          await playSequence(null, question, { jpEx: true }, { skipSound: true });
-          if (isCancelled) return;
-
-          await playSequence(null, question, { chEx: true }, { skipSound: true });
+          await playSequence(
+            null,
+            question,
+            { chEx: true },
+            { skipSound: true }
+          );
           if (isCancelled) return;
         }
 
