@@ -5,6 +5,7 @@ import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actio
 import { updateWordInNotebook } from "../../../../store/reducer/actions"; // Import updateWordInNotebook
 import notebookService from "../../../../services/notebookService"; // Import notebookService
 import { restartQuiz } from "../../../quiz/reducer/actions"; // Import restartQuiz from quiz actions
+import readingProgressService from "../../../../services/readingProgressService";
 import {
   StatisticsContainer,
   ScoreDisplay,
@@ -58,6 +59,7 @@ const StatisticsPage = ({
   }, [dispatch]); // Only run once on mount
 
   const handleEndQuiz = async () => {
+  try { readingProgressService.clearProgress(); } catch {}
     dispatch(restartQuiz()); // Dispatch restartQuiz before navigating
     navigate("/");
     window.location.reload();

@@ -24,6 +24,7 @@ import {
 } from "../../../../pages/quiz/reducer/actions"; // Import quiz actions
 
 import quizProgressService from "../../../../services/quizProgressService";
+import readingProgressService from "../../../../services/readingProgressService";
 import notebookService from "../../../../services/notebookService";
 import { setCurrentNotebook } from "../../../../store/reducer/actions";
 
@@ -98,6 +99,7 @@ function QuizContent() {
     // Clear saved progress when user decides to exit
     try {
       quizProgressService.clearProgress();
+      readingProgressService.clearProgress();
     } catch {}
     dispatch(commitPendingProficiencyUpdates()); // Commit changes before exiting
     dispatch(restartQuiz());

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Modal from "../Modal";
 import quizProgressService from "../../services/quizProgressService";
+import readingProgressService from "../../services/readingProgressService";
 
 /**
  * NavigationBlocker
@@ -13,6 +14,8 @@ export default function NavigationBlocker({
   children,
   message = "偵測到尚有未完成的測驗進度，確定要前往此頁面嗎？",
   clearOnConfirm = false,
+  considerQuiz = true,
+  considerReading = true,
 }) {
   const navigate = useNavigate();
   const [shouldPrompt, setShouldPrompt] = useState(false);
@@ -20,10 +23,12 @@ export default function NavigationBlocker({
 
   useEffect(() => {
     // Only prompt if there is saved progress
-    if (quizProgressService.hasProgress()) {
+    const hasQuiz = considerQuiz && quizProgressService.hasProgress();
+    const hasReading = considerReading && readingProgressService.hasProgress();
+    if (hasQuiz || hasReading) {
       setShouldPrompt(true);
     }
-  }, []);
+  }, [considerQuiz, considerReading]);
 
   if (shouldPrompt && !confirmed) {
     return (
@@ -31,7 +36,12 @@ export default function NavigationBlocker({
         message={message}
         onConfirm={() => {
           if (clearOnConfirm) {
-            try { quizProgressService.clearProgress(); } catch {}
+            if (considerQuiz) {
+              try { quizProgressService.clearProgress(); } catch {}
+            }
+            if (considerReading) {
+              try { readingProgressService.clearProgress(); } catch {}
+            }
           }
           setConfirmed(true);
         }}

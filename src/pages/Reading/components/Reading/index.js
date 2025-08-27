@@ -6,6 +6,7 @@ import ReadingCard from "../ReadingCard";
 import SettingsPanel from "../../../../components/SettingsPanel";
 import StatisticsPage from "../StatisticsPage"; // Import StatisticsPage
 import Modal from "../../../../components/Modal"; // Import the new Modal component
+import readingProgressService from "../../../../services/readingProgressService";
 import {
   AppContainer,
   Title,
@@ -24,6 +25,7 @@ import {
 } from "../../../quiz/reducer/actions"; // Import quiz actions
 
 import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actions"; // Import commitPendingProficiencyUpdates
+import quizProgressService from "../../../../services/quizProgressService";
 
 const IconContainer = styled.div`
   position: absolute;
@@ -133,6 +135,8 @@ function QuizContent() {
     dispatch(commitPendingProficiencyUpdates()); // Commit changes before exiting
     dispatch(restartQuiz());
     setShowExitConfirmModal(false);
+  try { readingProgressService.clearProgress(); } catch {}
+  try { quizProgressService.clearProgress(); } catch {}
     navigate("/");
     window.location.reload();
   }, [dispatch, navigate]);
@@ -167,6 +171,8 @@ function QuizContent() {
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.1); // Beep for 0.1 seconds
   };
+
+  // hydration moved to outer component
 
   useEffect(() => {
     let timers = [];
@@ -343,6 +349,8 @@ function QuizContent() {
     isSequencePaused,
   ]);
 
+  // autosave moved to outer component
+
   const handleStartAutoPlay = async () => {
     if (recorderRef.current && (readingRecordWord || readingRecordSentence)) {
       const stream = await recorderRef.current.getMicrophonePermission();
@@ -468,6 +476,7 @@ export default function Quiz() {
     wordType,
   } = state.systemSettings; // Destructure new settings
   const [emptyAlert, setEmptyAlert] = useState(false);
+  const [hydratedFromProgress, setHydratedFromProgress] = useState(false);
   const navigate = useNavigate();
 
   const { playSequence } = useAnswerPlayback({
@@ -490,8 +499,46 @@ export default function Quiz() {
     [playSequence]
   );
 
+  // Hydrate from saved reading progress if any
   useEffect(() => {
-    if (!quizCompleted) {
+    if (quizCompleted) return;
+    const saved = readingProgressService.loadProgress();
+    if (!saved) return;
+    if (!notebooks || notebooks.length === 0) return; // wait until notebooks are loaded
+
+    const { notebookId: savedNotebookId, questionIds, currentIndex } = saved;
+
+    const nb = notebooks.find((n) => n.id === savedNotebookId);
+    if (!nb) return;
+
+    const byId = new Map((nb.context || []).map((w) => [w.id, w]));
+    const restoredQuestions = (questionIds || [])
+      .map((id) => byId.get(id))
+      .filter(Boolean);
+
+    if (restoredQuestions.length === 0) return;
+
+    const clampedIndex = Math.min(
+      Math.max(0, currentIndex || 0),
+      restoredQuestions.length
+    );
+
+    dispatch({
+      type: "quiz/LOAD_PROGRESS",
+      payload: {
+        questions: restoredQuestions,
+        currentIndex: clampedIndex,
+        results: [],
+      },
+    });
+    setHydratedFromProgress(true);
+  }, [quizCompleted, notebooks, dispatch]);
+
+  useEffect(() => {
+    if (!quizCompleted && !hydratedFromProgress) {
+  // If there is valid saved reading progress for an existing notebook, skip normal initialization to avoid race
+  const saved = readingProgressService.loadProgress();
+  if (saved && notebooks && notebooks.some((n) => n.id === saved.notebookId)) return;
       const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
       if (currentNotebook) {
         let questions = currentNotebook.context.filter((q) => {
@@ -517,12 +564,37 @@ export default function Quiz() {
   }, [
     currentNotebookId,
     dispatch,
-    quizCompleted,
+  quizCompleted,
+  hydratedFromProgress,
     proficiencyFilter,
     notebooks,
     startQuestionIndex,
     wordRangeCount,
     sortOrder,
+  ]);
+
+  // Auto-save reading progress when advancing index
+  const prevIndexRef = React.useRef(state.quiz.currentQuestionIndex);
+  useEffect(() => {
+    const idx = state.quiz.currentQuestionIndex;
+    const prev = prevIndexRef.current;
+    prevIndexRef.current = idx;
+    if (quizCompleted) return;
+    if (idx > prev && state.quiz.questions.length > 0) {
+      const questionIds = state.quiz.questions.map((q) => q.id);
+      readingProgressService.saveProgress({
+        notebookId: state.shared.currentNotebookId,
+        questionIds,
+        currentIndex: idx,
+        sortOrder,
+      });
+    }
+  }, [
+    state.quiz.currentQuestionIndex,
+    state.quiz.questions,
+    quizCompleted,
+    sortOrder,
+    state.shared.currentNotebookId,
   ]);
 
   if (quizCompleted) {

@@ -9,6 +9,9 @@ export const PanelContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overflow: auto;
+  max-height: 350px;
+  scrollbar-width: none;
 `;
 
 export const LabelGroup = styled.label`

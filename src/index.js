@@ -27,14 +27,23 @@ const router = createBrowserRouter(
         },
         {
           path: "quiz",
-          element: <Quiz />,
+          element: (
+            <NavigationBlocker
+              clearOnConfirm
+              considerQuiz={false}
+              considerReading={true}
+              message="偵測到尚有未完成的閱讀進度，前往『測驗』將會丟棄閱讀進度，是否繼續？"
+            >
+              <Quiz />
+            </NavigationBlocker>
+          ),
         },
         {
           path: "notebook-management",
           element: (
             <NavigationBlocker
               clearOnConfirm
-              message="偵測到尚有未完成的測驗進度，前往『筆記本』將會丟棄進度，是否繼續？"
+              message="偵測到尚有未完成的學習進度（測驗/閱讀），前往『筆記本』將會丟棄進度，是否繼續？"
             >
               <NotebookManagementPage />
             </NavigationBlocker>
@@ -45,7 +54,7 @@ const router = createBrowserRouter(
           element: (
             <NavigationBlocker
               clearOnConfirm
-              message="偵測到尚有未完成的測驗進度，前往『設定』將會丟棄進度，是否繼續？"
+              message="偵測到尚有未完成的學習進度（測驗/閱讀），前往『設定』將會丟棄進度，是否繼續？"
             >
               <SystemSettingsPage />
             </NavigationBlocker>
@@ -60,7 +69,9 @@ const router = createBrowserRouter(
           element: (
             <NavigationBlocker
               clearOnConfirm
-              message="偵測到尚有未完成的測驗進度，前往『閱讀』將會丟棄進度，是否繼續？"
+              considerQuiz={true}
+              considerReading={false}
+              message="偵測到尚有未完成的測驗進度，前往『閱讀』將會丟棄測驗進度，是否繼續？"
             >
               <Reading />
             </NavigationBlocker>
