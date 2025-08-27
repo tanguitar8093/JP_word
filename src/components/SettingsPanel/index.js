@@ -18,7 +18,7 @@ import {
   setReadingPlaybackRepeatCount,
 } from "./reducer";
 
-export default function SettingsPanel({ context }) { // Changed from isQuizContext to context
+export default function SettingsPanel({ context }) {
   const { state, dispatch } = useApp();
   const { systemSettings } = state;
   const {
@@ -48,11 +48,12 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
     );
   };
 
-  const isQuizContext = context === 'quiz'; // Determine from context
+  const isQuizContext = context === "quiz";
+  const isReadingContext = context === "reading";
 
   return (
     <PanelContainer>
-      {context === 'reading' && (
+      {isReadingContext && (
         <>
           <SettingTitle>閱讀頁面設定</SettingTitle>
           <LabelGroup>
@@ -64,7 +65,9 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
                   name="readingStudyMode"
                   value="manual"
                   checked={readingStudyMode === "manual"}
-                  onChange={(e) => dispatch(setReadingStudyMode(e.target.value))}
+                  onChange={(e) =>
+                    dispatch(setReadingStudyMode(e.target.value))
+                  }
                 />
                 手動模式
               </label>
@@ -74,14 +77,16 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
                   name="readingStudyMode"
                   value="auto"
                   checked={readingStudyMode === "auto"}
-                  onChange={(e) => dispatch(setReadingStudyMode(e.target.value))}
+                  onChange={(e) =>
+                    dispatch(setReadingStudyMode(e.target.value))
+                  }
                 />
                 自動模式 (發音練習)
               </label>
             </div>
           </LabelGroup>
 
-          {readingStudyMode === 'auto' && (
+          {readingStudyMode === "auto" && (
             <>
               <LabelGroup>
                 <SettingTitle>自動模式選項:</SettingTitle>
@@ -90,7 +95,9 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
                     <input
                       type="checkbox"
                       checked={readingRecordWord}
-                      onChange={(e) => dispatch(setReadingRecordWord(e.target.checked))}
+                      onChange={(e) =>
+                        dispatch(setReadingRecordWord(e.target.checked))
+                      }
                     />
                     錄製單字發音
                   </label>
@@ -98,7 +105,9 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
                     <input
                       type="checkbox"
                       checked={readingRecordSentence}
-                      onChange={(e) => dispatch(setReadingRecordSentence(e.target.checked))}
+                      onChange={(e) =>
+                        dispatch(setReadingRecordSentence(e.target.checked))
+                      }
                     />
                     錄製例句發音
                   </label>
@@ -106,32 +115,44 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
                     <input
                       type="checkbox"
                       checked={readingPlayBeep}
-                      onChange={(e) => dispatch(setReadingPlayBeep(e.target.checked))}
+                      onChange={(e) =>
+                        dispatch(setReadingPlayBeep(e.target.checked))
+                      }
                     />
                     錄音前播放提示音
                   </label>
                 </div>
               </LabelGroup>
               <LabelGroup>
-                <SettingTitle>單字錄音秒數: {readingWordRecordTime}s</SettingTitle>
+                <SettingTitle>
+                  單字錄音秒數: {readingWordRecordTime}s
+                </SettingTitle>
                 <RangeInput
                   type="range"
                   min="1"
                   max="5"
                   step="0.5"
                   value={readingWordRecordTime}
-                  onChange={(e) => dispatch(setReadingWordRecordTime(Number(e.target.value)))}
+                  onChange={(e) =>
+                    dispatch(setReadingWordRecordTime(Number(e.target.value)))
+                  }
                 />
               </LabelGroup>
               <LabelGroup>
-                <SettingTitle>句子錄音秒數: {readingSentenceRecordTime}s</SettingTitle>
+                <SettingTitle>
+                  句子錄音秒數: {readingSentenceRecordTime}s
+                </SettingTitle>
                 <RangeInput
                   type="range"
                   min="1"
                   max="10"
                   step="0.5"
                   value={readingSentenceRecordTime}
-                  onChange={(e) => dispatch(setReadingSentenceRecordTime(Number(e.target.value)))}
+                  onChange={(e) =>
+                    dispatch(
+                      setReadingSentenceRecordTime(Number(e.target.value))
+                    )
+                  }
                 />
               </LabelGroup>
               <LabelGroup>
@@ -143,7 +164,11 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
                       name="readingPlaybackRepeatCount"
                       value={1}
                       checked={readingPlaybackRepeatCount === 1}
-                      onChange={(e) => dispatch(setReadingPlaybackRepeatCount(Number(e.target.value)))}
+                      onChange={(e) =>
+                        dispatch(
+                          setReadingPlaybackRepeatCount(Number(e.target.value))
+                        )
+                      }
                     />
                     1次
                   </label>
@@ -153,7 +178,11 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
                       name="readingPlaybackRepeatCount"
                       value={2}
                       checked={readingPlaybackRepeatCount === 2}
-                      onChange={(e) => dispatch(setReadingPlaybackRepeatCount(Number(e.target.value)))}
+                      onChange={(e) =>
+                        dispatch(
+                          setReadingPlaybackRepeatCount(Number(e.target.value))
+                        )
+                      }
                     />
                     2次
                   </label>
@@ -163,7 +192,11 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
                       name="readingPlaybackRepeatCount"
                       value={3}
                       checked={readingPlaybackRepeatCount === 3}
-                      onChange={(e) => dispatch(setReadingPlaybackRepeatCount(Number(e.target.value)))}
+                      onChange={(e) =>
+                        dispatch(
+                          setReadingPlaybackRepeatCount(Number(e.target.value))
+                        )
+                      }
                     />
                     3次
                   </label>
@@ -252,7 +285,7 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
           </label>
         </div>
       </LabelGroup>
-      {autoProceed !== undefined && !isQuizContext && context !== 'reading' && (
+      {autoProceed !== undefined && !isQuizContext && context !== "reading" && (
         <LabelGroup>
           <SettingTitle>自動下一題：</SettingTitle>
           <label>
@@ -266,7 +299,7 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
         </LabelGroup>
       )}
 
-      {!isQuizContext && ( // Conditionally render
+      {!context && ( // Conditionally render
         <LabelGroup>
           <SettingTitle>熟練度篩選:</SettingTitle>
           <div>
@@ -297,7 +330,7 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
           </div>
         </LabelGroup>
       )}
-      {!isQuizContext && ( // Conditionally render
+      {!context && ( // Conditionally render
         <LabelGroup>
           <SettingTitle>排序設定:</SettingTitle>
           <div>
@@ -334,7 +367,7 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
           </div>
         </LabelGroup>
       )}
-      {!isQuizContext && ( // Conditionally render startQuestionIndex
+      {!context && ( // Conditionally render startQuestionIndex
         <LabelGroup>
           <SettingTitle>起始題目索引:</SettingTitle>
           <input
@@ -348,14 +381,16 @@ export default function SettingsPanel({ context }) { // Changed from isQuizConte
         </LabelGroup>
       )}
 
-      {!isQuizContext && ( // Conditionally render wordRangeCount
+      {!context && ( // Conditionally render wordRangeCount
         <LabelGroup>
           <SettingTitle>單字數量上限:</SettingTitle>
           <input
             type="number"
             min="1"
             value={wordRangeCount}
-            onChange={(e) => dispatch(setWordRangeCount(Number(e.target.value)))}
+            onChange={(e) =>
+              dispatch(setWordRangeCount(Number(e.target.value)))
+            }
           />
         </LabelGroup>
       )}

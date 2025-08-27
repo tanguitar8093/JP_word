@@ -54,7 +54,7 @@ export default function QuestionCard({ speakManually, question }) {
 
   const currentProficiency =
     pendingProficiencyUpdates[question.id] || question.proficiency;
-  console.log("q", q);
+
   return (
     <CardContainer>
       {/* 熟練度 */}

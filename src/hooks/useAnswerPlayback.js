@@ -54,12 +54,6 @@ export function useAnswerPlayback({
 
   const playSequence = useCallback(
     async (soundResult, q, options, { skipSound = false } = {}) => {
-      console.log(
-        "soundResult, skipSound, options",
-        soundResult,
-        skipSound,
-        options
-      );
       if (!q) return;
       // Cancel any ongoing speech before starting a new sequence
       window.speechSynthesis.cancel();

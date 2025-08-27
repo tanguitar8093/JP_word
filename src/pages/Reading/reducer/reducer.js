@@ -76,16 +76,7 @@ function reducer(state = initialState, action) {
         action.payload === currentQuestion.correctOption
           ? state.points + currentQuestion.points
           : state.points;
-      console.log("???", {
-        ...state,
-        selectedAnswer: action.payload,
-        result: isCorrect ? "⭕" : "❌",
-        correctAnswersCount: isCorrect
-          ? state.correctAnswersCount + 1
-          : state.correctAnswersCount,
-        answeredQuestions: newAnsweredQuestions,
-        points: newPoints,
-      });
+
       return {
         ...state,
         selectedAnswer: action.payload,

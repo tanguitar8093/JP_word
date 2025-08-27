@@ -177,7 +177,7 @@ function QuizContent() {
               setAutoProceed={(newAutoProceed) =>
                 dispatch(setAutoProceed(newAutoProceed))
               } // Pass setAutoProceed from global state
-              isQuizContext={true} // New prop
+              context="quiz" // New prop
             />
           </FloatingSettingsPanel>
         </>
