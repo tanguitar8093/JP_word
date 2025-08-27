@@ -32,7 +32,10 @@ const router = createBrowserRouter(
         {
           path: "notebook-management",
           element: (
-            <NavigationBlocker>
+            <NavigationBlocker
+              clearOnConfirm
+              message="偵測到尚有未完成的測驗進度，前往『筆記本』將會丟棄進度，是否繼續？"
+            >
               <NotebookManagementPage />
             </NavigationBlocker>
           ),
@@ -40,7 +43,10 @@ const router = createBrowserRouter(
         {
           path: "settings",
           element: (
-            <NavigationBlocker>
+            <NavigationBlocker
+              clearOnConfirm
+              message="偵測到尚有未完成的測驗進度，前往『設定』將會丟棄進度，是否繼續？"
+            >
               <SystemSettingsPage />
             </NavigationBlocker>
           ),

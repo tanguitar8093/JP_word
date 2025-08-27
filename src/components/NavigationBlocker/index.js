@@ -12,6 +12,7 @@ import quizProgressService from "../../services/quizProgressService";
 export default function NavigationBlocker({
   children,
   message = "偵測到尚有未完成的測驗進度，確定要前往此頁面嗎？",
+  clearOnConfirm = false,
 }) {
   const navigate = useNavigate();
   const [shouldPrompt, setShouldPrompt] = useState(false);
@@ -28,7 +29,12 @@ export default function NavigationBlocker({
     return (
       <Modal
         message={message}
-        onConfirm={() => setConfirmed(true)}
+        onConfirm={() => {
+          if (clearOnConfirm) {
+            try { quizProgressService.clearProgress(); } catch {}
+          }
+          setConfirmed(true);
+        }}
         onCancel={() => navigate("/")}
         isVisible
       />
