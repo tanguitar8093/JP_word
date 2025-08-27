@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useApp } from "../../../../store/contexts/AppContext";
 import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
 import FillInQuestionCard from "../FillInQuestionCard";
+import ExampleSentence from "../ExampleSentence";
 import SettingsPanel from "../../../../components/SettingsPanel";
 import Modal from "../../../../components/Modal";
 import {
@@ -16,7 +17,11 @@ import {
   BackPage,
 } from "../../../../components/App/styles";
 import styled from "styled-components";
-import { nextQuestionGame, restartQuiz, startQuiz } from "../../../../pages/quiz/reducer/actions";
+import {
+  nextQuestionGame,
+  restartQuiz,
+  startQuiz,
+} from "../../../../pages/quiz/reducer/actions";
 import quizProgressService from "../../../../services/quizProgressService";
 import readingProgressService from "../../../../services/readingProgressService";
 
@@ -43,12 +48,15 @@ function Content() {
   const [showExitConfirmModal, setShowExitConfirmModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const navigate = useNavigate();
+  const [result, setResult] = useState(null); // '⭕' | '❌' | null
+  const [selectedAnswer, setSelectedAnswer] = useState("");
 
   const { state, dispatch } = useApp();
   const { questions, currentQuestionIndex, quizCompleted } = state.quiz;
   const {
     playbackOptions,
     playbackSpeed,
+    autoProceed,
     proficiencyFilter,
     startQuestionIndex,
     wordRangeCount,
@@ -99,11 +107,30 @@ function Content() {
     [playSequence]
   );
 
+  // Clear local result when question changes to avoid residue
+  useEffect(() => {
+    setResult(null);
+    setSelectedAnswer("");
+  }, [currentQuestionIndex]);
+
+  // Auto proceed after showing result if enabled
+  useEffect(() => {
+    if (!result || !autoProceed) return;
+    const t = setTimeout(() => {
+      setResult(null);
+      setSelectedAnswer("");
+      dispatch(nextQuestionGame());
+    }, 900);
+    return () => clearTimeout(t);
+  }, [result, autoProceed, dispatch]);
+
   return (
     <AppContainer>
       <IconContainer>
         <IconGroup>
-          <SettingsToggle onClick={() => setShowSettings((s) => !s)}>⚙️</SettingsToggle>
+          <SettingsToggle onClick={() => setShowSettings((s) => !s)}>
+            ⚙️
+          </SettingsToggle>
           <HomeIcon onClick={() => setShowExitConfirmModal(true)}>↩️</HomeIcon>
           <InfoToggle onClick={() => setShowInfoModal(true)}>ℹ️</InfoToggle>
           <BackPage onClick={() => navigate("/")}>🏠</BackPage>
@@ -120,20 +147,67 @@ function Content() {
       )}
 
       <Title>拼字練習</Title>
-      <Progress>第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題</Progress>
+      <Progress>
+        第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
+      </Progress>
 
-      <FillInQuestionCard
-        question={question}
-        allQuestions={questions}
-        onAnswer={(correct) => {
-          // advance when filled; keep same logic as quiz game flow
-          if (correct) {
-            // correctness feedback handled in card; advance to next
-            dispatch(nextQuestionGame());
-          }
-        }}
-        speak={(text, lang) => speakManually(text, lang)}
-      />
+      {!result && (
+        <FillInQuestionCard
+          question={question}
+          allQuestions={questions}
+          onComplete={({ correct, guess }) => {
+            setSelectedAnswer(guess);
+            setResult(correct ? "⭕" : "❌");
+          }}
+          speak={(text, lang) => speakManually(text, lang)}
+        />
+      )}
+
+      {result && (
+        <div style={{ maxWidth: 720, margin: "0 auto", padding: 12 }}>
+          <div
+            style={{
+              borderRadius: 12,
+              border: `1px solid ${result === "⭕" ? "#4caf50" : "#e53935"}`,
+              padding: 12,
+              background: result === "⭕" ? "#e8f5e9" : "#ffebee",
+              marginBottom: 12,
+            }}
+          >
+            <div style={{ fontSize: 18, marginBottom: 6 }}>
+              {question.ch_word} [{question.type}]
+            </div>
+            <div style={{ fontSize: 18 }}>
+              {selectedAnswer} {result}
+            </div>
+          </div>
+          <ExampleSentence
+            jp_ex={question.jp_ex_statement}
+            ch_ex={question.ch_ex_statement}
+            speak={speakManually}
+            jp_ex_context={question.jp_ex_statement_context}
+            wordType={state.systemSettings.wordType}
+          />
+          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+            <button
+              onClick={() => {
+                setResult(null);
+                setSelectedAnswer("");
+                dispatch(nextQuestionGame());
+              }}
+            >
+              下一題
+            </button>
+            {autoProceed && (
+              <span
+                style={{ fontSize: 12, color: "#666", alignSelf: "center" }}
+              >
+                自動前進已開啟
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       <Modal
         message="要終止測驗，並儲存熟練標籤離開嗎？"
@@ -163,7 +237,14 @@ function Content() {
 export default function FillInQuiz() {
   const { state, dispatch } = useApp();
   const { notebooks, currentNotebookId } = state.shared;
-  const { proficiencyFilter, startQuestionIndex, wordRangeCount, sortOrder, playbackOptions, playbackSpeed } = state.systemSettings;
+  const {
+    proficiencyFilter,
+    startQuestionIndex,
+    wordRangeCount,
+    sortOrder,
+    playbackOptions,
+    playbackSpeed,
+  } = state.systemSettings;
   const { quizCompleted, answeredQuestions, correctAnswersCount } = state.quiz;
   const [emptyAlert, setEmptyAlert] = useState(false);
   const navigate = useNavigate();
@@ -205,15 +286,36 @@ export default function FillInQuiz() {
         setEmptyAlert(true);
       }
     }
-  }, [quizCompleted, notebooks, currentNotebookId, proficiencyFilter, startQuestionIndex, wordRangeCount, sortOrder, dispatch]);
+  }, [
+    quizCompleted,
+    notebooks,
+    currentNotebookId,
+    proficiencyFilter,
+    startQuestionIndex,
+    wordRangeCount,
+    sortOrder,
+    dispatch,
+  ]);
 
   if (quizCompleted) {
     // reuse existing results page for simplicity
     return (
       <div style={{ padding: 20 }}>
         <h3>完成！</h3>
-        <button onClick={() => { dispatch(restartQuiz()); }}>再測一次</button>
-        <button onClick={() => { window.location.href = process.env.PUBLIC_URL + '/'; }}>回首頁</button>
+        <button
+          onClick={() => {
+            dispatch(restartQuiz());
+          }}
+        >
+          再測一次
+        </button>
+        <button
+          onClick={() => {
+            window.location.href = process.env.PUBLIC_URL + "/";
+          }}
+        >
+          回首頁
+        </button>
       </div>
     );
   }
@@ -223,7 +325,9 @@ export default function FillInQuiz() {
       <>
         <Modal
           message="請調整單字範圍或筆記本!"
-          onConfirm={() => { navigate("/settings"); }}
+          onConfirm={() => {
+            navigate("/settings");
+          }}
           disableCancel
           isVisible={emptyAlert}
         />

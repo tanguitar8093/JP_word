@@ -7,7 +7,7 @@ export const CardContainer = styled.div`
   padding: 20px 24px;
   background: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 `;
 
 export const Prompt = styled.div`
@@ -16,7 +16,9 @@ export const Prompt = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  strong { font-weight: 700; }
+  strong {
+    font-weight: 700;
+  }
   .speak {
     margin-left: auto;
     border: 1px solid #e0e0e0;
@@ -67,7 +69,11 @@ export const ControlsRow = styled.div`
     background: #fff;
     cursor: pointer;
   }
-  .hint { color: #e53935; margin-left: auto; font-size: 13px; }
+  .hint {
+    color: #e53935;
+    margin-left: auto;
+    font-size: 13px;
+  }
 `;
 
 export const OptionsGrid = styled.div`
@@ -83,6 +89,11 @@ export const OptionButton = styled.button`
   padding: 8px 6px;
   font-size: 18px;
   cursor: pointer;
-  &:disabled { opacity: 0.45; cursor: not-allowed; }
-  &:hover:not(:disabled) { background: #f0f0f0; }
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  &:hover:not(:disabled) {
+    background: #f0f0f0;
+  }
 `;

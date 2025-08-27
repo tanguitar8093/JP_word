@@ -37,10 +37,14 @@ export default function NavigationBlocker({
         onConfirm={() => {
           if (clearOnConfirm) {
             if (considerQuiz) {
-              try { quizProgressService.clearProgress(); } catch {}
+              try {
+                quizProgressService.clearProgress();
+              } catch {}
             }
             if (considerReading) {
-              try { readingProgressService.clearProgress(); } catch {}
+              try {
+                readingProgressService.clearProgress();
+              } catch {}
             }
           }
           setConfirmed(true);

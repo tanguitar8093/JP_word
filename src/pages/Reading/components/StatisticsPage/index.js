@@ -59,7 +59,9 @@ const StatisticsPage = ({
   }, [dispatch]); // Only run once on mount
 
   const handleEndQuiz = async () => {
-  try { readingProgressService.clearProgress(); } catch {}
+    try {
+      readingProgressService.clearProgress();
+    } catch {}
     dispatch(restartQuiz()); // Dispatch restartQuiz before navigating
     navigate("/");
     window.location.reload();
