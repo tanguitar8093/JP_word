@@ -8,7 +8,7 @@ const initialState = {
   quizCompleted: false, // (from useQuizGame)
 };
 
-import { sortQuestions } from '../../../utils/questionUtils';
+import { sortQuestions } from "../../../utils/questionUtils";
 
 function reducer(state = initialState, action) {
   switch (action.type) {

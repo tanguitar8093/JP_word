@@ -8,11 +8,11 @@ const initialState = {
   quizCompleted: false, // (from useQuizGame)
 };
 
-import { sortQuestions } from '../../../utils/questionUtils';
+import { sortQuestions } from "../../../utils/questionUtils";
 
 function reducer(state = initialState, action) {
   switch (action.type) {
-  case "reading/START":
+    case "reading/START":
       const { questions, sortOrder } = action.payload;
       return {
         ...state,
@@ -24,7 +24,7 @@ function reducer(state = initialState, action) {
         answeredQuestions: [],
         quizCompleted: false,
       };
-  case "reading/CHECK": {
+    case "reading/CHECK": {
       const currentQuestion = state.questions[state.currentQuestionIndex];
       const isCorrect = action.payload === currentQuestion.ch_word; // Check against ch_word from useQuizGame
       const newAnsweredQuestions = [
@@ -41,7 +41,7 @@ function reducer(state = initialState, action) {
         answeredQuestions: newAnsweredQuestions,
       };
     }
-  case "reading/NEXT": {
+    case "reading/NEXT": {
       // This action advances the question in the game flow
       const nextQuestionIndex = state.currentQuestionIndex + 1;
       const quizCompleted = nextQuestionIndex >= state.questions.length;
@@ -55,7 +55,7 @@ function reducer(state = initialState, action) {
         quizCompleted: quizCompleted,
       };
     }
-  case "reading/RESTART": // Restart reading session
+    case "reading/RESTART": // Restart reading session
       // Reset all quiz-specific state to initial, but keep the loaded questions
       return { ...initialState, questions: state.questions };
     default:
