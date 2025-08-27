@@ -224,8 +224,10 @@ function QuizContent() {
 
         // --- WORD PART ---
         if (readingRecordWord) {
-          await repeatPlayback(() =>
-            playSequence(null, question, { jp: true }, { skipSound: true })
+          await repeatPlayback(
+            () =>
+              playSequence(null, question, { jp: true }, { skipSound: true }),
+            readingWordRecordTime * 1000
           );
           if (isCancelled) return;
 
@@ -265,8 +267,15 @@ function QuizContent() {
         // --- SENTENCE PART ---
         if (question.jp_ex_statement) {
           if (readingRecordSentence) {
-            await repeatPlayback(() =>
-              playSequence(null, question, { jpEx: true }, { skipSound: true })
+            await repeatPlayback(
+              () =>
+                playSequence(
+                  null,
+                  question,
+                  { jpEx: true },
+                  { skipSound: true }
+                ),
+              readingSentenceRecordTime * 1000
             );
             if (isCancelled) return;
 
