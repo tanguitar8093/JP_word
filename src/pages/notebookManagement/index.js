@@ -236,8 +236,37 @@ const NotebookManagementPage = () => {
 
       alert("Notebooks merged successfully!");
     } catch (error) {
-      alert(`Error merging notebooks: ${error.message}`);
+      alert(`Merging notebooks: ${error.message}`);
     }
+  };
+
+  const handleImportWords = (event) => {
+    if (!selectedNotebook) {
+      alert("Please select a notebook first.");
+      return;
+    }
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedData = JSON.parse(e.target.result);
+        const wordsToImport = importedData.context || [];
+
+        notebookService.importWordsIntoNotebook(
+          selectedNotebook.id,
+          wordsToImport
+        );
+
+        refreshNotebooks(selectedNotebook.id);
+        alert("Words imported successfully!");
+      } catch (error) {
+        alert(`Error importing words: ${error.message}`);
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = null; // Reset file input
   };
 
   const filteredContext =
@@ -333,6 +362,16 @@ const NotebookManagementPage = () => {
                   <Button onClick={handleUpdateName}>更新名稱</Button>
                 </div>
 
+                <div style={{ marginBottom: "20px" }}>
+                  <h4>匯入單字到此筆記本</h4>
+                  <Input
+                    type="file"
+                    accept=".json"
+                    onChange={handleImportWords}
+                    fullWidth
+                  />
+                </div>
+
                 <h3>筆記本資料（JSON）：</h3>
                 <Modal
                   isVisible={modalVisible}
@@ -352,7 +391,9 @@ const NotebookManagementPage = () => {
                   onCancel={() => setModalVisible(false)}
                 />
                 <Button onClick={() => setModalVisible(true)}>編輯</Button>
-                <h3 style={{ marginTop: "24px" }}>單字列表：</h3>
+                <h3 style={{ marginTop: "24px" }}>
+                  單字列表({filteredContext.length})：
+                </h3>
                 <FilterButtons>
                   <Button
                     secondary={proficiencyFilter !== 0}

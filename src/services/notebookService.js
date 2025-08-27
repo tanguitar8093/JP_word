@@ -245,22 +245,31 @@ const notebookService = {
       throw new Error("One or more source notebooks not found.");
     }
 
-    // Use a Map to handle de-duplication based on jp_word
+    // --- De-duplication Logic ---
+    // The following block prevents duplicate words from being added during a merge.
+    // It uses a Map with a composite key of (`jp_word|kanji_jp_word`) to uniquely identify a word.
+    // This ensures that words with the same hiragana but different kanji (e.g., 石 vs 医師) are treated as distinct entries.
+    // The words from the primary notebook are always kept in case of conflict.
     const mergedContextMap = new Map();
+    const getWordKey = (word) => `${word.jp_word}|${word.kanji_jp_word || ""}`;
 
     // Add words from the primary notebook first
     primaryNotebook.context.forEach((word) => {
       if (word.jp_word) {
         // Ensure word is not empty
-        mergedContextMap.set(word.jp_word, word);
+        const key = getWordKey(word);
+        mergedContextMap.set(key, word);
       }
     });
 
     // Add words from source notebooks if they don't already exist
     sourceNotebooks.forEach((notebook) => {
       notebook.context.forEach((word) => {
-        if (word.jp_word && !mergedContextMap.has(word.jp_word)) {
-          mergedContextMap.set(word.jp_word, word);
+        if (word.jp_word) {
+          const key = getWordKey(word);
+          if (!mergedContextMap.has(key)) {
+            mergedContextMap.set(key, word);
+          }
         }
       });
     });
@@ -277,6 +286,50 @@ const notebookService = {
 
     _saveNotebooksToStorage(notebooks);
     return Object.values(notebooks); // Return the new list of all notebooks
+  },
+
+  importWordsIntoNotebook: (notebookId, wordsToImport) => {
+    const notebooks = _getNotebooksFromStorage();
+    const targetNotebook = notebooks[notebookId];
+
+    if (!targetNotebook) {
+      throw new Error("Target notebook not found.");
+    }
+
+    _validateContext(wordsToImport); // Validate the incoming words
+
+    // --- De-duplication Logic ---
+    // The following block prevents duplicate words from being added.
+    // It uses a Map with a composite key of (`jp_word|kanji_jp_word`) to uniquely identify a word.
+    // This ensures that words with the same hiragana but different kanji (e.g., 石 vs 医師) are treated as distinct entries.
+    const contextMap = new Map();
+    const getWordKey = (word) => `${word.jp_word}|${word.kanji_jp_word || ""}`;
+
+    // Add existing words to the map
+    targetNotebook.context.forEach((word) => {
+      if (word.jp_word) {
+        const key = getWordKey(word);
+        contextMap.set(key, word);
+      }
+    });
+
+    // Add new words from the import if they don't already exist
+    wordsToImport.forEach((word) => {
+      if (word.jp_word) {
+        const key = getWordKey(word);
+        if (!contextMap.has(key)) {
+          contextMap.set(key, word);
+        }
+      }
+    });
+
+    const newContext = Array.from(contextMap.values());
+
+    // Update the notebook with the new merged context
+    notebooks[notebookId].context = _ensureContextIds(newContext);
+    _saveNotebooksToStorage(notebooks);
+
+    return notebooks[notebookId];
   },
 
   importNotebook: (file) => {
