@@ -1,270 +1,29 @@
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
 import notebookService from "../../services/notebookService";
 import { useApp } from "../../store/contexts/AppContext";
 import { getNotebooks, setCurrentNotebook } from "../../store/reducer/actions";
-import { AppContainer } from "../../components/App/styles";
+import {
+  Container,
+  Header,
+  BackButton,
+  Section,
+  Input,
+  Button,
+  FlexContainer,
+  SidePanel,
+  MainPanel,
+  NotebookList,
+  NotebookItem,
+  TextArea,
+  FilterButtons,
+  WordList,
+  WordItem,
+  ProficiencyBadge,
+} from "./styles";
 import Modal from "../../components/Modal";
-const Container = styled(AppContainer)`
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  background: transparent;
-  border: none;
-  box-shadow: none;
+import { useNavigate } from "react-router-dom"; // Import useBlocker
 
-  @media (max-width: 768px) {
-    padding: 12px 8px;
-    width: 100%;
-  }
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  width: 100%;
-
-  h1 {
-    margin: 0;
-    font-size: 1.8em;
-    color: #333;
-  }
-
-  @media (max-width: 768px) {
-    h1 {
-      font-size: 1.5em;
-    }
-  }
-`;
-
-const BackButton = styled.button`
-  background: transparent;
-  border: 1px solid #4caf50;
-  color: #4caf50;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: #4caf50;
-    color: white;
-  }
-`;
-
-const Section = styled.div`
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-
-  h2 {
-    margin: 0 0 16px 0;
-    color: #333;
-    font-size: 1.4em;
-  }
-
-  @media (max-width: 768px) {
-    padding: 12px;
-    h2 {
-      font-size: 1.2em;
-    }
-  }
-`;
-
-const Input = styled.input`
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-right: 8px;
-  width: ${(props) => (props.fullWidth ? "100%" : "auto")};
-  max-width: ${(props) => (props.fullWidth ? "100%" : "300px")};
-
-  @media (max-width: 768px) {
-    margin-bottom: 8px;
-    width: 100%;
-  }
-`;
-
-const Button = styled.button`
-  background: #4caf50;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin: 0 4px;
-
-  &:hover {
-    background: #45a049;
-  }
-
-  &:disabled {
-    background: #cccccc;
-    cursor: not-allowed;
-  }
-
-  ${(props) =>
-    props.secondary &&
-    `
-    background: white;
-    border: 1px solid #4CAF50;
-    color: #4CAF50;
-
-    &:hover {
-      background: #f0f0f0;
-    }
-  `}
-
-  ${(props) =>
-    props.danger &&
-    `
-    background: #ff4444;
-    
-    &:hover {
-      background: #cc0000;
-    }
-  `}
-
-  @media (max-width: 768px) {
-    width: 100%;
-    margin: 4px 0;
-  }
-`;
-
-const FlexContainer = styled.div`
-  display: flex;
-  gap: 20px;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
-`;
-
-const SidePanel = styled.div`
-  width: 30%;
-  min-width: 250px;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    min-width: unset;
-  }
-`;
-
-const MainPanel = styled.div`
-  flex: 1;
-`;
-
-const NotebookList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
-
-const NotebookItem = styled.li`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px;
-  margin-bottom: 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: ${(props) => (props.selected ? "#e8f5e9" : "transparent")};
-
-  &:hover {
-    background: #f5f5f5;
-  }
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    text-align: center;
-    gap: 8px;
-  }
-`;
-
-const TextArea = styled.textarea`
-  width: 100%;
-  min-height: 200px;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #f8f8f8;
-  font-family: monospace;
-  margin-bottom: 12px;
-  resize: vertical;
-`;
-
-const FilterButtons = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-
-  @media (max-width: 768px) {
-    flex-wrap: wrap;
-  }
-`;
-
-const WordList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
-
-const WordItem = styled.li`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  margin-bottom: 8px;
-  background: #f8f8f8;
-  border-radius: 4px;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    text-align: center;
-    gap: 8px;
-  }
-`;
-
-const ProficiencyBadge = styled.span`
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 0.8em;
-  background: ${(props) => {
-    switch (props.level) {
-      case 1:
-        return "#ffebee";
-      case 2:
-        return "#fff3e0";
-      case 3:
-        return "#e8f5e9";
-      default:
-        return "#f5f5f5";
-    }
-  }};
-  color: ${(props) => {
-    switch (props.level) {
-      case 1:
-        return "#c62828";
-      case 2:
-        return "#ef6c00";
-      case 3:
-        return "#2e7d32";
-      default:
-        return "#333";
-    }
-  }};
-`;
-
-const NotebookManagementPage = ({ onExit }) => {
+const NotebookManagementPage = () => {
   const { state, dispatch } = useApp();
   const { notebooks, currentNotebookId } = state.shared;
   const [newNotebookName, setNewNotebookName] = useState("");
@@ -273,6 +32,8 @@ const NotebookManagementPage = ({ onExit }) => {
   const [editingContext, setEditingContext] = useState("");
   const [proficiencyFilter, setProficiencyFilter] = useState(0); // 0 for all, 1 for low, 2 for medium, 3 for high
   const [modalVisible, setModalVisible] = useState(false);
+  const navigate = useNavigate();
+
   useEffect(() => {
     const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
     if (currentNotebook) {
@@ -288,6 +49,8 @@ const NotebookManagementPage = ({ onExit }) => {
       notebookService.setCurrentNotebookId(currentId);
     }
   };
+
+  const handleExit = () => navigate("/");
 
   const handleSelectNotebook = (notebook) => {
     setSelectedNotebook(notebook);
@@ -394,7 +157,7 @@ const NotebookManagementPage = ({ onExit }) => {
     <Container>
       <Header>
         <h1>筆記本管理</h1>
-        <BackButton onClick={onExit}>返回</BackButton>
+        <BackButton onClick={handleExit}>返回</BackButton>
       </Header>
 
       <FlexContainer>
