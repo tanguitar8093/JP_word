@@ -32,6 +32,8 @@ const NotebookManagementPage = () => {
   const [editingContext, setEditingContext] = useState("");
   const [proficiencyFilter, setProficiencyFilter] = useState(0); // 0 for all, 1 for low, 2 for medium, 3 for high
   const [modalVisible, setModalVisible] = useState(false);
+  const [isEditWordModalVisible, setIsEditWordModalVisible] = useState(false);
+  const [editingWordJson, setEditingWordJson] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -119,6 +121,37 @@ const NotebookManagementPage = () => {
       alert("Context updated successfully!");
     } catch (error) {
       alert(`Error updating context: ${error.message}`);
+    }
+  };
+
+  const handleEditWord = (word) => {
+    setEditingWordJson(JSON.stringify(word, null, 2));
+    setIsEditWordModalVisible(true);
+  };
+
+  const handleUpdateWord = () => {
+    try {
+      const updatedWord = JSON.parse(editingWordJson);
+      if (!updatedWord || typeof updatedWord !== "object" || !updatedWord.id) {
+        alert("Invalid JSON format or missing word ID.");
+        return;
+      }
+
+      const originalContext = selectedNotebook.context;
+      const contextMap = new Map(originalContext.map((w) => [w.id, w]));
+      contextMap.set(updatedWord.id, updatedWord);
+
+      const finalContext = Array.from(contextMap.values());
+      notebookService.updateNotebook(selectedNotebook.id, {
+        context: finalContext,
+      });
+
+      refreshNotebooks(selectedNotebook.id);
+      setIsEditWordModalVisible(false);
+      setEditingWordJson("");
+      alert("Word updated successfully!");
+    } catch (error) {
+      alert(`Error updating word: ${error.message}`);
     }
   };
 
@@ -309,18 +342,37 @@ const NotebookManagementPage = () => {
                               : "高級"}
                           </ProficiencyBadge>
                         </div>
-                        <Button
-                          danger
-                          onClick={() => handleDeleteWord(word.id)}
-                        >
-                          刪除
-                        </Button>
+                        <div>
+                          <Button onClick={() => handleEditWord(word)}>編輯</Button>
+                          <Button
+                            danger
+                            onClick={() => handleDeleteWord(word.id)}
+                          >
+                            刪除
+                          </Button>
+                        </div>
                       </WordItem>
                     ))}
                   </WordList>
                 ) : (
                   <p>目前沒有符合條件的單字</p>
                 )}
+
+                <Modal
+                  isVisible={isEditWordModalVisible}
+                  message={
+                    <>
+                      <h3>編輯單字</h3>
+                      <TextArea
+                        value={editingWordJson}
+                        onChange={(e) => setEditingWordJson(e.target.value)}
+                        rows={15}
+                      />
+                    </>
+                  }
+                  onConfirm={handleUpdateWord}
+                  onCancel={() => setIsEditWordModalVisible(false)}
+                />
               </>
             ) : (
               <p>請選擇一個筆記本查看詳情</p>
