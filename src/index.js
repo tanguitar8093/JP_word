@@ -57,7 +57,14 @@ const router = createBrowserRouter(
         },
         {
           path: "reading",
-          element: <Reading />,
+          element: (
+            <NavigationBlocker
+              clearOnConfirm
+              message="偵測到尚有未完成的測驗進度，前往『閱讀』將會丟棄進度，是否繼續？"
+            >
+              <Reading />
+            </NavigationBlocker>
+          ),
         },
       ],
     },
