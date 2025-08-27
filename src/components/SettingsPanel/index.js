@@ -285,7 +285,7 @@ export default function SettingsPanel({ context }) {
           </label>
         </div>
       </LabelGroup>
-      {autoProceed !== undefined && !isQuizContext && context !== "reading" && (
+      {autoProceed !== undefined && context !== "reading" && (
         <LabelGroup>
           <SettingTitle>自動下一題：</SettingTitle>
           <label>

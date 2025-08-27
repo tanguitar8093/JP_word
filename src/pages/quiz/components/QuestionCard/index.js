@@ -23,10 +23,13 @@ import {
   ProficiencyButton,
 } from "./styles";
 import ExampleSentence from "../ExampleSentence";
-import AnswerSound from "../AnswerSound";
 import AudioRecorderPage from "../../../AudioRecorder";
 
-export default function QuestionCard({ speakManually, question }) {
+export default function QuestionCard({
+  speakManually,
+  question,
+  cancelPlayback,
+}) {
   const { state, dispatch } = useApp(); // Changed from useQuiz
   const { questions, currentQuestionIndex, selectedAnswer, result } =
     state.quiz;
@@ -38,7 +41,10 @@ export default function QuestionCard({ speakManually, question }) {
 
   useEffect(() => {
     setShowHiragana(false);
-  }, [q]);
+    if (q && q.jp_word) {
+      speakManually(q.jp_word, "ja");
+    }
+  }, [q, speakManually]);
 
   const handleCheckAnswer = (answer) => {
     dispatch(checkAnswer(answer));

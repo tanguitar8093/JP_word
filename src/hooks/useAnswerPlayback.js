@@ -20,8 +20,10 @@ export function useAnswerPlayback({
   }, [question]);
 
   const cancelPlayback = useCallback(() => {
+    console.log("???");
     window.speechSynthesis.cancel();
     if (playbackRef.current) {
+      console.log("!!!");
       playbackRef.current.cancelled = true;
     }
   }, []);
