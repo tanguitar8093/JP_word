@@ -133,6 +133,25 @@ const NotebookManagementPage = () => {
     }
   };
 
+  const handleExport = (notebookId) => {
+    const notebook = notebooks.find((n) => n.id === notebookId);
+    if (!notebook) {
+      alert("Notebook not found!");
+      return;
+    }
+
+    const jsonString = JSON.stringify(notebook, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${notebook.name}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleImport = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -199,6 +218,7 @@ const NotebookManagementPage = () => {
                     <span onClick={() => handleSelectNotebook(notebook)}>
                       {notebook.name}
                     </span>
+                    <Button onClick={() => handleExport(notebook.id)}>匯出</Button>
                     <Button
                       danger
                       onClick={() => handleDeleteNotebook(notebook.id)}
