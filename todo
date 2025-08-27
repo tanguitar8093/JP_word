@@ -1,19 +1,9 @@
-自動播放功能播放節奏調整
-- 沒開錄音功能的情況(參數: !readingRecordWord && !readingRecordSentence):
-若重複次數(參數:readingPlaybackRepeatCount)>1, 播放間隔時間調整為: 
-每個單字朗讀完 + 單字錄音秒數(readingWordRecordTime) 秒,
-句子朗讀完 + 句子錄音秒數(readingSentenceRecordTime) 秒,
-
-- 有開錄音功能的情況(參數: readingRecordWord || readingRecordSentence):
-若重複次數(參數:readingPlaybackRepeatCount)>1, 播放間隔時間調整為: 
-每個單字朗讀完 + 單字錄音秒數(readingWordRecordTime) 秒,
-句子朗讀完 + 句子錄音秒數(readingSentenceRecordTime) 秒,
-錄音播放結束後，語音播放次數固定為一次，例如：使用者錄音完畢後，系統僅播放一次正確語音作為比對，且此播放次數不會因錄音秒數(readingWordRecordTime, readingSentenceRecordTime)而增加。
-(因為錄音功能會需要使用者時間去錄音, 所以不適合在錄音後面再重複播放多次)
 
 
-重複播放次數邏輯測試
-是否要固定跟讀學習模式
+
+
+
+
 離開程式能紀錄題目進度
 若題目未完成不能去其他頁面
 設定是否需獨立設一個頁面, 放棄懸浮式窗
@@ -49,3 +39,18 @@
 - 擴充例句:limit 3, str-> array [low] 
 - 顯示卡片內容: 例句,補充(未實作)[low]
 
+自動播放功能播放節奏調整
+- 沒開錄音功能的情況(參數: !readingRecordWord && !readingRecordSentence):
+若重複次數(參數:readingPlaybackRepeatCount)>1, 播放間隔時間調整為: 
+每個單字朗讀完 + 單字錄音秒數(readingWordRecordTime) 秒,
+句子朗讀完 + 句子錄音秒數(readingSentenceRecordTime) 秒,
+
+- 有開錄音功能的情況(參數: readingRecordWord || readingRecordSentence):
+若重複次數(參數:readingPlaybackRepeatCount)>1, 播放間隔時間調整為: 
+每個單字朗讀完 + 單字錄音秒數(readingWordRecordTime) 秒,
+句子朗讀完 + 句子錄音秒數(readingSentenceRecordTime) 秒,
+錄音播放結束後，語音播放次數固定為一次，例如：使用者錄音完畢後，系統僅播放一次正確語音作為比對，且此播放次數不會因錄音秒數(readingWordRecordTime, readingSentenceRecordTime)而增加。
+(因為錄音功能會需要使用者時間去錄音, 所以不適合在錄音後面再重複播放多次)
+
+
+重複播放次數邏輯測試

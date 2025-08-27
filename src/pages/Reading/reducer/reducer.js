@@ -8,44 +8,11 @@ const initialState = {
   quizCompleted: false, // (from useQuizGame)
 };
 
-const createRandomQuestions = (questions) => {
-  function shuffleArray(array) {
-    const arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }
-
-  return questions.map((q) => ({ ...q, options: shuffleArray(q.options) }));
-};
-
-const sortQuestions = (questions, sortOrder) => {
-  let sortedQuestions = [...questions];
-
-  if (sortOrder === "random") {
-    // Shuffle the questions array
-    for (let i = sortedQuestions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [sortedQuestions[i], sortedQuestions[j]] = [
-        sortedQuestions[j],
-        sortedQuestions[i],
-      ];
-    }
-  } else if (sortOrder === "aiueo") {
-    sortedQuestions.sort((a, b) => a.jp_word.localeCompare(b.jp_word, "ja"));
-  } else if (sortOrder === "none") {
-    // Do nothing
-  }
-
-  // After sorting questions, shuffle options for each question
-  return createRandomQuestions(sortedQuestions);
-};
+import { sortQuestions } from '../../../utils/questionUtils';
 
 function reducer(state = initialState, action) {
   switch (action.type) {
-    case "quiz/START_QUIZ":
+  case "reading/START":
       const { questions, sortOrder } = action.payload;
       return {
         ...state,
@@ -57,7 +24,7 @@ function reducer(state = initialState, action) {
         answeredQuestions: [],
         quizCompleted: false,
       };
-    case "quiz/CHECK_ANSWER": {
+  case "reading/CHECK": {
       const currentQuestion = state.questions[state.currentQuestionIndex];
       const isCorrect = action.payload === currentQuestion.ch_word; // Check against ch_word from useQuizGame
       const newAnsweredQuestions = [
@@ -74,7 +41,7 @@ function reducer(state = initialState, action) {
         answeredQuestions: newAnsweredQuestions,
       };
     }
-    case "quiz/NEXT_QUESTION_GAME": {
+  case "reading/NEXT": {
       // This action advances the question in the game flow
       const nextQuestionIndex = state.currentQuestionIndex + 1;
       const quizCompleted = nextQuestionIndex >= state.questions.length;
@@ -88,7 +55,7 @@ function reducer(state = initialState, action) {
         quizCompleted: quizCompleted,
       };
     }
-    case "quiz/RESTART_QUIZ": // This action restarts the quiz from the beginning
+  case "reading/RESTART": // Restart reading session
       // Reset all quiz-specific state to initial, but keep the loaded questions
       return { ...initialState, questions: state.questions };
     default:
