@@ -42,21 +42,39 @@ const HomeIcon = styled(SettingsToggle)`
 `;
 
 const MinimalistButton = styled.button`
-  font-size: 1.5rem;
-  padding: 15px 30px;
+  font-size: 12px;
+  padding: 10px 16px;
   cursor: pointer;
-  border-radius: 8px;
-  border: 2px solid #333;
+  border-radius: 18px;
+  border: 1.5px solid gray;
   background-color: white;
-  color: #333;
-  margin: 20px;
-  font-weight: bold;
-  transition: all 0.2s ease-in-out;
+  // color: #007bff;
+  margin: 8px 0 8px 8px; /* 上 右 下 左 間距，與左上角保持微小間隔 */
+  // font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  max-width: fit-content;
 
   &:hover {
-    background-color: #f0f0f0;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    background-color: #f0f8ff;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 123, 255, 0.15);
+  }
+
+  &:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(0, 123, 255, 0.15);
+  }
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+    padding: 5px 10px;
+    margin: 6px 0 6px 6px;
+    border-radius: 14px;
   }
 `;
 
@@ -149,7 +167,8 @@ function QuizContent() {
   });
 
   const playBeep = () => {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const audioContext = new (window.AudioContext ||
+      window.webkitAudioContext)();
     if (!audioContext) return;
 
     const oscillator = audioContext.createOscillator();
@@ -158,7 +177,7 @@ function QuizContent() {
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
-    oscillator.type = 'sine';
+    oscillator.type = "sine";
     oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 pitch
     gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
 
@@ -179,7 +198,14 @@ function QuizContent() {
 
     const autoPlaySequence = async () => {
       try {
-        if (quizCompleted || !question || readingStudyMode !== 'auto' || !isAutoPlayActive || isSequencePaused) return;
+        if (
+          quizCompleted ||
+          !question ||
+          readingStudyMode !== "auto" ||
+          !isAutoPlayActive ||
+          isSequencePaused
+        )
+          return;
 
         const repeatPlayback = async (playbackFn) => {
           for (let i = 0; i < readingPlaybackRepeatCount; i++) {
@@ -189,7 +215,9 @@ function QuizContent() {
         };
 
         // --- WORD PART ---
-        await repeatPlayback(() => playSequence(null, question, { jp: true }, { skipSound: true }));
+        await repeatPlayback(() =>
+          playSequence(null, question, { jp: true }, { skipSound: true })
+        );
         if (isCancelled) return;
 
         if (readingRecordWord) {
@@ -211,7 +239,9 @@ function QuizContent() {
           if (recorderRef.current) await recorderRef.current.play();
           if (isCancelled) return;
 
-          await repeatPlayback(() => playSequence(null, question, { jp: true }, { skipSound: true }));
+          await repeatPlayback(() =>
+            playSequence(null, question, { jp: true }, { skipSound: true })
+          );
           if (isCancelled) return;
         } else {
           await cancellableWait(1000);
@@ -223,12 +253,9 @@ function QuizContent() {
 
         // --- SENTENCE PART ---
         if (question.jp_ex_statement) {
-          await repeatPlayback(() => playSequence(
-            null,
-            question,
-            { jpEx: true },
-            { skipSound: true }
-          ));
+          await repeatPlayback(() =>
+            playSequence(null, question, { jpEx: true }, { skipSound: true })
+          );
           if (isCancelled) return;
 
           if (readingRecordSentence) {
@@ -238,26 +265,21 @@ function QuizContent() {
               if (isCancelled) return;
             }
 
-            if (recorderRef.current)
-              await recorderRef.current.startRecording();
+            if (recorderRef.current) await recorderRef.current.startRecording();
             if (isCancelled) return;
 
             await cancellableWait(readingSentenceRecordTime * 1000);
             if (isCancelled) return;
 
-            if (recorderRef.current)
-              await recorderRef.current.stopRecording();
+            if (recorderRef.current) await recorderRef.current.stopRecording();
             if (isCancelled) return;
 
             if (recorderRef.current) await recorderRef.current.play();
             if (isCancelled) return;
 
-            await repeatPlayback(() => playSequence(
-              null,
-              question,
-              { jpEx: true },
-              { skipSound: true }
-            ));
+            await repeatPlayback(() =>
+              playSequence(null, question, { jpEx: true }, { skipSound: true })
+            );
             if (isCancelled) return;
           } else {
             await cancellableWait(1000);
@@ -295,8 +317,24 @@ function QuizContent() {
       }
       cancelPlayback(); // Stop any ongoing speech
     };
-  }, [currentQuestionIndex, readingStudyMode, readingRecordWord, readingRecordSentence, readingPlayBeep, readingWordRecordTime, readingSentenceRecordTime, readingPlaybackRepeatCount, quizCompleted, dispatch, playSequence, question, playbackOptions, cancelPlayback, isAutoPlayActive, isSequencePaused]);
-
+  }, [
+    currentQuestionIndex,
+    readingStudyMode,
+    readingRecordWord,
+    readingRecordSentence,
+    readingPlayBeep,
+    readingWordRecordTime,
+    readingSentenceRecordTime,
+    readingPlaybackRepeatCount,
+    quizCompleted,
+    dispatch,
+    playSequence,
+    question,
+    playbackOptions,
+    cancelPlayback,
+    isAutoPlayActive,
+    isSequencePaused,
+  ]);
 
   const handleStartAutoPlay = async () => {
     if (recorderRef.current) {
@@ -353,12 +391,20 @@ function QuizContent() {
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
 
-      {readingStudyMode === 'auto' && !isAutoPlayActive && (
-        <MinimalistButton onClick={handleStartAutoPlay}>開始播放 ▶</MinimalistButton>
+      {readingStudyMode === "auto" && !isAutoPlayActive && (
+        <MinimalistButton onClick={handleStartAutoPlay}>
+          <span>開始</span>
+          <span style={{ fontSize: "0.95em", fontWeight: "bold" }}>▶</span>
+        </MinimalistButton>
       )}
-      {readingStudyMode === 'auto' && isAutoPlayActive && (
-        <MinimalistButton onClick={() => setIsSequencePaused(!isSequencePaused)}>
-          {isSequencePaused ? "繼續 ▶" : "暫停 ⏸"}
+      {readingStudyMode === "auto" && isAutoPlayActive && (
+        <MinimalistButton
+          onClick={() => setIsSequencePaused(!isSequencePaused)}
+        >
+          <span>{isSequencePaused ? "繼續" : "暫停"}</span>
+          <span style={{ fontSize: "0.95em", fontWeight: "bold" }}>
+            {isSequencePaused ? "▶" : "⏸"}
+          </span>
         </MinimalistButton>
       )}
 
@@ -370,7 +416,7 @@ function QuizContent() {
         studyMode={readingStudyMode}
         playbackOptions={playbackOptions}
         playSequence={playSequence}
-        isPaused={readingStudyMode === 'auto' && !isAutoPlayActive}
+        isPaused={readingStudyMode === "auto" && !isAutoPlayActive}
       />
 
       <Modal
