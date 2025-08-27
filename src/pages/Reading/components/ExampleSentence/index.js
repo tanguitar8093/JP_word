@@ -5,21 +5,25 @@ export default function ExampleSentence({
   ch_ex,
   speak,
   jp_ex_context,
+  wordType,
 }) {
+  console.log("wordType in ExampleSentence:", wordType);
   return (
     <Container>
       <LabelRow>例句（日）:</LabelRow>
       <TextRow>
-        {jp_ex_context.map((part, index) =>
-          part.kanji ? (
-            <ruby key={index}>
-              {part.kanji}
-              <rt>{part.hiragana}</rt>
-            </ruby>
-          ) : (
-            <span key={index}>{part.hiragana}</span>
-          )
-        )}
+        {wordType == "jp_context" &&
+          jp_ex_context.map((part, index) =>
+            part.kanji ? (
+              <ruby key={index}>
+                {part.kanji}
+                <rt>{part.hiragana}</rt>
+              </ruby>
+            ) : (
+              <span key={index}>{part.hiragana}</span>
+            )
+          )}
+        {wordType != "jp_context" && <span>{jp_ex}</span>}
         <SpeakButton onClick={() => speak(jp_ex, "ja")}>🔊</SpeakButton>
       </TextRow>
       <LabelRow>{ch_ex}</LabelRow>
