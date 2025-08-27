@@ -1,3 +1,23 @@
+quiz 自動記錄進度功能
+high level說明: 
+- 這邊 localstorage 簡稱 QuizProgessSave,有更好的命名再幫我想
+- 每題答題完成, 會自動存入當下 reducer state 到 QuizProgessSave, 目的是再次紀錄後可以重現題目, 只有在答題同時才會建立或更新, 
+剩下情況都不准動作, 確保來源可控
+- 常規清除 QuizProgessSave 情況: 
+    - 主動結束題目: handleConfirmExit, 
+    - 結束測驗: handleEndQuiz
+- 在 QuizProgessSave 存在的情況下, 是不能進入設定頁面和筆記本頁面的, 你幫我選一個適當的方案來處理這個情境
+    - 會用 Modal提示: 請先結束題目, 然後直接導到 quiz 讓他作答
+    - 是否結束題目: 清除 QuizProgessSave => 回到首頁 => 重新整理頁面
+- 請用擴充功能的方式來修改 quiz, 不要大改造成結構功能不可控, 我很難處理, solid 會吧
+- 預期邏輯是: 每次進入 quiz 頁面都會先檢查是否有 QuizProgessSave, 有就把 state/reducer 狀態全部載入和 QuizProgessSave 同步
+沒有就執行現在程式既有的功能
+
+若 quiz 試成功, 我們再來套用在 reading 上, 這步驟先不用做 reading
+==> 
+我原本的想法是 你 localstorage 就原封不動儲存 reducer 狀態, 看起來你是想存成一個比較輕量的格式, 再想一層邏輯還原狀態是嗎?
+
+----
 reading 和 quiz 有很多相似之處,
 原因是 reading 是從 quiz 複製過來, 
 這導致有些通用功能要改我就得改兩分, 
@@ -5,3 +25,6 @@ reading 和 quiz 有很多相似之處,
 重構把通用部分分離, reducer 部分 reading 也要獨立出來, 
 現在的命名有問題 和 quiz 重疊, 
 請遵守 solid 方式謹慎重構, 不要改壞程式
+==> 重構後還沒問題, 觀察中
+==> 只是抽出 sort 方法, 還有更改 reading actions/reducer
+==> 其餘 UI 皆沒動到 (待評估有沒有需要)

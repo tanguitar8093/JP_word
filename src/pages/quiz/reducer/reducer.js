@@ -12,6 +12,27 @@ import { sortQuestions } from "../../../utils/questionUtils";
 
 function reducer(state = initialState, action) {
   switch (action.type) {
+    case "quiz/LOAD_PROGRESS": {
+      const {
+        questions,
+        currentIndex,
+        results,
+      } = action.payload;
+      const answered = results.map((isCorrect, i) => ({
+        question: questions[i],
+        isCorrect,
+      }));
+      return {
+        ...state,
+        questions,
+        currentQuestionIndex: currentIndex,
+        selectedAnswer: "",
+        result: null,
+        correctAnswersCount: results.filter(Boolean).length,
+        answeredQuestions: answered,
+        quizCompleted: currentIndex >= questions.length,
+      };
+    }
     case "quiz/START_QUIZ":
       const { questions, sortOrder } = action.payload;
       return {

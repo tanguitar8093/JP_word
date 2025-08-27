@@ -22,6 +22,10 @@ import {
   startQuiz,
 } from "../../../../pages/quiz/reducer/actions"; // Import quiz actions
 
+import quizProgressService from "../../../../services/quizProgressService";
+import notebookService from "../../../../services/notebookService";
+import { setCurrentNotebook } from "../../../../store/reducer/actions";
+
 import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actions"; // Import commitPendingProficiencyUpdates
 
 const IconContainer = styled.div`
@@ -93,6 +97,8 @@ function QuizContent() {
     .join(", ");
 
   const handleConfirmExit = useCallback(() => {
+  // Clear saved progress when user decides to exit
+  quizProgressService.clearProgress();
     dispatch(commitPendingProficiencyUpdates()); // Commit changes before exiting
     dispatch(restartQuiz());
     blocker.proceed();
@@ -241,6 +247,7 @@ export default function Quiz() {
     wordType,
   } = state.systemSettings; // Destructure new settings
   const [emptyAlert, setEmptyAlert] = useState(false);
+  const [hydratedFromProgress, setHydratedFromProgress] = useState(false);
   const navigate = useNavigate();
 
   const { playSequence } = useAnswerPlayback({
@@ -263,8 +270,52 @@ export default function Quiz() {
     [playSequence]
   );
 
+  // Hydrate from saved progress if any
   useEffect(() => {
-    if (!quizCompleted) {
+    if (quizCompleted) return;
+    const saved = quizProgressService.loadProgress();
+    if (!saved) return;
+    if (!notebooks || notebooks.length === 0) return; // wait until notebooks are loaded
+
+    const { notebookId: savedNotebookId, questionIds, currentIndex, results } = saved;
+
+    // Ensure current notebook matches saved
+    if (savedNotebookId && savedNotebookId !== currentNotebookId) {
+      dispatch(setCurrentNotebook(savedNotebookId));
+      notebookService.setCurrentNotebookId(savedNotebookId);
+    }
+
+    const nb = notebooks.find((n) => n.id === savedNotebookId);
+    if (!nb) return; // don't clear here; only clear on explicit exit/end
+
+    const byId = new Map((nb.context || []).map((w) => [w.id, w]));
+    const restoredQuestions = (questionIds || [])
+      .map((id) => byId.get(id))
+      .filter(Boolean);
+
+    if (restoredQuestions.length === 0) return; // fallback to normal flow; keep progress for now
+
+    const clampedIndex = Math.min(Math.max(0, currentIndex || 0), restoredQuestions.length);
+    const trimmedResults = Array.isArray(results)
+      ? results.slice(0, clampedIndex)
+      : [];
+
+    dispatch({
+      type: "quiz/LOAD_PROGRESS",
+      payload: {
+        questions: restoredQuestions,
+        currentIndex: clampedIndex,
+        results: trimmedResults,
+      },
+    });
+    setHydratedFromProgress(true);
+  }, [quizCompleted, notebooks, currentNotebookId, dispatch]);
+
+  useEffect(() => {
+    if (!quizCompleted && !hydratedFromProgress) {
+      // If there is valid saved progress for an existing notebook, skip normal initialization to avoid race
+      const saved = quizProgressService.loadProgress();
+      if (saved && notebooks && notebooks.some((n) => n.id === saved.notebookId)) return;
       const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
       if (currentNotebook) {
         let questions = currentNotebook.context.filter((q) => {
@@ -291,12 +342,33 @@ export default function Quiz() {
     currentNotebookId,
     dispatch,
     quizCompleted,
+    hydratedFromProgress,
     proficiencyFilter,
     notebooks,
     startQuestionIndex,
     wordRangeCount,
     sortOrder,
   ]);
+
+  // Auto-save progress when moving to next question (index increases)
+  const prevIndexRef = React.useRef(state.quiz.currentQuestionIndex);
+  useEffect(() => {
+    const idx = state.quiz.currentQuestionIndex;
+    const prev = prevIndexRef.current;
+    prevIndexRef.current = idx;
+    if (quizCompleted) return;
+    if (idx > prev && state.quiz.questions.length > 0) {
+      const questionIds = state.quiz.questions.map((q) => q.id);
+      const results = state.quiz.answeredQuestions.map((a) => a.isCorrect);
+      quizProgressService.saveProgress({
+        notebookId: state.shared.currentNotebookId,
+        questionIds,
+        currentIndex: idx,
+        results,
+        sortOrder,
+      });
+    }
+  }, [state.quiz.currentQuestionIndex, state.quiz.questions, state.quiz.answeredQuestions, quizCompleted, sortOrder, state.shared.currentNotebookId]);
 
   if (quizCompleted) {
     // Use quizCompleted from global state

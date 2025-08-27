@@ -8,6 +8,7 @@ import Quiz from "./pages/quiz/components/Quiz";
 
 import SystemSettingsPage from "./pages/systemSettings";
 import NotebookManagementPage from "./pages/notebookManagement";
+import NavigationBlocker from "./components/NavigationBlocker";
 import AudioRecorderPage from "./pages/AudioRecorder";
 import Reading from "./pages/Reading/components/Reading";
 
@@ -30,11 +31,19 @@ const router = createBrowserRouter(
         },
         {
           path: "notebook-management",
-          element: <NotebookManagementPage />,
+          element: (
+            <NavigationBlocker>
+              <NotebookManagementPage />
+            </NavigationBlocker>
+          ),
         },
         {
           path: "settings",
-          element: <SystemSettingsPage />,
+          element: (
+            <NavigationBlocker>
+              <SystemSettingsPage />
+            </NavigationBlocker>
+          ),
         },
         {
           path: "recorder",
