@@ -162,7 +162,7 @@ const ReadingCard = forwardRef(
         {isAnswerVisible && (
           <ResultContainer>
             <SubCard>
-              <AnswerText correct={result === "⭕"}>
+              <AnswerText correct>
                 {q.ch_word} [{q.type}]
               </AnswerText>
             </SubCard>
