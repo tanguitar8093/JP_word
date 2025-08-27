@@ -7,7 +7,6 @@ export default function ExampleSentence({
   jp_ex_context,
   wordType,
 }) {
-  console.log("wordType in ExampleSentence:", wordType);
   return (
     <Container>
       <LabelRow>例句（日）:</LabelRow>

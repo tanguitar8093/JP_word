@@ -337,11 +337,13 @@ function QuizContent() {
   ]);
 
   const handleStartAutoPlay = async () => {
-    if (recorderRef.current) {
+    if (recorderRef.current && (readingRecordWord || readingRecordSentence)) {
       const stream = await recorderRef.current.getMicrophonePermission();
       if (stream) {
         setIsAutoPlayActive(true);
       }
+    } else {
+      setIsAutoPlayActive(true);
     }
   };
 
