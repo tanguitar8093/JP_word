@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { useNavigate, useBlocker } from "react-router-dom"; // Import useBlocker
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../../../../store/contexts/AppContext"; // Changed from QuizContext
 import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
 import ReadingCard from "../ReadingCard";
@@ -14,6 +14,7 @@ import {
   FloatingSettingsPanel,
   InfoToggle,
   Overlay,
+  BackPage,
 } from "../../../../components/App/styles";
 import styled from "styled-components";
 import {
@@ -94,8 +95,6 @@ function QuizContent() {
   const [showSettings, setShowSettings] = useState(false);
   const [showExitConfirmModal, setShowExitConfirmModal] = useState(false); // State for modal visibility
   const [showInfoModal, setShowInfoModal] = useState(false); // New state for info modal
-  const [showPauseConfirmModal, setShowPauseConfirmModal] = useState(false); // State for modal visibility
-  const [exitQuiz, setExitQuiz] = useState(false);
   const navigate = useNavigate();
   const recorderRef = useRef(null);
   const [isAutoPlayActive, setIsAutoPlayActive] = useState(false);
@@ -121,7 +120,6 @@ function QuizContent() {
   } = state.systemSettings;
   const { notebooks, currentNotebookId } = state.shared;
   const question = questions[currentQuestionIndex];
-  const blocker = useBlocker(!quizCompleted);
 
   const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
   const notebookName = currentNotebook ? currentNotebook.name : "";
@@ -134,29 +132,14 @@ function QuizContent() {
   const handleConfirmExit = useCallback(() => {
     dispatch(commitPendingProficiencyUpdates()); // Commit changes before exiting
     dispatch(restartQuiz());
-    blocker.proceed();
     setShowExitConfirmModal(false);
+    navigate("/");
     window.location.reload();
-  }, [blocker, dispatch]);
-
-  const handleConfirmPause = useCallback(() => {
-    blocker.proceed();
-    setShowPauseConfirmModal(false);
-  }, [blocker, dispatch]);
+  }, [dispatch, navigate]);
 
   const handleCancelExit = useCallback(() => {
-    blocker.reset();
     setShowExitConfirmModal(false);
-    setExitQuiz(false);
-  }, [blocker]);
-
-  useEffect(() => {
-    if (blocker.state === "blocked" && !exitQuiz) {
-      setShowPauseConfirmModal(true);
-    } else if (blocker.state === "blocked" && exitQuiz) {
-      setShowExitConfirmModal(true); // Show modal    instead of alert
-    }
-  }, [blocker]);
+  }, []);
 
   const { playSequence, cancelPlayback } = useAnswerPlayback({
     result,
@@ -387,23 +370,21 @@ function QuizContent() {
 
   return (
     <AppContainer>
-      <IconContainer>
+  <IconContainer>
         <IconGroup>
           <SettingsToggle onClick={() => setShowSettings((s) => !s)}>
             ⚙️
           </SettingsToggle>
           <HomeIcon
-            onClick={() => {
-              setExitQuiz(true);
-              navigate("/");
-            }}
+    onClick={() => setShowExitConfirmModal(true)}
           >
             ↩️
           </HomeIcon>
           <InfoToggle onClick={() => setShowInfoModal(true)}>ℹ️</InfoToggle>
+          <BackPage onClick={() => navigate("/")}>🏠</BackPage>
         </IconGroup>
       </IconContainer>
-      {showSettings && (
+  {showSettings && (
         <>
           <Overlay onClick={() => setShowSettings(false)} />
           <FloatingSettingsPanel>
@@ -452,12 +433,7 @@ function QuizContent() {
         isVisible={showExitConfirmModal}
       />
 
-      <Modal
-        message="提醒: 若有標記熟練度, 需結束測驗才會儲存"
-        onConfirm={handleConfirmPause}
-        disableCancel
-        isVisible={showPauseConfirmModal}
-      />
+  {/* Pause confirm removed with blocker */}
 
       <Modal
         message={
