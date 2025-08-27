@@ -230,6 +230,55 @@ const notebookService = {
     return notebooks[notebookId].context[wordIndex];
   },
 
+  mergeNotebooks: ({ primaryNotebookId, sourceNotebookIds }) => {
+    const notebooks = _getNotebooksFromStorage();
+
+    const primaryNotebook = notebooks[primaryNotebookId];
+    if (!primaryNotebook) {
+      throw new Error("Primary notebook not found.");
+    }
+
+    const sourceNotebooks = sourceNotebookIds
+      .map((id) => notebooks[id])
+      .filter(Boolean);
+    if (sourceNotebooks.length !== sourceNotebookIds.length) {
+      throw new Error("One or more source notebooks not found.");
+    }
+
+    // Use a Map to handle de-duplication based on jp_word
+    const mergedContextMap = new Map();
+
+    // Add words from the primary notebook first
+    primaryNotebook.context.forEach((word) => {
+      if (word.jp_word) {
+        // Ensure word is not empty
+        mergedContextMap.set(word.jp_word, word);
+      }
+    });
+
+    // Add words from source notebooks if they don't already exist
+    sourceNotebooks.forEach((notebook) => {
+      notebook.context.forEach((word) => {
+        if (word.jp_word && !mergedContextMap.has(word.jp_word)) {
+          mergedContextMap.set(word.jp_word, word);
+        }
+      });
+    });
+
+    const mergedContext = Array.from(mergedContextMap.values());
+
+    // Update the primary notebook
+    notebooks[primaryNotebookId].context = _ensureContextIds(mergedContext);
+
+    // Delete the source notebooks
+    sourceNotebookIds.forEach((id) => {
+      delete notebooks[id];
+    });
+
+    _saveNotebooksToStorage(notebooks);
+    return Object.values(notebooks); // Return the new list of all notebooks
+  },
+
   importNotebook: (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();

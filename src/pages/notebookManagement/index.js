@@ -34,6 +34,7 @@ const NotebookManagementPage = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [isEditWordModalVisible, setIsEditWordModalVisible] = useState(false);
   const [editingWordJson, setEditingWordJson] = useState("");
+  const [mergeSelection, setMergeSelection] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -199,6 +200,46 @@ const NotebookManagementPage = () => {
     event.target.value = null;
   };
 
+  const handleMergeSelectionChange = (notebookId) => {
+    setMergeSelection((prevSelection) => {
+      if (prevSelection.includes(notebookId)) {
+        return prevSelection.filter((id) => id !== notebookId);
+      } else {
+        return [...prevSelection, notebookId];
+      }
+    });
+  };
+
+  const handleMergeNotebooks = () => {
+    if (mergeSelection.length < 2) {
+      alert("Please select at least two notebooks to merge.");
+      return;
+    }
+
+    if (
+      !window.confirm(
+        "Are you sure you want to merge the selected notebooks? The non-primary notebooks will be deleted."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const [primaryNotebookId, ...sourceNotebookIds] = mergeSelection;
+      notebookService.mergeNotebooks({ primaryNotebookId, sourceNotebookIds });
+
+      // Refresh the notebooks list in the UI
+      refreshNotebooks(primaryNotebookId); // Select the merged notebook
+
+      // Clear the selection
+      setMergeSelection([]);
+
+      alert("Notebooks merged successfully!");
+    } catch (error) {
+      alert(`Error merging notebooks: ${error.message}`);
+    }
+  };
+
   const filteredContext =
     selectedNotebook?.context.filter((word) => {
       if (proficiencyFilter === 0) return true;
@@ -248,6 +289,12 @@ const NotebookManagementPage = () => {
                     key={notebook.id}
                     selected={currentNotebookId === notebook.id}
                   >
+                    <input
+                      type="checkbox"
+                      checked={mergeSelection.includes(notebook.id)}
+                      onChange={() => handleMergeSelectionChange(notebook.id)}
+                      onClick={(e) => e.stopPropagation()} // Prevent triggering handleSelectNotebook
+                    />
                     <span onClick={() => handleSelectNotebook(notebook)}>
                       {notebook.name}
                     </span>
@@ -261,6 +308,11 @@ const NotebookManagementPage = () => {
                   </NotebookItem>
                 ))}
               </NotebookList>
+            )}
+            {mergeSelection.length > 1 && (
+              <Button onClick={handleMergeNotebooks} style={{ marginTop: "10px" }}>
+                合併選取項目 ({mergeSelection.length})
+              </Button>
             )}
           </Section>
         </SidePanel>
