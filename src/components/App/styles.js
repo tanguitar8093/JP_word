@@ -67,6 +67,25 @@ export const InfoToggle = styled.span`
   }
 `;
 
+export const BackPage = styled.span`
+  cursor: pointer;
+  font-size: 20px;
+  user-select: none;
+  transition: all 0.2s ease, transform 0.1s;
+  position: absolute;
+  top: 10px;
+  right: 80px;
+  z-index: 100;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+`;
+
 // 懸浮設定面板
 export const FloatingSettingsPanel = styled.div`
   position: absolute;

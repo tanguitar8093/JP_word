@@ -44,13 +44,13 @@ export const HeaderItem = styled.div`
   text-align: center; /* Default center alignment */
 
   &:first-child {
-  flex-grow: 1; /* 單字 */
-  text-align: center;
+    flex-grow: 1; /* 單字 */
+    text-align: center;
   }
 
   &:nth-child(2) {
-  flex: 0 0 100px; /* 熟練度固定寬度 */
-  text-align: right;
+    flex: 0 0 100px; /* 熟練度固定寬度 */
+    text-align: right;
   }
 `;
 

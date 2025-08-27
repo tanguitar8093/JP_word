@@ -19,15 +19,21 @@ import {
   SpeakButton,
 } from "./styles";
 
-const StatisticsPage = ({ answeredQuestions, correctAnswersCount, speakManually, wordType }) => {
+const StatisticsPage = ({
+  answeredQuestions,
+  correctAnswersCount,
+  speakManually,
+  wordType,
+}) => {
   const navigate = useNavigate();
   const { state, dispatch } = useApp(); // Get dispatch from useApp
   const { currentNotebookId, pendingProficiencyUpdates } = state.shared; // Get pendingProficiencyUpdates
 
   // Prepare base items; fallback if answeredQuestions is empty
-  const baseItems = (answeredQuestions && answeredQuestions.length > 0)
-    ? answeredQuestions
-    : (state.quiz?.questions || []).map((q) => ({ question: q }));
+  const baseItems =
+    answeredQuestions && answeredQuestions.length > 0
+      ? answeredQuestions
+      : (state.quiz?.questions || []).map((q) => ({ question: q }));
 
   // Initialize localAnsweredQuestions by applying pendingProficiencyUpdates
   const initialAnsweredQuestions = baseItems.map((item) => {
@@ -80,7 +86,7 @@ const StatisticsPage = ({ answeredQuestions, correctAnswersCount, speakManually,
 
   return (
     <StatisticsContainer>
-  <ScoreDisplay>朗讀單字數量: {totalQuestions}</ScoreDisplay>
+      <ScoreDisplay>朗讀單字數量: {totalQuestions}</ScoreDisplay>
       <HeaderContainer>
         <HeaderItem>單字</HeaderItem>
         <HeaderItem>熟練度</HeaderItem>

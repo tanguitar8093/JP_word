@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useNavigate, useBlocker } from "react-router-dom"; // Import useBlocker
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../../../../store/contexts/AppContext"; // Changed from QuizContext
 import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
 import QuestionCard from "../QuestionCard";
@@ -14,6 +14,7 @@ import {
   FloatingSettingsPanel,
   InfoToggle,
   Overlay,
+  BackPage,
 } from "../../../../components/App/styles";
 import styled from "styled-components";
 import {
@@ -68,8 +69,6 @@ function QuizContent() {
   const [showSettings, setShowSettings] = useState(false);
   const [showExitConfirmModal, setShowExitConfirmModal] = useState(false); // State for modal visibility
   const [showInfoModal, setShowInfoModal] = useState(false); // New state for info modal
-  const [showPauseConfirmModal, setShowPauseConfirmModal] = useState(false); // State for modal visibility
-  const [exitQuiz, setExitQuiz] = useState(false);
   const navigate = useNavigate();
 
   // Correct: Get state and dispatch from the context using useApp hook
@@ -86,7 +85,6 @@ function QuizContent() {
   } = state.systemSettings;
   const { notebooks, currentNotebookId } = state.shared;
   const question = questions[currentQuestionIndex];
-  const blocker = useBlocker(!quizCompleted);
 
   const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
   const notebookName = currentNotebook ? currentNotebook.name : "";
@@ -97,33 +95,20 @@ function QuizContent() {
     .join(", ");
 
   const handleConfirmExit = useCallback(() => {
-  // Clear saved progress when user decides to exit
-  quizProgressService.clearProgress();
+    // Clear saved progress when user decides to exit
+    try {
+      quizProgressService.clearProgress();
+    } catch {}
     dispatch(commitPendingProficiencyUpdates()); // Commit changes before exiting
     dispatch(restartQuiz());
-    blocker.proceed();
     setShowExitConfirmModal(false);
+    navigate("/");
     window.location.reload();
-  }, [blocker, dispatch]);
-
-  const handleConfirmPause = useCallback(() => {
-    blocker.proceed();
-    setShowPauseConfirmModal(false);
-  }, [blocker, dispatch]);
+  }, [dispatch, navigate]);
 
   const handleCancelExit = useCallback(() => {
-    blocker.reset();
     setShowExitConfirmModal(false);
-    setExitQuiz(false);
-  }, [blocker]);
-
-  useEffect(() => {
-    if (blocker.state === "blocked" && !exitQuiz) {
-      setShowPauseConfirmModal(true);
-    } else if (blocker.state === "blocked" && exitQuiz) {
-      setShowExitConfirmModal(true); // Show modal    instead of alert
-    }
-  }, [blocker]);
+  }, []);
 
   const { playSequence, cancelPlayback } = useAnswerPlayback({
     result,
@@ -155,15 +140,9 @@ function QuizContent() {
           <SettingsToggle onClick={() => setShowSettings((s) => !s)}>
             ⚙️
           </SettingsToggle>
-          <HomeIcon
-            onClick={() => {
-              setExitQuiz(true);
-              navigate("/");
-            }}
-          >
-            ↩️
-          </HomeIcon>
+          <HomeIcon onClick={() => setShowExitConfirmModal(true)}>↩️</HomeIcon>
           <InfoToggle onClick={() => setShowInfoModal(true)}>ℹ️</InfoToggle>
+          <BackPage onClick={() => navigate("/")}>🏠</BackPage>
         </IconGroup>
       </IconContainer>
       {showSettings && (
@@ -205,13 +184,6 @@ function QuizContent() {
         onConfirm={handleConfirmExit}
         onCancel={handleCancelExit}
         isVisible={showExitConfirmModal}
-      />
-
-      <Modal
-        message="提醒: 若有標記熟練度, 需結束測驗才會儲存"
-        onConfirm={handleConfirmPause}
-        disableCancel
-        isVisible={showPauseConfirmModal}
       />
 
       <Modal
@@ -277,7 +249,12 @@ export default function Quiz() {
     if (!saved) return;
     if (!notebooks || notebooks.length === 0) return; // wait until notebooks are loaded
 
-    const { notebookId: savedNotebookId, questionIds, currentIndex, results } = saved;
+    const {
+      notebookId: savedNotebookId,
+      questionIds,
+      currentIndex,
+      results,
+    } = saved;
 
     // Ensure current notebook matches saved
     if (savedNotebookId && savedNotebookId !== currentNotebookId) {
@@ -295,7 +272,10 @@ export default function Quiz() {
 
     if (restoredQuestions.length === 0) return; // fallback to normal flow; keep progress for now
 
-    const clampedIndex = Math.min(Math.max(0, currentIndex || 0), restoredQuestions.length);
+    const clampedIndex = Math.min(
+      Math.max(0, currentIndex || 0),
+      restoredQuestions.length
+    );
     const trimmedResults = Array.isArray(results)
       ? results.slice(0, clampedIndex)
       : [];
@@ -315,7 +295,12 @@ export default function Quiz() {
     if (!quizCompleted && !hydratedFromProgress) {
       // If there is valid saved progress for an existing notebook, skip normal initialization to avoid race
       const saved = quizProgressService.loadProgress();
-      if (saved && notebooks && notebooks.some((n) => n.id === saved.notebookId)) return;
+      if (
+        saved &&
+        notebooks &&
+        notebooks.some((n) => n.id === saved.notebookId)
+      )
+        return;
       const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
       if (currentNotebook) {
         let questions = currentNotebook.context.filter((q) => {
@@ -368,7 +353,14 @@ export default function Quiz() {
         sortOrder,
       });
     }
-  }, [state.quiz.currentQuestionIndex, state.quiz.questions, state.quiz.answeredQuestions, quizCompleted, sortOrder, state.shared.currentNotebookId]);
+  }, [
+    state.quiz.currentQuestionIndex,
+    state.quiz.questions,
+    state.quiz.answeredQuestions,
+    quizCompleted,
+    sortOrder,
+    state.shared.currentNotebookId,
+  ]);
 
   if (quizCompleted) {
     // Use quizCompleted from global state
