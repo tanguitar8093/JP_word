@@ -73,12 +73,13 @@ export const FloatingSettingsPanel = styled.div`
   top: 56px;
   right: 10px;
   background: #fff;
-  padding: 3px 10px;
+  padding: 5px 10px;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   z-index: 99;
   max-height: 350px;
   overflow: auto;
+  scrollbar-width: none;
 `;
 
 export const Overlay = styled.div`
