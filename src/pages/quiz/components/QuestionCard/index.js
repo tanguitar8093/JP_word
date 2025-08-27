@@ -51,6 +51,7 @@ export default function QuestionCard({
   };
 
   const handleNextQuestion = () => {
+    cancelPlayback();
     dispatch(nextQuestionGame());
   };
 
