@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import App from "./components/App"; // Import App component
 import HomePage from "./pages/home";
 import Quiz from "./pages/quiz/components/Quiz";
+import FillInQuiz from "./pages/quiz/components/FillInQuiz";
 
 import SystemSettingsPage from "./pages/systemSettings";
 import NotebookManagementPage from "./pages/notebookManagement";
@@ -35,6 +36,19 @@ const router = createBrowserRouter(
               message="偵測到尚有未完成的閱讀進度，前往『測驗』將會丟棄閱讀進度，是否繼續？"
             >
               <Quiz />
+            </NavigationBlocker>
+          ),
+        },
+        {
+          path: "fillin",
+          element: (
+            <NavigationBlocker
+              clearOnConfirm
+              considerQuiz={false}
+              considerReading={true}
+              message="偵測到尚有未完成的閱讀進度，前往『拼字』將會丟棄閱讀進度，是否繼續？"
+            >
+              <FillInQuiz />
             </NavigationBlocker>
           ),
         },
