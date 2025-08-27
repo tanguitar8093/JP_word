@@ -44,18 +44,13 @@ export const HeaderItem = styled.div`
   text-align: center; /* Default center alignment */
 
   &:first-child {
-    flex: 0 0 50px; /* Fixed width for "結果" */
-    text-align: left;
+  flex-grow: 1; /* 單字 */
+  text-align: center;
   }
 
   &:nth-child(2) {
-    flex-grow: 1; /* "單字" takes remaining space */
-    text-align: center;
-  }
-
-  &:last-child {
-    flex: 0 0 60px; /* Fixed width for "熟練度" */
-    text-align: right;
+  flex: 0 0 100px; /* 熟練度固定寬度 */
+  text-align: right;
   }
 `;
 
@@ -100,10 +95,7 @@ export const QuestionText = styled.span`
   color: #555;
 `;
 
-export const StatusEmoji = styled.span`
-  margin-right: 10px;
-  font-size: 10px;
-`;
+// StatusEmoji removed in Reading result layout
 
 export const EndQuizButton = styled.button`
   margin-top: 20px;

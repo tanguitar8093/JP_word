@@ -11,27 +11,26 @@ import {
   QuestionList,
   QuestionItem,
   QuestionText,
-  StatusEmoji,
   EndQuizButton,
   ProficiencyButton,
   ProficiencyControlContainer,
-  HeaderContainer, // Import HeaderContainer
-  HeaderItem, // Import HeaderItem
+  HeaderContainer,
+  HeaderItem,
   SpeakButton,
-} from "./styles"; // Import styled components from styles.js
+} from "./styles";
 
-const StatisticsPage = ({
-  answeredQuestions,
-  correctAnswersCount,
-  speakManually,
-  wordType,
-}) => {
+const StatisticsPage = ({ answeredQuestions, correctAnswersCount, speakManually, wordType }) => {
   const navigate = useNavigate();
   const { state, dispatch } = useApp(); // Get dispatch from useApp
   const { currentNotebookId, pendingProficiencyUpdates } = state.shared; // Get pendingProficiencyUpdates
 
+  // Prepare base items; fallback if answeredQuestions is empty
+  const baseItems = (answeredQuestions && answeredQuestions.length > 0)
+    ? answeredQuestions
+    : (state.quiz?.questions || []).map((q) => ({ question: q }));
+
   // Initialize localAnsweredQuestions by applying pendingProficiencyUpdates
-  const initialAnsweredQuestions = answeredQuestions.map((item) => {
+  const initialAnsweredQuestions = baseItems.map((item) => {
     const pendingProficiency = pendingProficiencyUpdates[item.question.id];
     if (pendingProficiency !== undefined) {
       return {
@@ -46,8 +45,6 @@ const StatisticsPage = ({
   );
 
   const totalQuestions = localAnsweredQuestions.length;
-  const score =
-    totalQuestions > 0 ? (correctAnswersCount / totalQuestions) * 100 : 0;
 
   // Commit pending updates when StatisticsPage mounts
   useEffect(() => {
@@ -83,11 +80,8 @@ const StatisticsPage = ({
 
   return (
     <StatisticsContainer>
-      <ScoreDisplay>
-        答對比例: {correctAnswersCount}/{totalQuestions}
-      </ScoreDisplay>
+  <ScoreDisplay>朗讀單字數量: {totalQuestions}</ScoreDisplay>
       <HeaderContainer>
-        <HeaderItem>結果</HeaderItem>
         <HeaderItem>單字</HeaderItem>
         <HeaderItem>熟練度</HeaderItem>
       </HeaderContainer>
@@ -100,7 +94,6 @@ const StatisticsPage = ({
             item.question.proficiency;
           return (
             <QuestionItem key={index}>
-              <StatusEmoji>{item.isCorrect ? "⭕" : "❌"}</StatusEmoji>
               <SpeakButton
                 onClick={() => speakManually(item.question.jp_word, "ja")}
               >
