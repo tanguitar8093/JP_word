@@ -207,20 +207,28 @@ function QuizContent() {
         )
           return;
 
-        const repeatPlayback = async (playbackFn) => {
+        const repeatPlayback = async (playbackFn, delayTime = 0) => {
           for (let i = 0; i < readingPlaybackRepeatCount; i++) {
             if (isCancelled) return;
             await playbackFn();
+            if (i < readingPlaybackRepeatCount - 1) {
+              await cancellableWait(delayTime);
+            }
           }
         };
 
-        // --- WORD PART ---
-        await repeatPlayback(() =>
-          playSequence(null, question, { jp: true }, { skipSound: true })
-        );
-        if (isCancelled) return;
+        const playOnce = async (playbackFn) => {
+          if (isCancelled) return;
+          await playbackFn();
+        };
 
+        // --- WORD PART ---
         if (readingRecordWord) {
+          await repeatPlayback(() =>
+            playSequence(null, question, { jp: true }, { skipSound: true })
+          );
+          if (isCancelled) return;
+
           if (readingPlayBeep) {
             playBeep();
             await cancellableWait(200);
@@ -239,12 +247,15 @@ function QuizContent() {
           if (recorderRef.current) await recorderRef.current.play();
           if (isCancelled) return;
 
-          await repeatPlayback(() =>
+          await playOnce(() =>
             playSequence(null, question, { jp: true }, { skipSound: true })
           );
           if (isCancelled) return;
         } else {
-          await cancellableWait(1000);
+          await repeatPlayback(
+            () => playSequence(null, question, { jp: true }, { skipSound: true }),
+            readingWordRecordTime * 1000
+          );
           if (isCancelled) return;
         }
 
@@ -253,12 +264,12 @@ function QuizContent() {
 
         // --- SENTENCE PART ---
         if (question.jp_ex_statement) {
-          await repeatPlayback(() =>
-            playSequence(null, question, { jpEx: true }, { skipSound: true })
-          );
-          if (isCancelled) return;
-
           if (readingRecordSentence) {
+            await repeatPlayback(() =>
+              playSequence(null, question, { jpEx: true }, { skipSound: true })
+            );
+            if (isCancelled) return;
+
             if (readingPlayBeep) {
               playBeep();
               await cancellableWait(200);
@@ -277,12 +288,16 @@ function QuizContent() {
             if (recorderRef.current) await recorderRef.current.play();
             if (isCancelled) return;
 
-            await repeatPlayback(() =>
+            await playOnce(() =>
               playSequence(null, question, { jpEx: true }, { skipSound: true })
             );
             if (isCancelled) return;
           } else {
-            await cancellableWait(1000);
+            await repeatPlayback(
+              () =>
+                playSequence(null, question, { jpEx: true }, { skipSound: true }),
+              readingSentenceRecordTime * 1000
+            );
             if (isCancelled) return;
           }
 
