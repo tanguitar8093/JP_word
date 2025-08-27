@@ -55,9 +55,9 @@ export const InfoToggle = styled.span`
   transition: all 0.2s ease, transform 0.1s;
   position: absolute;
   top: 10px;
-  right: 30px; 
+  right: 30px;
   z-index: 100;
-  
+
   &:hover {
     opacity: 0.8;
   }
@@ -73,10 +73,12 @@ export const FloatingSettingsPanel = styled.div`
   top: 56px;
   right: 10px;
   background: #fff;
-  padding: 12px 16px;
+  padding: 3px 10px;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   z-index: 99;
+  max-height: 350px;
+  overflow: auto;
 `;
 
 export const Overlay = styled.div`

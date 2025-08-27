@@ -1,14 +1,14 @@
 import styled from "styled-components";
 
 export const PanelContainer = styled.div`
-  margin-top: 10px;
-  padding: 12px 16px;
+  margin-top: 5px;
+  padding: 5px 8px;
   border: 1px solid #ccc;
   border-radius: 8px;
   background-color: #fdfdfd;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 `;
 
 export const LabelGroup = styled.label`
@@ -46,7 +46,8 @@ export const LabelGroup = styled.label`
     color: #555;
   }
 
-  input[type="checkbox"], input[type="radio"] {
+  input[type="checkbox"],
+  input[type="radio"] {
     margin-right: 5px;
   }
 `;
