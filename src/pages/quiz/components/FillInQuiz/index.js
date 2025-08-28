@@ -31,6 +31,11 @@ import AudioRecorderPage from "../../../AudioRecorder";
 import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actions";
 import notebookService from "../../../../services/notebookService";
 import { setCurrentNotebook } from "../../../../store/reducer/actions";
+import { updatePendingProficiency } from "../../../../store/reducer/actions"; // 新增：更新熟練度（pending）
+import {
+  ProficiencyControlContainer as StatProficiencyControlContainer,
+  ProficiencyButton as StatProficiencyButton,
+} from "../StatisticsPage/styles"; // 新增：沿用統計頁面的熟練度樣式（非絕對定位）
 
 const IconContainer = styled.div`
   position: absolute;
@@ -235,6 +240,37 @@ function Content() {
 
       {result && (
         <div style={{ maxWidth: 720, margin: "0 auto", padding: 12 }}>
+          {/* 答案階段的熟練度控制 */}
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+            {(() => {
+              const currentProficiency =
+                (state.shared.pendingProficiencyUpdates || {})[question.id] ||
+                question.proficiency;
+              return (
+                <StatProficiencyControlContainer>
+                  <StatProficiencyButton
+                    className={currentProficiency === 1 ? "active" : ""}
+                    onClick={() => dispatch(updatePendingProficiency(question.id, 1))}
+                  >
+                    低
+                  </StatProficiencyButton>
+                  <StatProficiencyButton
+                    className={currentProficiency === 2 ? "active" : ""}
+                    onClick={() => dispatch(updatePendingProficiency(question.id, 2))}
+                  >
+                    中
+                  </StatProficiencyButton>
+                  <StatProficiencyButton
+                    className={currentProficiency === 3 ? "active" : ""}
+                    onClick={() => dispatch(updatePendingProficiency(question.id, 3))}
+                  >
+                    高
+                  </StatProficiencyButton>
+                </StatProficiencyControlContainer>
+              );
+            })()}
+          </div>
+
           <div
             style={{
               borderRadius: 12,
