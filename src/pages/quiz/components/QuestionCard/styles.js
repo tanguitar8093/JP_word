@@ -70,6 +70,7 @@ export const WordContainer = styled.div`
   gap: 8px;
   font-size: 30px;
   justify-content: center; /* 水平置中 */
+  margin-top: 17px;
 `;
 
 export const SpeakButton = styled.span`

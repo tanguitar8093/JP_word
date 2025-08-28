@@ -12,7 +12,7 @@ export const CardContainer = styled.div`
 `;
 
 export const Prompt = styled.div`
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 6px;
   display: flex;
   align-items: center;

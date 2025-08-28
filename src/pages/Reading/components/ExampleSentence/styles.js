@@ -21,8 +21,8 @@ export const LabelRow = styled.p`
 `;
 
 export const TextRow = styled.p`
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
   color: #333;
   text-align: center; /* 🔹 文字置中 */
   margin: 0;
