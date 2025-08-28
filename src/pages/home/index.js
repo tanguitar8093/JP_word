@@ -103,8 +103,8 @@ const IconWrapper = styled.div`
 
 const menuItems = [
   {
-    title: "快速測驗",
-    description: "測試日語能力",
+    title: "單字快手",
+    description: "日語選擇題",
     path: "/quiz",
     icon: "📝",
   },
@@ -113,6 +113,12 @@ const menuItems = [
     description: "練習朗讀",
     path: "/reading",
     icon: "📚",
+  },
+  {
+    title: "拼字",
+    description: "假名拼字練習",
+    path: "/fillin",
+    icon: "🔤",
   },
   {
     title: "Anki Demo",
@@ -125,12 +131,6 @@ const menuItems = [
     description: "管理單字庫",
     path: "/notebook-management",
     icon: "📔",
-  },
-  {
-    title: "拼字",
-    description: "假名拼字練習",
-    path: "/fillin",
-    icon: "🔤",
   },
   {
     title: "設定",
