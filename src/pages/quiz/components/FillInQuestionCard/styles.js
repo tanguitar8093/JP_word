@@ -47,7 +47,7 @@ export const BlankBox = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 15px;
   background: #fcfcfc;
   &.ok {
     border-color: #4caf50;

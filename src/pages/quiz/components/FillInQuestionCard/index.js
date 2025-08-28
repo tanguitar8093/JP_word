@@ -268,7 +268,7 @@ export default function FillInQuestionCard({
         <button onClick={handleClear} disabled={answer.length === 0}>
           清除
         </button>
-        {isCompleteWrong && <span className="hint">目前拼字有錯，請修正</span>}
+        {isCompleteWrong && <span className="hint"> 拼字有誤，請修正</span>}
       </ControlsRow>
 
       <OptionsGrid>
