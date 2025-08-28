@@ -13,11 +13,7 @@ import { sortQuestions } from "../../../utils/questionUtils";
 function reducer(state = initialState, action) {
   switch (action.type) {
     case "quiz/LOAD_PROGRESS": {
-      const {
-        questions,
-        currentIndex,
-        results,
-      } = action.payload;
+      const { questions, currentIndex, results } = action.payload;
       const answered = results.map((isCorrect, i) => ({
         question: questions[i],
         isCorrect,
@@ -57,6 +53,22 @@ function reducer(state = initialState, action) {
       return {
         ...state,
         selectedAnswer: action.payload,
+        result: isCorrect ? "⭕" : "❌",
+        correctAnswersCount: isCorrect
+          ? state.correctAnswersCount + 1
+          : state.correctAnswersCount,
+        answeredQuestions: newAnsweredQuestions,
+      };
+    }
+    case "quiz/RECORD_FILLIN_RESULT": {
+      const { isCorrect } = action.payload;
+      const currentQuestion = state.questions[state.currentQuestionIndex];
+      const newAnsweredQuestions = [
+        ...state.answeredQuestions,
+        { question: currentQuestion, isCorrect },
+      ];
+      return {
+        ...state,
         result: isCorrect ? "⭕" : "❌",
         correctAnswersCount: isCorrect
           ? state.correctAnswersCount + 1

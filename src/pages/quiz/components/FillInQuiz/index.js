@@ -21,6 +21,7 @@ import {
   nextQuestionGame,
   restartQuiz,
   startQuiz,
+  recordFillInResult,
 } from "../../../../pages/quiz/reducer/actions";
 import quizProgressService from "../../../../services/quizProgressService";
 import readingProgressService from "../../../../services/readingProgressService";
@@ -225,6 +226,8 @@ function Content() {
           onComplete={({ correct, guess }) => {
             setSelectedAnswer(guess);
             setResult(correct ? "⭕" : "❌");
+            // 紀錄填空作答結果，讓結算頁與進度儲存正確
+            dispatch(recordFillInResult(correct));
           }}
           speak={(text, lang) => speakManually(text, lang)}
         />

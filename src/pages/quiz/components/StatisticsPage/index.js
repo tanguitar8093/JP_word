@@ -5,6 +5,7 @@ import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actio
 import { updateWordInNotebook } from "../../../../store/reducer/actions"; // Import updateWordInNotebook
 import notebookService from "../../../../services/notebookService"; // Import notebookService
 import { restartQuiz } from "../../../../pages/quiz/reducer/actions"; // Import restartQuiz from quiz actions
+import fillinProgressService from "../../../../services/fillinProgressService"; // Import fillinProgressService for fill-in progress
 import {
   StatisticsContainer,
   ScoreDisplay,
@@ -56,8 +57,11 @@ const StatisticsPage = ({
 
   const handleEndQuiz = async () => {
     try {
-      const mod = await import('../../../../services/quizProgressService');
+      const mod = await import("../../../../services/quizProgressService");
       mod.default.clearProgress();
+    } catch {}
+    try {
+      fillinProgressService.clearProgress();
     } catch {}
     dispatch(restartQuiz()); // Dispatch restartQuiz before navigating
     navigate("/");
