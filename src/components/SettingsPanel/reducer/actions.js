@@ -18,11 +18,22 @@ export const SET_LAPSE_INTERVAL = "systemSettings/SET_LAPSE_INTERVAL";
 // Reading Page Settings Actions
 export const SET_READING_STUDY_MODE = "systemSettings/SET_READING_STUDY_MODE";
 export const SET_READING_RECORD_WORD = "systemSettings/SET_READING_RECORD_WORD";
-export const SET_READING_RECORD_SENTENCE = "systemSettings/SET_READING_RECORD_SENTENCE";
+export const SET_READING_RECORD_SENTENCE =
+  "systemSettings/SET_READING_RECORD_SENTENCE";
 export const SET_READING_PLAY_BEEP = "systemSettings/SET_READING_PLAY_BEEP";
-export const SET_READING_WORD_RECORD_TIME = "systemSettings/SET_READING_WORD_RECORD_TIME";
-export const SET_READING_SENTENCE_RECORD_TIME = "systemSettings/SET_READING_SENTENCE_RECORD_TIME";
-export const SET_READING_PLAYBACK_REPEAT_COUNT = "systemSettings/SET_READING_PLAYBACK_REPEAT_COUNT";
+export const SET_READING_WORD_RECORD_TIME =
+  "systemSettings/SET_READING_WORD_RECORD_TIME";
+export const SET_READING_SENTENCE_RECORD_TIME =
+  "systemSettings/SET_READING_SENTENCE_RECORD_TIME";
+export const SET_READING_PLAYBACK_REPEAT_COUNT =
+  "systemSettings/SET_READING_PLAYBACK_REPEAT_COUNT";
+
+// Fill-in difficulty settings
+export const SET_FILLIN_DIFFICULTY = "systemSettings/SET_FILLIN_DIFFICULTY"; // 'easy' | 'normal' | 'hard' | 'adaptive'
+export const UPDATE_FILLIN_ADAPTIVE_STATS =
+  "systemSettings/UPDATE_FILLIN_ADAPTIVE_STATS"; // { correct: boolean }
+export const RESET_FILLIN_ADAPTIVE_STATS =
+  "systemSettings/RESET_FILLIN_ADAPTIVE_STATS";
 
 export const setWordType = (wordType) => ({
   type: SET_JP_WORD_TYPE,
@@ -119,4 +130,19 @@ export const setReadingSentenceRecordTime = (time) => ({
 export const setReadingPlaybackRepeatCount = (count) => ({
   type: SET_READING_PLAYBACK_REPEAT_COUNT,
   payload: count,
+});
+
+// Fill-in difficulty actions
+export const setFillInDifficulty = (mode) => ({
+  type: SET_FILLIN_DIFFICULTY,
+  payload: mode,
+});
+
+export const updateFillInAdaptiveStats = (correct) => ({
+  type: UPDATE_FILLIN_ADAPTIVE_STATS,
+  payload: { correct },
+});
+
+export const resetFillInAdaptiveStats = () => ({
+  type: RESET_FILLIN_ADAPTIVE_STATS,
 });

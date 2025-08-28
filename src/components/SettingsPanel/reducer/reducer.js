@@ -18,6 +18,9 @@ import {
   SET_READING_WORD_RECORD_TIME,
   SET_READING_SENTENCE_RECORD_TIME,
   SET_READING_PLAYBACK_REPEAT_COUNT,
+  SET_FILLIN_DIFFICULTY,
+  UPDATE_FILLIN_ADAPTIVE_STATS,
+  RESET_FILLIN_ADAPTIVE_STATS,
 } from "./actions";
 
 export const initialState = {
@@ -53,6 +56,13 @@ export const initialState = {
   readingWordRecordTime: 2, // in seconds
   readingSentenceRecordTime: 3.5, // in seconds
   readingPlaybackRepeatCount: 1,
+
+  // Fill-in spelling difficulty settings
+  fillInDifficulty: "normal", // 'easy' | 'normal' | 'hard' | 'adaptive'
+  fillInAdaptive: {
+    windowSize: 12, // last N questions
+    history: [], // boolean array
+  },
 };
 
 function reducer(state = initialState, action) {
@@ -129,6 +139,23 @@ function reducer(state = initialState, action) {
 
     case SET_READING_PLAYBACK_REPEAT_COUNT:
       return { ...state, readingPlaybackRepeatCount: action.payload };
+
+    // Fill-in spelling difficulty settings
+    case SET_FILLIN_DIFFICULTY:
+      return { ...state, fillInDifficulty: action.payload };
+    case UPDATE_FILLIN_ADAPTIVE_STATS: {
+      const { correct } = action.payload;
+      const history = [...(state.fillInAdaptive?.history || [])];
+      history.push(!!correct);
+      const windowSize = state.fillInAdaptive?.windowSize || 12;
+      while (history.length > windowSize) history.shift();
+      return { ...state, fillInAdaptive: { ...state.fillInAdaptive, history } };
+    }
+    case RESET_FILLIN_ADAPTIVE_STATS:
+      return {
+        ...state,
+        fillInAdaptive: { ...state.fillInAdaptive, history: [] },
+      };
 
     default:
       return state;

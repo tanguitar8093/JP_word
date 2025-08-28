@@ -16,6 +16,7 @@ import {
   setReadingWordRecordTime,
   setReadingSentenceRecordTime,
   setReadingPlaybackRepeatCount,
+  setFillInDifficulty,
 } from "./reducer";
 
 export default function SettingsPanel({ context }) {
@@ -37,6 +38,7 @@ export default function SettingsPanel({ context }) {
     readingWordRecordTime,
     readingSentenceRecordTime,
     readingPlaybackRepeatCount,
+    fillInDifficulty,
   } = systemSettings;
 
   const handleProficiencyChange = (level) => {
@@ -426,6 +428,53 @@ export default function SettingsPanel({ context }) {
               onChange={(e) => dispatch(setWordType(e.target.value))}
             />
             同時顯示
+          </label>
+        </div>
+      </LabelGroup>
+
+      {/* Fill-in spelling difficulty settings */}
+      <LabelGroup>
+        <SettingTitle>拼字難度：</SettingTitle>
+        <div>
+          <label>
+            <input
+              type="radio"
+              name="fillInDifficulty"
+              value="easy"
+              checked={fillInDifficulty === "easy"}
+              onChange={(e) => dispatch(setFillInDifficulty(e.target.value))}
+            />
+            容易 (+4)
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="fillInDifficulty"
+              value="normal"
+              checked={fillInDifficulty === "normal"}
+              onChange={(e) => dispatch(setFillInDifficulty(e.target.value))}
+            />
+            一般 (+6)
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="fillInDifficulty"
+              value="hard"
+              checked={fillInDifficulty === "hard"}
+              onChange={(e) => dispatch(setFillInDifficulty(e.target.value))}
+            />
+            困難 (+8)
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="fillInDifficulty"
+              value="adaptive"
+              checked={fillInDifficulty === "adaptive"}
+              onChange={(e) => dispatch(setFillInDifficulty(e.target.value))}
+            />
+            自適應
           </label>
         </div>
       </LabelGroup>

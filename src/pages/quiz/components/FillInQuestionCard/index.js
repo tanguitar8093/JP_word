@@ -8,6 +8,8 @@ import {
   OptionButton,
   ControlsRow,
 } from "./styles";
+import { useApp } from "../../../../store/contexts/AppContext";
+import { updateFillInAdaptiveStats } from "../../../../components/SettingsPanel/reducer";
 
 const HIRAGANA =
   "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんがぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽゃゅょっー";
@@ -70,15 +72,33 @@ export default function FillInQuestionCard({
   onAnswer,
   speak,
 }) {
+  const { state, dispatch } = useApp();
+  const { fillInDifficulty, fillInAdaptive } = state.systemSettings;
   const target = useMemo(() => toChars(question?.jp_word || ""), [question]);
 
-  // 固定：答案長度 + 6。優先放入形近/音似干擾，其餘再隨機補足。
+  // 根據設定難度決定干擾數
+  const extraByDifficulty = useMemo(() => {
+    if (fillInDifficulty === "easy") return 4;
+    if (fillInDifficulty === "hard") return 8;
+    if (fillInDifficulty === "adaptive") {
+      const hist = fillInAdaptive?.history || [];
+      if (hist.length < 4) return 6; // cold start
+      const acc = hist.reduce((a, b) => a + (b ? 1 : 0), 0) / hist.length;
+      // 高正確率 → 加大干擾，低正確率 → 減少干擾
+      if (acc >= 0.85) return 8;
+      if (acc <= 0.55) return 4;
+      return 6;
+    }
+    return 6; // normal
+  }, [fillInDifficulty, fillInAdaptive]);
+
+  // 依設定：答案長度 + extra。優先放入形近/音似干擾，其餘再隨機補足。
   const pool = useMemo(() => {
     // 1) 統計答案必需字元
     const need = new Map();
     target.forEach((ch) => need.set(ch, (need.get(ch) || 0) + 1));
 
-    const desiredTotal = target.length + 6;
+    const desiredTotal = target.length + extraByDifficulty;
 
     // 2) 先放入必需字元（確保可組出答案）
     const tiles = [];
@@ -118,7 +138,7 @@ export default function FillInQuestionCard({
       [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
     }
     return tiles;
-  }, [target]);
+  }, [target, extraByDifficulty]);
 
   const [answer, setAnswer] = useState([]); // array of {ch, id}
   const [usedIds, setUsedIds] = useState(new Set());
@@ -143,6 +163,10 @@ export default function FillInQuestionCard({
       setIsCompleteWrong(!correct);
       if (onComplete) onComplete({ correct, guess });
       else if (onAnswer) onAnswer(correct);
+      // 更新自適應統計
+      if (fillInDifficulty === "adaptive") {
+        dispatch(updateFillInAdaptiveStats(correct));
+      }
     } else {
       // live validation for immediate feedback coloring
       const correctSoFar = target
