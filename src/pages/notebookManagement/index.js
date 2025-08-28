@@ -486,10 +486,10 @@ const NotebookManagementPage = () => {
                 <WordTable>
                   <thead>
                     <tr>
-                      <th style={{ width: 40 }}>選取</th>
-                      <th>名稱</th>
-                      <th style={{ width: 100 }}>單字數</th>
-                      <th style={{ textAlign: "right", width: 160 }}>操作</th>
+                      <th style={{ width: 15 }}>選取</th>
+                      <th style={{ width: 60 }}>名稱</th>
+                      <th style={{ width: 30 }}>單字數</th>
+                      <th style={{ textAlign: "right", width: 30 }}>操作</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -503,7 +503,9 @@ const NotebookManagementPage = () => {
                           key={notebook.id}
                           style={{
                             background: selected ? "#e8f5e9" : "transparent",
+                            cursor: "pointer",
                           }}
+                          onClick={() => handleSelectNotebook(notebook)}
                         >
                           <td>
                             <input
@@ -516,10 +518,7 @@ const NotebookManagementPage = () => {
                             />
                           </td>
                           <td>
-                            <span
-                              onClick={() => handleSelectNotebook(notebook)}
-                              style={{ cursor: "pointer", color: "#2e7d32" }}
-                            >
+                            <span style={{ color: "#2e7d32" }}>
                               {notebook.name}
                             </span>
                           </td>
@@ -615,26 +614,30 @@ const NotebookManagementPage = () => {
                   <Button
                     secondary={proficiencyFilter !== 0}
                     onClick={() => setProficiencyFilter(0)}
+                    style={{ width: "24%" }}
                   >
                     全部
                   </Button>
                   <Button
                     secondary={proficiencyFilter !== 1}
                     onClick={() => setProficiencyFilter(1)}
+                    style={{ width: "24%" }}
                   >
-                    初級
+                    不熟
                   </Button>
                   <Button
                     secondary={proficiencyFilter !== 2}
                     onClick={() => setProficiencyFilter(2)}
+                    style={{ width: "24%" }}
                   >
-                    中級
+                    尚可
                   </Button>
                   <Button
                     secondary={proficiencyFilter !== 3}
                     onClick={() => setProficiencyFilter(3)}
+                    style={{ width: "24%" }}
                   >
-                    高級
+                    熟悉
                   </Button>
                 </FilterButtons>
 
@@ -692,9 +695,11 @@ const NotebookManagementPage = () => {
                               onChange={toggleSelectAllDisplayed}
                             />
                           </th>
-                          <th style={{ width: "40%" }}>日文</th>
+                          <th style={{ width: "35%" }}>日文</th>
                           <th style={{ width: "25%" }}>中文</th>
-                          <th style={{ width: "15%" }}>熟練度</th>
+                          <th style={{ width: "20%", textAlign: "left" }}>
+                            熟練度
+                          </th>
                           <th style={{ textAlign: "right", width: "20%" }}>
                             操作
                           </th>
@@ -715,19 +720,24 @@ const NotebookManagementPage = () => {
                                 {word.kanji_jp_word || word.jp_word}
                               </strong>
                               {word.kanji_jp_word && (
-                                <div style={{ color: "#777", fontSize: 12 }}>
-                                  假名：{word.jp_word}
-                                </div>
+                                <>
+                                  <div style={{ color: "#777", fontSize: 12 }}>
+                                    {word.jp_word}
+                                  </div>
+                                  <div style={{ color: "#777", fontSize: 12 }}>
+                                    {word.type}
+                                  </div>
+                                </>
                               )}
                             </td>
                             <td>{word.ch_word}</td>
                             <td>
                               <ProficiencyBadge level={word.proficiency}>
                                 {word.proficiency === 1
-                                  ? "初級"
+                                  ? "低"
                                   : word.proficiency === 2
-                                  ? "中級"
-                                  : "高級"}
+                                  ? "中"
+                                  : "高"}
                               </ProficiencyBadge>
                             </td>
                             <td style={{ textAlign: "right" }}>

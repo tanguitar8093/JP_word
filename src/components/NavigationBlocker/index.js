@@ -13,7 +13,7 @@ import fillinProgressService from "../../services/fillinProgressService";
  */
 export default function NavigationBlocker({
   children,
-  message = "偵測到尚有未完成的學習進度（測驗/閱讀/拼字），確定要前往此頁面嗎？",
+  message = "偵測到進行中的學習任務進度，確定要前往此頁面嗎？",
   clearOnConfirm = false,
   considerQuiz = true,
   considerReading = true,
