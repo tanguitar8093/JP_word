@@ -24,10 +24,10 @@ import {
 } from "./actions";
 
 export const initialState = {
-  wordType: "kanji_jp_word", // jp_word, kanji_jp_word
+  wordType: "jp_context", // jp_word, kanji_jp_word, jp_context
   playbackOptions: {
     jp: true,
-    ch: true,
+    ch: false,
     jpEx: false,
     chEx: false,
   },
@@ -38,7 +38,7 @@ export const initialState = {
   },
   playbackSpeed: 1.0,
   playbackContent: "jp",
-  autoProceed: true,
+  autoProceed: false,
   startQuestionIndex: 1, //(data index 0)
   wordRangeCount: 9999,
   sortOrder: "none",

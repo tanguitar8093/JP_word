@@ -21,7 +21,7 @@ function SystemSettingsPage() {
     <AppContainer>
       <HomeIcon onClick={() => navigate("/")}>↩️</HomeIcon>
       <Title>系統設定</Title>
-      <SettingsPanel />
+      <SettingsPanel mainPage />
     </AppContainer>
   );
 }

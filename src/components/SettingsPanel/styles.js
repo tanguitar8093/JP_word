@@ -11,7 +11,29 @@ export const PanelContainer = styled.div`
   gap: 10px;
   overflow: auto;
   max-height: 350px;
-  scrollbar-width: none;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #3b82f6 #f5f0e8; /* thumb 顏色 + track 顏色 */
+
+  box-shadow: rgba(0, 0, 0, 0.08) 0px 8px 24px;
+
+  /* Chrome, Edge, Safari */
+  &::-webkit-scrollbar {
+    width: 2px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #3b82f6;
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #3b82f6;
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-button {
+    display: none; /* 隱藏上下箭頭 */
+  }
   box-shadow: rgba(0, 0, 0, 0.08) 0px 8px 24px;
 `;
 

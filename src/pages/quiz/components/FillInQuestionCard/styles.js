@@ -4,7 +4,7 @@ export const CardContainer = styled.div`
   width: 100%;
   max-width: 720px;
   margin: 16px auto;
-  padding: 20px 24px;
+  padding: 25px 24px;
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
@@ -13,7 +13,7 @@ export const CardContainer = styled.div`
 
 export const Prompt = styled.div`
   font-size: 18px;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -21,7 +21,6 @@ export const Prompt = styled.div`
     font-weight: 700;
   }
   .speak {
-    /* 將發音按鈕放在文字旁，避免與右上熟練度重疊 */
     margin-left: 8px;
     border: 1px solid #e0e0e0;
     border-radius: 12px;

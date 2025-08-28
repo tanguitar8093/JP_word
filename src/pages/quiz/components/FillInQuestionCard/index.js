@@ -234,7 +234,7 @@ export default function FillInQuestionCard({
 
       {/* 原有內容 */}
       <Prompt>
-        請拼出：<strong>{question?.ch_word}</strong>
+        <strong>{question?.ch_word}</strong>
         {speak && (
           <button
             className="speak"
