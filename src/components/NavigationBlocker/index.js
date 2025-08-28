@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Modal from "../Modal";
 import quizProgressService from "../../services/quizProgressService";
 import readingProgressService from "../../services/readingProgressService";
+import fillinProgressService from "../../services/fillinProgressService";
 
 /**
  * NavigationBlocker
@@ -12,10 +13,11 @@ import readingProgressService from "../../services/readingProgressService";
  */
 export default function NavigationBlocker({
   children,
-  message = "偵測到尚有未完成的測驗進度，確定要前往此頁面嗎？",
+  message = "偵測到尚有未完成的學習進度（測驗/閱讀/拼字），確定要前往此頁面嗎？",
   clearOnConfirm = false,
   considerQuiz = true,
   considerReading = true,
+  considerFillin = true,
 }) {
   const navigate = useNavigate();
   const [shouldPrompt, setShouldPrompt] = useState(false);
@@ -25,10 +27,11 @@ export default function NavigationBlocker({
     // Only prompt if there is saved progress
     const hasQuiz = considerQuiz && quizProgressService.hasProgress();
     const hasReading = considerReading && readingProgressService.hasProgress();
-    if (hasQuiz || hasReading) {
+    const hasFillin = considerFillin && fillinProgressService.hasProgress();
+    if (hasQuiz || hasReading || hasFillin) {
       setShouldPrompt(true);
     }
-  }, [considerQuiz, considerReading]);
+  }, [considerQuiz, considerReading, considerFillin]);
 
   if (shouldPrompt && !confirmed) {
     return (
@@ -44,6 +47,11 @@ export default function NavigationBlocker({
             if (considerReading) {
               try {
                 readingProgressService.clearProgress();
+              } catch {}
+            }
+            if (considerFillin) {
+              try {
+                fillinProgressService.clearProgress();
               } catch {}
             }
           }

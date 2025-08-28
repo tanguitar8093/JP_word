@@ -24,9 +24,12 @@ import {
 } from "../../../../pages/quiz/reducer/actions";
 import quizProgressService from "../../../../services/quizProgressService";
 import readingProgressService from "../../../../services/readingProgressService";
+import fillinProgressService from "../../../../services/fillinProgressService";
 import StatisticsPage from "../StatisticsPage";
 import AudioRecorderPage from "../../../AudioRecorder";
 import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actions";
+import notebookService from "../../../../services/notebookService";
+import { setCurrentNotebook } from "../../../../store/reducer/actions";
 
 const IconContainer = styled.div`
   position: absolute;
@@ -79,6 +82,7 @@ function Content() {
     try {
       quizProgressService.clearProgress();
       readingProgressService.clearProgress();
+      fillinProgressService.clearProgress();
     } catch {}
     dispatch(commitPendingProficiencyUpdates());
     dispatch(restartQuiz());
@@ -126,6 +130,33 @@ function Content() {
     setResult(null);
     setSelectedAnswer("");
   }, [currentQuestionIndex]);
+
+  // 自動儲存 Fill-in 進度（移動到下一題時）
+  const prevIndexRef = React.useRef(state.quiz.currentQuestionIndex);
+  useEffect(() => {
+    const idx = state.quiz.currentQuestionIndex;
+    const prev = prevIndexRef.current;
+    prevIndexRef.current = idx;
+    if (state.quiz.quizCompleted) return;
+    if (idx > prev && state.quiz.questions.length > 0) {
+      const questionIds = state.quiz.questions.map((q) => q.id);
+      const results = state.quiz.answeredQuestions.map((a) => a.isCorrect);
+      fillinProgressService.saveProgress({
+        notebookId: state.shared.currentNotebookId,
+        questionIds,
+        currentIndex: idx,
+        results,
+        sortOrder,
+      });
+    }
+  }, [
+    state.quiz.currentQuestionIndex,
+    state.quiz.questions,
+    state.quiz.answeredQuestions,
+    state.quiz.quizCompleted,
+    sortOrder,
+    state.shared.currentNotebookId,
+  ]);
 
   return (
     <AppContainer>
@@ -255,6 +286,7 @@ export default function FillInQuiz() {
   } = state.systemSettings;
   const { quizCompleted, answeredQuestions, correctAnswersCount } = state.quiz;
   const [emptyAlert, setEmptyAlert] = useState(false);
+  const [hydratedFromProgress, setHydratedFromProgress] = useState(false);
   const navigate = useNavigate();
 
   const { playSequence } = useAnswerPlayback({
@@ -277,34 +309,78 @@ export default function FillInQuiz() {
     [playSequence]
   );
 
+  // 嘗試從本地進度還原（Fill-in 專用）
   useEffect(() => {
     if (quizCompleted) return;
-    const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
-    if (currentNotebook) {
-      let questions = currentNotebook.context.filter((q) => {
-        if (!q.jp_word) return false;
-        return proficiencyFilter[q.proficiency];
-      });
-      const startIndex = Math.max(0, startQuestionIndex - 1);
-      const endIndex = Math.min(questions.length, startIndex + wordRangeCount);
-      questions = questions.slice(startIndex, endIndex);
-      if (questions.length > 0) {
-        dispatch(startQuiz(questions, sortOrder));
-      } else {
-        setEmptyAlert(true);
+    const saved = fillinProgressService.loadProgress();
+    if (!saved) return;
+    if (!notebooks || notebooks.length === 0) return;
+
+    const { notebookId: savedNotebookId, questionIds, currentIndex, results } = saved;
+
+    if (savedNotebookId && savedNotebookId !== currentNotebookId) {
+      dispatch(setCurrentNotebook(savedNotebookId));
+      notebookService.setCurrentNotebookId(savedNotebookId);
+    }
+
+    const nb = notebooks.find((n) => n.id === savedNotebookId);
+    if (!nb) return;
+
+    const byId = new Map((nb.context || []).map((w) => [w.id, w]));
+    const restoredQuestions = (questionIds || [])
+      .map((id) => byId.get(id))
+      .filter(Boolean);
+
+    if (restoredQuestions.length === 0) return;
+
+    const clampedIndex = Math.min(Math.max(0, currentIndex || 0), restoredQuestions.length);
+    const trimmedResults = Array.isArray(results) ? results.slice(0, clampedIndex) : [];
+
+    dispatch({
+      type: "quiz/LOAD_PROGRESS",
+      payload: {
+        questions: restoredQuestions,
+        currentIndex: clampedIndex,
+        results: trimmedResults,
+      },
+    });
+    setHydratedFromProgress(true);
+  }, [quizCompleted, notebooks, currentNotebookId, dispatch]);
+
+  // 正常初始化（若沒有本地進度或不同筆記本）
+  useEffect(() => {
+    if (!quizCompleted && !hydratedFromProgress) {
+      const saved = fillinProgressService.loadProgress();
+      if (saved && notebooks && notebooks.some((n) => n.id === saved.notebookId)) return;
+      const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
+      if (currentNotebook) {
+        let questions = currentNotebook.context.filter((q) => {
+          if (!q.jp_word) return false;
+          return proficiencyFilter[q.proficiency];
+        });
+        const startIndex = Math.max(0, startQuestionIndex - 1);
+        const endIndex = Math.min(questions.length, startIndex + wordRangeCount);
+        questions = questions.slice(startIndex, endIndex);
+        if (questions.length > 0) {
+          dispatch(startQuiz(questions, sortOrder));
+        } else {
+          setEmptyAlert(true);
+        }
       }
     }
   }, [
-    quizCompleted,
-    notebooks,
     currentNotebookId,
+    dispatch,
+    quizCompleted,
+    hydratedFromProgress,
     proficiencyFilter,
+    notebooks,
     startQuestionIndex,
     wordRangeCount,
     sortOrder,
-    dispatch,
   ]);
 
+  // 完成後使用同一個統計頁
   if (quizCompleted) {
     return (
       <StatisticsPage
