@@ -214,6 +214,8 @@ const DEFAULT_CONFIG = {
   // 新增：最小間隔（不進冷卻池，只避免太快重複）
   minGapHard: 2,
   minGapGood: 4,
+  // 新增：每日新卡上限（0 表示關閉，不限制）
+  dailyNewLimit: 0,
 };
 const todayStr = () => new Date().toISOString().slice(0, 10);
 const newSessionId = () => Math.random().toString(36).slice(2, 10);
@@ -237,7 +239,8 @@ export default function AnkiDemo() {
   // 每張卡的學習狀態（簡化）：{ reviews, graduated }
   const [cardState, setCardState] = useState(() => {
     const init = {};
-    for (const c of SAMPLE_CARDS) init[c.id] = { reviews: 0, graduated: false };
+    for (const c of SAMPLE_CARDS)
+      init[c.id] = { reviews: 0, graduated: false, introducedAt: null };
     return init;
   });
 
@@ -245,7 +248,11 @@ export default function AnkiDemo() {
   const [parked, setParked] = useState([]); // [{id, remaining, baseOffset}]
 
   // 統計與設定
-  const [stats, setStats] = useState({ day: todayStr(), reviewedToday: 0 });
+  const [stats, setStats] = useState({
+    day: todayStr(),
+    reviewedToday: 0,
+    newIntroducedToday: 0,
+  });
   const [sessionId, setSessionId] = useState(newSessionId());
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   // 最近出現卡片（用於最小間隔過濾）
@@ -284,11 +291,18 @@ export default function AnkiDemo() {
       if (!equal) return false;
       setQueue(Array.isArray(data.queue) ? data.queue : initialIds);
       setParked(Array.isArray(data.parked) ? data.parked : []);
-      setCardState((prev) => ({ ...prev, ...(data.cardState || {}) }));
+      // 回填缺失欄位（相容舊資料）
+      setCardState((prev) => {
+        const next = { ...prev, ...(data.cardState || {}) };
+        for (const id of Object.keys(next)) {
+          if (!("introducedAt" in next[id])) next[id].introducedAt = null;
+        }
+        return next;
+      });
       setStats(
         data.stats && data.stats.day === todayStr()
-          ? data.stats
-          : { day: todayStr(), reviewedToday: 0 }
+          ? { newIntroducedToday: 0, ...data.stats }
+          : { day: todayStr(), reviewedToday: 0, newIntroducedToday: 0 }
       );
       setConfig({ ...DEFAULT_CONFIG, ...(data.config || {}) });
       if (Array.isArray(data.recents)) setRecents(data.recents);
@@ -310,20 +324,20 @@ export default function AnkiDemo() {
     loadProgress();
   }, []);
 
-  // 是否在本 session 畢業（休眠）
-  const isSessionGraduated = (id) => {
-    const s = cardState[id];
-    return s && s.graduated === "session:" + sessionId;
-  };
+  // 畢業狀態判定
+  const isPermGraduated = (id) => cardState[id]?.graduated === true;
+  const isSessionGraduated = (id) =>
+    cardState[id]?.graduated === "session:" + sessionId;
 
+  // 可用卡：排除「永久畢業」與「本場休眠（僅當前 session）」
   const availableIds = queue.filter(
-    (id) => !cardState[id]?.graduated && !isSessionGraduated(id)
+    (id) => !isPermGraduated(id) && !isSessionGraduated(id)
   );
   const remaining =
     availableIds.length +
     parked.filter((x) => {
       const id = x.id;
-      return !cardState[id]?.graduated && !isSessionGraduated(id);
+      return !isPermGraduated(id) && !isSessionGraduated(id);
     }).length;
   const studied = Object.values(cardState).reduce((a, s) => a + s.reviews, 0);
 
@@ -346,6 +360,32 @@ export default function AnkiDemo() {
     const delta = Math.floor(Math.random() * (2 * j + 1)) - j; // [-j, +j]
     return Math.max(1, Math.min(queue.length, pos + delta));
   };
+
+  // === 三色統計（新/學/複） ===
+  const introduced = (id) => !!(cardState[id] && cardState[id].introducedAt);
+  const availableNonGraduatedIds = initialIds.filter(
+    (id) => !isPermGraduated(id) && !isSessionGraduated(id)
+  );
+  const unintroducedCount = availableNonGraduatedIds.filter(
+    (id) => !introduced(id)
+  ).length;
+  const newSlotsLeft =
+    econf.dailyNewLimit > 0
+      ? Math.max(0, econf.dailyNewLimit - (stats.newIntroducedToday || 0))
+      : 0;
+  const newDue =
+    econf.dailyNewLimit > 0 ? Math.min(unintroducedCount, newSlotsLeft) : 0;
+  const learningDue = parked.filter(
+    (x) => !isPermGraduated(x.id) && !isSessionGraduated(x.id)
+  ).length;
+  const parkedSet = new Set(parked.map((x) => x.id));
+  const reviewDue = queue.filter(
+    (id) =>
+      !isPermGraduated(id) &&
+      !isSessionGraduated(id) &&
+      introduced(id) &&
+      !parkedSet.has(id)
+  ).length;
 
   // 前窗小洗牌（打亂前 K 張）
   function shuffleFront(q) {
@@ -386,12 +426,39 @@ export default function AnkiDemo() {
     const recentSet = new Set(recents);
     const condBase = (id) =>
       !cardState[id]?.graduated && !isSessionGraduated(id);
+    const isNew = (id) => !(cardState[id] && cardState[id].introducedAt);
+    const belowNewLimit = (id) => {
+      if (!econf.dailyNewLimit || econf.dailyNewLimit <= 0) return true;
+      if (!isNew(id)) return true;
+      return stats.newIntroducedToday < econf.dailyNewLimit;
+    };
     // 先用最小間隔過濾（除非軟限制下題數很少，仍會 fallback）
     const condGap = (id) => condBase(id) && !recentSet.has(id);
-    let candidates = q.filter(condGap);
+    let candidates = q.filter(condGap).filter(belowNewLimit);
     if (candidates.length === 0) {
       // 放寬，不排除 recents
-      candidates = q.filter(condBase);
+      candidates = q.filter(condBase).filter(belowNewLimit);
+    }
+    // 若因新卡上限造成沒有候選，且僅剩新卡，則今日結束
+    if (
+      candidates.length === 0 &&
+      econf.dailyNewLimit > 0 &&
+      stats.newIntroducedToday >= econf.dailyNewLimit
+    ) {
+      const hasNonNew = q.some((id) => condBase(id) && !isNew(id));
+      if (!hasNonNew) {
+        setQueue(q);
+        setParked(p);
+        setCurrentId(null);
+        setShowBack(false);
+        const wantSize = Math.max(econf.minGapHard, econf.minGapGood, 1);
+        const newRecents = prevId
+          ? [prevId, ...recents.filter((x) => x !== prevId)].slice(0, wantSize)
+          : recents;
+        setRecents(newRecents);
+        saveProgress({ queue: q, parked: p, recents: newRecents });
+        return;
+      }
     }
     // 若因為全都停車而沒有候選，但仍有 parked，強制釋放一張最接近的
     if (candidates.length === 0 && p.length > 0) {
@@ -406,7 +473,7 @@ export default function AnkiDemo() {
       // 從 parked 移除該卡
       p = p.filter((_, i) => i !== idxMin);
       // 重新計算候選
-      candidates = q.filter(cond);
+      candidates = q.filter(condBase);
     }
 
     let nxt = candidates[0] ?? null;
@@ -420,6 +487,20 @@ export default function AnkiDemo() {
     }
     setQueue(q);
     setParked(p);
+    // 若選中的是新卡且尚未超過上限，標記為已引入，並統計當日新卡數
+    if (
+      nxt != null &&
+      econf.dailyNewLimit > 0 &&
+      isNew(nxt) &&
+      stats.newIntroducedToday < econf.dailyNewLimit
+    ) {
+      const today = todayStr();
+      setCardState((prev) => ({
+        ...prev,
+        [nxt]: { ...prev[nxt], introducedAt: today },
+      }));
+      setStats((s) => ({ ...s, newIntroducedToday: s.newIntroducedToday + 1 }));
+    }
     setCurrentId(nxt ?? null);
     setShowBack(false);
     // 更新 recents：把上一張加入，長度受 minGap 控制
@@ -490,7 +571,7 @@ export default function AnkiDemo() {
   useEffect(() => {
     const t = todayStr();
     if (stats.day !== t) {
-      setStats({ day: t, reviewedToday: 0 });
+      setStats({ day: t, reviewedToday: 0, newIntroducedToday: 0 });
       setSessionId(newSessionId());
     }
   }, [stats.day]);
@@ -550,8 +631,30 @@ export default function AnkiDemo() {
       <Header>
         <Title>Anki Demo</Title>
         <Stats>
-          剩餘：{remaining} ｜ 今日：{stats.reviewedToday}/{config.dailyCap} ｜
-          累積：{studied}
+          <span
+            title="今日可引入的新卡數（受每日新卡上限與尚未導入卡數影響）"
+            style={{ color: "#1565c0" }}
+          >
+            新：{newDue}
+          </span>
+          <span style={{ margin: "0 6px" }}>＋</span>
+          <span
+            title="學習中（冷卻中，稍後會回來）"
+            style={{ color: "#ef6c00" }}
+          >
+            學：{learningDue}
+          </span>
+          <span style={{ margin: "0 6px" }}>＋</span>
+          <span
+            title="待複習（已導入、可立即出題）"
+            style={{ color: "#2e7d32" }}
+          >
+            複：{reviewDue}
+          </span>
+          <span style={{ marginLeft: 10, color: "#555" }}>
+            ｜ 剩餘：{remaining} ｜ 今日：{stats.reviewedToday}/
+            {config.dailyCap} ｜ 累積：{studied}
+          </span>
         </Stats>
       </Header>
       {softActive && (
@@ -593,32 +696,80 @@ export default function AnkiDemo() {
                 {current.jp_word}
               </div>
             )}
-            <Actions>
-              <Btn
-                onClick={() => rate("again")}
-                style={{ borderColor: "#e57373" }}
-              >
-                Again
-              </Btn>
-              <Btn
-                onClick={() => rate("hard")}
-                style={{ borderColor: "#ffb74d" }}
-              >
-                Hard
-              </Btn>
-              <Btn
-                onClick={() => rate("good")}
-                style={{ borderColor: "#64b5f6" }}
-              >
-                Good
-              </Btn>
-              <Btn
-                onClick={() => rate("easy")}
-                style={{ borderColor: "#81c784" }}
-              >
-                Easy
-              </Btn>
-            </Actions>
+            {(() => {
+              // Anki 風格：按鈕色與間隔提示（示意值）
+              const j = econf.shuffleWindow || 0;
+              const hardBase = 3;
+              const goodBase = 7;
+              const rangeTxt = (base) =>
+                j ? `約 +${Math.max(1, base - j)}~${base + j}` : `約 +${base}`;
+              const hints = {
+                again: `冷卻 ${econf.cooldownN}`,
+                hard: rangeTxt(hardBase),
+                good: rangeTxt(goodBase),
+                easy:
+                  config.graduateMode === "session" ? "本場休眠" : "本輪畢業",
+              };
+              const btnStyle = {
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                lineHeight: 1.1,
+                minWidth: 76,
+              };
+              return (
+                <Actions>
+                  <Btn
+                    onClick={() => rate("again")}
+                    style={{
+                      ...btnStyle,
+                      borderColor: "#e57373",
+                      background: "#ef9a9a",
+                      color: "#fff",
+                    }}
+                  >
+                    <span>再來一次</span>
+                    <small style={{ opacity: 0.9 }}>{hints.again}</small>
+                  </Btn>
+                  <Btn
+                    onClick={() => rate("hard")}
+                    style={{
+                      ...btnStyle,
+                      borderColor: "#ffb74d",
+                      background: "#ffcc80",
+                      color: "#4e342e",
+                    }}
+                  >
+                    <span>困難</span>
+                    <small style={{ opacity: 0.9 }}>{hints.hard}</small>
+                  </Btn>
+                  <Btn
+                    onClick={() => rate("good")}
+                    style={{
+                      ...btnStyle,
+                      borderColor: "#81c784",
+                      background: "#a5d6a7",
+                      color: "#1b5e20",
+                    }}
+                  >
+                    <span>普通</span>
+                    <small style={{ opacity: 0.9 }}>{hints.good}</small>
+                  </Btn>
+                  <Btn
+                    onClick={() => rate("easy")}
+                    style={{
+                      ...btnStyle,
+                      borderColor: "#64b5f6",
+                      background: "#90caf9",
+                      color: "#0d47a1",
+                    }}
+                  >
+                    <span>已學會</span>
+                    <small style={{ opacity: 0.9 }}>{hints.easy}</small>
+                  </Btn>
+                </Actions>
+              );
+            })()}
           </CardBack>
         )}
       </CardContainer>
@@ -653,6 +804,24 @@ export default function AnkiDemo() {
                 );
                 setConfig((c) => ({ ...c, dailyCap: v }));
                 saveProgress({ config: { ...config, dailyCap: v } });
+              }}
+              style={{ width: 80, marginLeft: 6 }}
+            />
+          </span>
+          <span style={{ marginLeft: 12 }}>
+            每日新卡上限：
+            <input
+              type="number"
+              min={0}
+              max={200}
+              value={config.dailyNewLimit}
+              onChange={(e) => {
+                const v = Math.max(
+                  0,
+                  Math.min(200, Number(e.target.value) || 0)
+                );
+                setConfig((c) => ({ ...c, dailyNewLimit: v }));
+                saveProgress({ config: { ...config, dailyNewLimit: v } });
               }}
               style={{ width: 80, marginLeft: 6 }}
             />
@@ -749,7 +918,9 @@ export default function AnkiDemo() {
       </Footer>
 
       <Footer>
-        <span>小提示：Easy 將此卡畢業，不再出現。</span>
+        <span>
+          小提示：「已學會」在「本場休眠」下僅當天不再出現（隔天回來）；在「本輪畢業」下本輪都不再出現。
+        </span>
         <span>Demo 僅為示範，未與資料庫同步。</span>
       </Footer>
     </Page>
