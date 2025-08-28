@@ -19,6 +19,9 @@ import {
   WordList,
   WordItem,
   ProficiencyBadge,
+  // 新增表格樣式
+  WordTableWrapper,
+  WordTable,
 } from "./styles";
 import Modal from "../../components/Modal";
 import { useNavigate } from "react-router-dom"; // Import useBlocker
@@ -421,32 +424,53 @@ const NotebookManagementPage = () => {
                   </Button>
                 </FilterButtons>
 
+                {/* 以表格呈現固定高度可滾動列表 */}
                 {filteredContext && filteredContext.length > 0 ? (
-                  <WordList>
-                    {filteredContext.map((word) => (
-                      <WordItem key={word.id}>
-                        <div>
-                          <strong>{word.jp_word}</strong> - {word.ch_word}
-                          <ProficiencyBadge level={word.proficiency}>
-                            {word.proficiency === 1
-                              ? "初級"
-                              : word.proficiency === 2
-                              ? "中級"
-                              : "高級"}
-                          </ProficiencyBadge>
-                        </div>
-                        <div>
-                          <Button onClick={() => handleEditWord(word)}>編輯</Button>
-                          <Button
-                            danger
-                            onClick={() => handleDeleteWord(word.id)}
-                          >
-                            刪除
-                          </Button>
-                        </div>
-                      </WordItem>
-                    ))}
-                  </WordList>
+                  <WordTableWrapper>
+                    <WordTable>
+                      <thead>
+                        <tr>
+                          <th>日文</th>
+                          <th>中文</th>
+                          <th>熟練度</th>
+                          <th style={{ textAlign: "right" }}>操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredContext.map((word) => (
+                          <tr key={word.id}>
+                            <td>
+                              <strong>{word.kanji_jp_word || word.jp_word}</strong>
+                              {word.kanji_jp_word && (
+                                <div style={{ color: "#777", fontSize: 12 }}>
+                                  假名：{word.jp_word}
+                                </div>
+                              )}
+                            </td>
+                            <td>{word.ch_word}</td>
+                            <td>
+                              <ProficiencyBadge level={word.proficiency}>
+                                {word.proficiency === 1
+                                  ? "初級"
+                                  : word.proficiency === 2
+                                  ? "中級"
+                                  : "高級"}
+                              </ProficiencyBadge>
+                            </td>
+                            <td style={{ textAlign: "right" }}>
+                              <Button onClick={() => handleEditWord(word)}>編輯</Button>
+                              <Button
+                                danger
+                                onClick={() => handleDeleteWord(word.id)}
+                              >
+                                刪除
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </WordTable>
+                  </WordTableWrapper>
                 ) : (
                   <p>目前沒有符合條件的單字</p>
                 )}

@@ -258,3 +258,48 @@ export const ProficiencyBadge = styled.span`
     }
   }};
 `;
+
+// 新增：固定高度可滾動的表格樣式（支援手機）
+export const WordTableWrapper = styled.div`
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  max-height: 420px; /* 固定高度 */
+  overflow-y: auto; /* 垂直捲動 */
+  overflow-x: auto; /* 小螢幕可橫向捲動 */
+  background: #fff;
+`;
+
+export const WordTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px; /* 手機時可橫向滑動 */
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background: #fafafa;
+    z-index: 1;
+    border-bottom: 1px solid #eee;
+  }
+
+  th, td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: left;
+    font-size: 14px;
+    vertical-align: middle;
+  }
+
+  th:nth-child(1) { width: 35%; }
+  th:nth-child(2) { width: 35%; }
+  th:nth-child(3) { width: 15%; }
+  th:nth-child(4) { width: 15%; text-align: right; }
+
+  tbody tr:hover {
+    background: #fafafa;
+  }
+
+  @media (max-width: 768px) {
+    th, td { font-size: 13px; padding: 8px 6px; }
+  }
+`;
