@@ -115,9 +115,9 @@ const menuItems = [
     icon: "📚",
   },
   {
-    title: "Anki",
-    description: "間隔重複學習",
-    path: "/word-management",
+    title: "Anki Demo",
+    description: "間隔重複學習（示範）",
+    path: "/anki",
     icon: "🗂",
   },
   {

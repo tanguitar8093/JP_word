@@ -11,6 +11,7 @@ import SystemSettingsPage from "./pages/systemSettings";
 import NotebookManagementPage from "./pages/notebookManagement";
 import NavigationBlocker from "./components/NavigationBlocker";
 import Reading from "./pages/Reading/components/Reading";
+import AnkiDemo from "./pages/anki"; // 新增：Anki Demo
 
 const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
@@ -50,6 +51,17 @@ const router = createBrowserRouter(
               message="偵測到尚有未完成的閱讀/測驗進度，前往『拼字』將會丟棄該進度，是否繼續？"
             >
               <FillInQuiz />
+            </NavigationBlocker>
+          ),
+        },
+        {
+          path: "anki",
+          element: (
+            <NavigationBlocker
+              clearOnConfirm
+              message="偵測到尚有未完成的學習進度（測驗/閱讀/拼字），前往『Anki Demo』將會丟棄進度，是否繼續？"
+            >
+              <AnkiDemo />
             </NavigationBlocker>
           ),
         },
