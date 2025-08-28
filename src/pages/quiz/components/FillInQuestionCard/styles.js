@@ -8,6 +8,7 @@ export const CardContainer = styled.div`
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  position: relative; /* 讓熟練度控制可絕對定位 */
 `;
 
 export const Prompt = styled.div`
@@ -95,5 +96,33 @@ export const OptionButton = styled.button`
   }
   &:hover:not(:disabled) {
     background: #f0f0f0;
+  }
+`;
+
+// 熟練度控制（與 Quiz 一致）
+export const ProficiencyControlContainer = styled.div`
+  display: flex;
+  gap: 2px;
+  position: absolute;
+  right: 5px;
+`;
+
+export const ProficiencyButton = styled.button`
+  padding: 2px 4px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 10px;
+
+  &:hover {
+    background-color: #ddd;
+  }
+
+  &.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
   }
 `;
