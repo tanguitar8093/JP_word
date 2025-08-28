@@ -14,12 +14,54 @@ const HIRAGANA =
 const KATAKANA =
   "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポャュョッー";
 
+// 形近/音似群（常見容易混淆）
+const CONFUSABLE_GROUPS = [
+  // 小字 vs 大字（拗音/促音）
+  ["や", "ゃ"],
+  ["ゆ", "ゅ"],
+  ["よ", "ょ"],
+  ["つ", "っ"],
+  ["ヤ", "ャ"],
+  ["ユ", "ュ"],
+  ["ヨ", "ョ"],
+  ["ツ", "ッ"],
+  // 片假名經典混淆
+  ["シ", "ツ"],
+  ["ソ", "ン"],
+  // 濁音/半濁音（音近）
+  ["か", "が"],
+  ["さ", "ざ"],
+  ["た", "だ"],
+  ["は", "ば", "ぱ"],
+  ["カ", "ガ"],
+  ["サ", "ザ"],
+  ["タ", "ダ"],
+  ["ハ", "バ", "パ"],
+  // 其他常見視覺混淆（保守選）
+  ["る", "ろ"],
+  ["ぬ", "め"],
+  ["れ", "ね"],
+];
+
 const randPick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 function toChars(str) {
   // split into unicode code points
   return Array.from(str || "");
 }
+
+function buildConfusableMap(groups) {
+  const map = new Map();
+  for (const group of groups) {
+    for (const ch of group) {
+      const others = group.filter((x) => x !== ch);
+      map.set(ch, new Set([...(map.get(ch) || []), ...others]));
+    }
+  }
+  return map;
+}
+
+const CONFUSABLE_MAP = buildConfusableMap(CONFUSABLE_GROUPS);
 
 export default function FillInQuestionCard({
   question,
@@ -30,43 +72,53 @@ export default function FillInQuestionCard({
 }) {
   const target = useMemo(() => toChars(question?.jp_word || ""), [question]);
 
-  // Build pool: characters from all jp_word plus noise kana
+  // 固定：答案長度 + 6。優先放入形近/音似干擾，其餘再隨機補足。
   const pool = useMemo(() => {
-    const fromAll = new Map();
-    (allQuestions || []).forEach((q) => {
-      toChars(q.jp_word || "").forEach((ch) => {
-        fromAll.set(ch, (fromAll.get(ch) || 0) + 1);
-      });
-    });
-    // Ensure target counts are available
-    target.forEach((ch) =>
-      fromAll.set(
-        ch,
-        Math.max(fromAll.get(ch) || 0, target.filter((c) => c === ch).length)
-      )
-    );
+    // 1) 統計答案必需字元
+    const need = new Map();
+    target.forEach((ch) => need.set(ch, (need.get(ch) || 0) + 1));
 
-    // Add noise kana
-    const noise = [...toChars(HIRAGANA + KATAKANA)];
-    const desiredTotal = Math.min(24, Math.max(12, target.length * 2));
-    while (
-      [...fromAll.entries()].reduce((s, [, c]) => s + c, 0) < desiredTotal
-    ) {
-      const ch = randPick(noise);
-      fromAll.set(ch, (fromAll.get(ch) || 0) + 1);
+    const desiredTotal = target.length + 6;
+
+    // 2) 先放入必需字元（確保可組出答案）
+    const tiles = [];
+    need.forEach((count, ch) => {
+      for (let i = 0; i < count; i++) tiles.push({ ch, id: `${ch}-req-${i}` });
+    });
+
+    // 3) 優先加入形近/音似干擾（不包含答案中已需要的字元）
+    const chosenNoise = new Set();
+    const uniqueTarget = Array.from(new Set(target));
+    for (const ch of uniqueTarget) {
+      if (tiles.length >= desiredTotal) break;
+      const conf = Array.from(CONFUSABLE_MAP.get(ch) || []).filter(
+        (c) => !need.has(c) && !chosenNoise.has(c)
+      );
+      // 隨機從 confusable 裡面挑選 1~2 個
+      while (conf.length && tiles.length < desiredTotal) {
+        const pick = conf.splice(Math.floor(Math.random() * conf.length), 1)[0];
+        chosenNoise.add(pick);
+        tiles.push({ ch: pick, id: `${pick}-conf-${tiles.length}` });
+      }
     }
 
-    // Expand into array with duplicates by count and shuffle
-    const expanded = [];
-    fromAll.forEach((count, ch) => {
-      for (let i = 0; i < count; i++) expanded.push({ ch, id: `${ch}-${i}` });
-    });
-    for (let i = expanded.length - 1; i > 0; i--) {
+    // 4) 不足則用隨機假名補足（排除答案字與已挑選干擾）
+    const allKana = Array.from(new Set([...toChars(HIRAGANA + KATAKANA)]));
+    const forbidden = new Set([...need.keys(), ...chosenNoise]);
+    const filler = allKana.filter((k) => !forbidden.has(k));
+    while (tiles.length < desiredTotal) {
+      const ch = randPick(filler);
+      tiles.push({ ch, id: `${ch}-noise-${tiles.length}` });
+      forbidden.add(ch);
+    }
+
+    // 5) 洗牌
+    for (let i = tiles.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [expanded[i], expanded[j]] = [expanded[j], expanded[i]];
+      [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
     }
-    return expanded;
-  }, [allQuestions, target]);
+    return tiles;
+  }, [target]);
 
   const [answer, setAnswer] = useState([]); // array of {ch, id}
   const [usedIds, setUsedIds] = useState(new Set());
