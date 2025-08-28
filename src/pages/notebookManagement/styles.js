@@ -92,7 +92,7 @@ export const Button = styled.button`
   background: #4caf50;
   color: white;
   border: none;
-  padding: 8px 16px;
+  padding: 4px 8px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -267,12 +267,12 @@ export const WordTableWrapper = styled.div`
   overflow-y: auto; /* 垂直捲動 */
   overflow-x: auto; /* 小螢幕可橫向捲動 */
   background: #fff;
+  scrollbar-width: none;
 `;
 
 export const WordTable = styled.table`
   width: 100%;
   border-collapse: collapse;
-  min-width: 640px; /* 手機時可橫向滑動 */
 
   thead th {
     position: sticky;
@@ -282,24 +282,38 @@ export const WordTable = styled.table`
     border-bottom: 1px solid #eee;
   }
 
-  th, td {
+  th,
+  td {
     padding: 10px 8px;
     border-bottom: 1px solid #f0f0f0;
     text-align: left;
-    font-size: 14px;
+    font-size: 12px;
     vertical-align: middle;
   }
 
-  th:nth-child(1) { width: 35%; }
-  th:nth-child(2) { width: 35%; }
-  th:nth-child(3) { width: 15%; }
-  th:nth-child(4) { width: 15%; text-align: right; }
+  th:nth-child(1) {
+    width: 25%;
+  }
+  th:nth-child(2) {
+    width: 20%;
+  }
+  th:nth-child(3) {
+    width: 10%;
+  }
+  th:nth-child(4) {
+    width: 30%;
+    text-align: right;
+  }
 
   tbody tr:hover {
     background: #fafafa;
   }
 
   @media (max-width: 768px) {
-    th, td { font-size: 13px; padding: 8px 6px; }
+    th,
+    td {
+      font-size: 12px;
+      padding: 4px 3px;
+    }
   }
 `;

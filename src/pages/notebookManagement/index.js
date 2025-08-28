@@ -330,7 +330,9 @@ const NotebookManagementPage = () => {
                     <span onClick={() => handleSelectNotebook(notebook)}>
                       {notebook.name}
                     </span>
-                    <Button onClick={() => handleExport(notebook.id)}>匯出</Button>
+                    <Button onClick={() => handleExport(notebook.id)}>
+                      匯出
+                    </Button>
                     <Button
                       danger
                       onClick={() => handleDeleteNotebook(notebook.id)}
@@ -342,7 +344,10 @@ const NotebookManagementPage = () => {
               </NotebookList>
             )}
             {mergeSelection.length > 1 && (
-              <Button onClick={handleMergeNotebooks} style={{ marginTop: "10px" }}>
+              <Button
+                onClick={handleMergeNotebooks}
+                style={{ marginTop: "10px" }}
+              >
                 合併選取項目 ({mergeSelection.length})
               </Button>
             )}
@@ -440,7 +445,9 @@ const NotebookManagementPage = () => {
                         {filteredContext.map((word) => (
                           <tr key={word.id}>
                             <td>
-                              <strong>{word.kanji_jp_word || word.jp_word}</strong>
+                              <strong>
+                                {word.kanji_jp_word || word.jp_word}
+                              </strong>
                               {word.kanji_jp_word && (
                                 <div style={{ color: "#777", fontSize: 12 }}>
                                   假名：{word.jp_word}
@@ -458,7 +465,9 @@ const NotebookManagementPage = () => {
                               </ProficiencyBadge>
                             </td>
                             <td style={{ textAlign: "right" }}>
-                              <Button onClick={() => handleEditWord(word)}>編輯</Button>
+                              <Button onClick={() => handleEditWord(word)}>
+                                編輯
+                              </Button>
                               <Button
                                 danger
                                 onClick={() => handleDeleteWord(word.id)}
