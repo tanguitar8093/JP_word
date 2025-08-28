@@ -67,6 +67,7 @@ function Content() {
     startQuestionIndex,
     wordRangeCount,
     sortOrder,
+    wordType,
   } = state.systemSettings;
   const { notebooks, currentNotebookId } = state.shared;
   const question = questions[currentQuestionIndex];
@@ -158,6 +159,35 @@ function Content() {
     state.shared.currentNotebookId,
   ]);
 
+  // 依設定呈現日文顯示（假名/漢字/漢字+ruby）
+  const renderWordByType = useCallback(() => {
+    if (!question) return null;
+    if (wordType === "kanji_jp_word") {
+      return <span>{question.kanji_jp_word || question.jp_word}</span>;
+    }
+    if (wordType === "jp_word") {
+      return <span>{question.jp_word}</span>;
+    }
+    if (wordType === "jp_context" && Array.isArray(question.jp_context)) {
+      return (
+        <span>
+          {question.jp_context.map((part, index) =>
+            part.kanji ? (
+              <ruby key={index}>
+                {part.kanji}
+                <rt>{part.hiragana}</rt>
+              </ruby>
+            ) : (
+              <span key={index}>{part.hiragana}</span>
+            )
+          )}
+        </span>
+      );
+    }
+    // fallback
+    return <span>{question.jp_word}</span>;
+  }, [question, wordType]);
+
   return (
     <AppContainer>
       <IconContainer>
@@ -216,6 +246,17 @@ function Content() {
             </div>
             <div style={{ fontSize: 18 }}>
               {selectedAnswer} {result}
+            </div>
+            {/* 依設定顯示日文答案 */}
+            <div style={{ fontSize: 18, marginTop: 8 }}>
+              日文：{renderWordByType()}{" "}
+              <button
+                style={{ marginLeft: 8 }}
+                onClick={() => speakManually(question.jp_word, "ja")}
+                aria-label="播放日文發音"
+              >
+                🔊
+              </button>
             </div>
           </div>
           <ExampleSentence
@@ -316,7 +357,12 @@ export default function FillInQuiz() {
     if (!saved) return;
     if (!notebooks || notebooks.length === 0) return;
 
-    const { notebookId: savedNotebookId, questionIds, currentIndex, results } = saved;
+    const {
+      notebookId: savedNotebookId,
+      questionIds,
+      currentIndex,
+      results,
+    } = saved;
 
     if (savedNotebookId && savedNotebookId !== currentNotebookId) {
       dispatch(setCurrentNotebook(savedNotebookId));
@@ -333,8 +379,13 @@ export default function FillInQuiz() {
 
     if (restoredQuestions.length === 0) return;
 
-    const clampedIndex = Math.min(Math.max(0, currentIndex || 0), restoredQuestions.length);
-    const trimmedResults = Array.isArray(results) ? results.slice(0, clampedIndex) : [];
+    const clampedIndex = Math.min(
+      Math.max(0, currentIndex || 0),
+      restoredQuestions.length
+    );
+    const trimmedResults = Array.isArray(results)
+      ? results.slice(0, clampedIndex)
+      : [];
 
     dispatch({
       type: "quiz/LOAD_PROGRESS",
@@ -351,7 +402,12 @@ export default function FillInQuiz() {
   useEffect(() => {
     if (!quizCompleted && !hydratedFromProgress) {
       const saved = fillinProgressService.loadProgress();
-      if (saved && notebooks && notebooks.some((n) => n.id === saved.notebookId)) return;
+      if (
+        saved &&
+        notebooks &&
+        notebooks.some((n) => n.id === saved.notebookId)
+      )
+        return;
       const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
       if (currentNotebook) {
         let questions = currentNotebook.context.filter((q) => {
@@ -359,7 +415,10 @@ export default function FillInQuiz() {
           return proficiencyFilter[q.proficiency];
         });
         const startIndex = Math.max(0, startQuestionIndex - 1);
-        const endIndex = Math.min(questions.length, startIndex + wordRangeCount);
+        const endIndex = Math.min(
+          questions.length,
+          startIndex + wordRangeCount
+        );
         questions = questions.slice(startIndex, endIndex);
         if (questions.length > 0) {
           dispatch(startQuiz(questions, sortOrder));

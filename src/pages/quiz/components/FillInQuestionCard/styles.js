@@ -21,7 +21,8 @@ export const Prompt = styled.div`
     font-weight: 700;
   }
   .speak {
-    margin-left: auto;
+    /* 將發音按鈕放在文字旁，避免與右上熟練度重疊 */
+    margin-left: 8px;
     border: 1px solid #e0e0e0;
     border-radius: 12px;
     padding: 6px 10px;
@@ -105,6 +106,7 @@ export const ProficiencyControlContainer = styled.div`
   gap: 2px;
   position: absolute;
   right: 5px;
+  top: 6px; /* 固定在卡片右上，避免與 Prompt 內容重疊 */
 `;
 
 export const ProficiencyButton = styled.button`

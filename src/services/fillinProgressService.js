@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'JPW_FillinProgress';
+const STORAGE_KEY = "JPW_FillinProgress";
 
 const safeParse = (str) => {
   try {
@@ -24,7 +24,14 @@ const fillinProgressService = {
       return null;
     }
   },
-  saveProgress: ({ notebookId, questionIds, currentIndex, results, sortOrder, schemaVersion = 1 }) => {
+  saveProgress: ({
+    notebookId,
+    questionIds,
+    currentIndex,
+    results,
+    sortOrder,
+    schemaVersion = 1,
+  }) => {
     try {
       const data = {
         notebookId,
