@@ -37,7 +37,10 @@ const NotebookManagementPage = () => {
   const [isEditWordModalVisible, setIsEditWordModalVisible] = useState(false);
   const [editingWordJson, setEditingWordJson] = useState("");
   const [mergeSelection, setMergeSelection] = useState([]);
+  // 搜尋：輸入框內容與實際套用的查詢分離（送出才套用）
+  const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [includeExamples, setIncludeExamples] = useState(false); // 是否將例句納入搜尋
   const [wordSelection, setWordSelection] = useState([]);
   const navigate = useNavigate();
 
@@ -87,7 +90,11 @@ const NotebookManagementPage = () => {
 
   const handleDeleteSelectedNotebooks = () => {
     if (mergeSelection.length === 0) return;
-    if (!window.confirm(`確定刪除已勾選的 ${mergeSelection.length} 個筆記本？此操作無法復原！`)) {
+    if (
+      !window.confirm(
+        `確定刪除已勾選的 ${mergeSelection.length} 個筆記本？此操作無法復原！`
+      )
+    ) {
       return;
     }
     try {
@@ -296,26 +303,74 @@ const NotebookManagementPage = () => {
     event.target.value = null; // Reset file input
   };
 
-  // 搜尋規則：優先比對常用欄位，並補以 JSON 字串比對（小型資料最直觀）
-  const matchesSearch = (word, q) => {
-    if (!q) return true;
-    const s = q.toLowerCase();
-    const fields = [
-      word.jp_word,
-      word.kanji_jp_word,
-      word.ch_word,
-      word.type,
-      String(word.id),
-    ]
-      .filter(Boolean)
-      .map((v) => String(v).toLowerCase());
+  // === 進階搜尋規則（最佳化） ===
+  // - 規範化（NFKC + 小寫 + trim）
+  // - 片假名轉平假名，與 jp_word 一致比對
+  // - 多關鍵字 AND（以空白分隔）
+  // - 單一漢字時只比對「漢字/中文」欄位，避免誤中假名
+  // - 移除 JSON 全文比對，避免被隱藏欄位誤中
+  const normalize = (s) =>
+    (s ?? "").toString().normalize("NFKC").trim().toLowerCase();
 
-    if (fields.some((v) => v.includes(s))) return true;
-    try {
-      return JSON.stringify(word).toLowerCase().includes(s);
-    } catch {
+  const kataToHira = (s) =>
+    (s ?? "").replace(/[\u30A1-\u30F6]/g, (ch) =>
+      String.fromCharCode(ch.charCodeAt(0) - 0x60)
+    );
+  const normalizeJP = (s) => normalize(kataToHira(s));
+
+  const isSingleCJKChar = (s) => {
+    if (!s) return false;
+    const arr = [...s];
+    if (arr.length !== 1) return false;
+    const cp = arr[0].codePointAt(0);
+    return (
+      (cp >= 0x4e00 && cp <= 0x9fff) || // CJK Unified Ideographs
+      (cp >= 0x3400 && cp <= 0x4dbf) || // Extension A
+      (cp >= 0xf900 && cp <= 0xfaff) // Compatibility Ideographs
+    );
+  };
+
+  const tokenize = (q) => normalize(q).split(/\s+/).filter(Boolean);
+
+  const matchesSearch = (word, q, opts = {}) => {
+    const { includeExamples = false } = opts;
+    const terms = tokenize(q);
+    if (terms.length === 0) return true;
+
+    // 預先規範化欄位
+    const jpWord = normalizeJP(word.jp_word);
+    const kanji = normalize(word.kanji_jp_word);
+    const ch = normalize(word.ch_word);
+    const type = normalize(word.type);
+    const idStr = normalize(String(word.id));
+
+    const exampleJP = includeExamples ? normalizeJP(word.jp_ex_statement) : "";
+    const exampleCH = includeExamples ? normalize(word.ch_ex_statement) : "";
+
+    return terms.every((t) => {
+      if (isSingleCJKChar(t)) {
+        // 單一漢字：限制在漢字/中文欄位
+        return kanji.includes(t) || ch.includes(t);
+      }
+      const tGen = normalize(t);
+      const tJP = normalizeJP(t);
+      // 一般欄位（非假名）
+      if (
+        kanji.includes(tGen) ||
+        ch.includes(tGen) ||
+        type.includes(tGen) ||
+        idStr.includes(tGen)
+      ) {
+        return true;
+      }
+      // 假名欄位
+      if (jpWord.includes(tJP)) return true;
+      // 例句（選擇性）
+      if (includeExamples) {
+        if (exampleCH.includes(tGen) || exampleJP.includes(tJP)) return true;
+      }
       return false;
-    }
+    });
   };
 
   const filteredByProficiency = useMemo(() => {
@@ -329,8 +384,10 @@ const NotebookManagementPage = () => {
 
   const displayedWords = useMemo(() => {
     const q = searchQuery.trim();
-    return filteredByProficiency.filter((w) => matchesSearch(w, q));
-  }, [filteredByProficiency, searchQuery]);
+    return filteredByProficiency.filter((w) =>
+      matchesSearch(w, q, { includeExamples })
+    );
+  }, [filteredByProficiency, searchQuery, includeExamples]);
 
   const allDisplayedSelected =
     displayedWords.length > 0 &&
@@ -339,7 +396,9 @@ const NotebookManagementPage = () => {
   const toggleSelectAllDisplayed = () => {
     if (allDisplayedSelected) {
       // 取消勾選本頁顯示
-      setWordSelection((prev) => prev.filter((id) => !displayedWords.some((w) => w.id === id)));
+      setWordSelection((prev) =>
+        prev.filter((id) => !displayedWords.some((w) => w.id === id))
+      );
     } else {
       // 勾選本頁顯示
       const ids = displayedWords.map((w) => w.id);
@@ -355,16 +414,35 @@ const NotebookManagementPage = () => {
 
   const handleBulkDeleteWords = () => {
     if (!selectedNotebook || wordSelection.length === 0) return;
-    if (!window.confirm(`確定刪除已勾選的 ${wordSelection.length} 個單字？此操作無法復原！`)) {
+    if (
+      !window.confirm(
+        `確定刪除已勾選的 ${wordSelection.length} 個單字？此操作無法復原！`
+      )
+    ) {
       return;
     }
     try {
-      notebookService.deleteWordsFromNotebook(selectedNotebook.id, wordSelection);
+      notebookService.deleteWordsFromNotebook(
+        selectedNotebook.id,
+        wordSelection
+      );
       refreshNotebooks(selectedNotebook.id);
       setWordSelection([]);
     } catch (error) {
       alert(error.message);
     }
+  };
+
+  // 送出搜尋（Enter / 按鈕）
+  const handleApplySearch = (e) => {
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
+    setSearchQuery(searchInput);
+  };
+
+  // 清除搜尋（輸入與套用查詢都清空）
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setSearchQuery("");
   };
 
   return (
@@ -391,7 +469,12 @@ const NotebookManagementPage = () => {
 
           <Section>
             <h2>匯入筆記本</h2>
-            <Input type="file" accept=".json" onChange={handleImport} fullWidth />
+            <Input
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              fullWidth
+            />
           </Section>
 
           <Section>
@@ -418,13 +501,17 @@ const NotebookManagementPage = () => {
                       return (
                         <tr
                           key={notebook.id}
-                          style={{ background: selected ? "#e8f5e9" : "transparent" }}
+                          style={{
+                            background: selected ? "#e8f5e9" : "transparent",
+                          }}
                         >
                           <td>
                             <input
                               type="checkbox"
                               checked={mergeSelection.includes(notebook.id)}
-                              onChange={() => handleMergeSelectionChange(notebook.id)}
+                              onChange={() =>
+                                handleMergeSelectionChange(notebook.id)
+                              }
                               onClick={(e) => e.stopPropagation()}
                             />
                           </td>
@@ -438,8 +525,13 @@ const NotebookManagementPage = () => {
                           </td>
                           <td>{wordsCount}</td>
                           <td style={{ textAlign: "right" }}>
-                            <Button onClick={() => handleExport(notebook.id)}>匯出</Button>
-                            <Button danger onClick={() => handleDeleteNotebook(notebook.id)}>
+                            <Button onClick={() => handleExport(notebook.id)}>
+                              匯出
+                            </Button>
+                            <Button
+                              danger
+                              onClick={() => handleDeleteNotebook(notebook.id)}
+                            >
                               刪除
                             </Button>
                           </td>
@@ -451,7 +543,10 @@ const NotebookManagementPage = () => {
               </WordTableWrapper>
             )}
             {mergeSelection.length > 1 && (
-              <Button onClick={handleMergeNotebooks} style={{ marginTop: "10px" }}>
+              <Button
+                onClick={handleMergeNotebooks}
+                style={{ marginTop: "10px" }}
+              >
                 合併選取項目 ({mergeSelection.length})
               </Button>
             )}
@@ -513,7 +608,8 @@ const NotebookManagementPage = () => {
                 />
                 <Button onClick={() => setModalVisible(true)}>編輯</Button>
                 <h3 style={{ marginTop: "16px" }}>
-                  單字列表({displayedWords.length}/{selectedNotebook?.context?.length || 0})：
+                  單字列表({displayedWords.length}/
+                  {selectedNotebook?.context?.length || 0})：
                 </h3>
                 <FilterButtons>
                   <Button
@@ -542,8 +638,9 @@ const NotebookManagementPage = () => {
                   </Button>
                 </FilterButtons>
 
-                {/* 搜尋與批次操作列 */}
-                <div
+                {/* 搜尋與批次操作列（送出觸發）*/}
+                <form
+                  onSubmit={handleApplySearch}
                   style={{
                     display: "flex",
                     gap: 8,
@@ -554,20 +651,33 @@ const NotebookManagementPage = () => {
                 >
                   <Input
                     type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                     placeholder="搜尋單字（可輸入日文/中文/詞性/ID）"
                     style={{ minWidth: 220 }}
                   />
-                  {searchQuery && (
-                    <Button secondary onClick={() => setSearchQuery("")}>清除搜尋</Button>
+                  <Button onClick={handleApplySearch}>搜尋</Button>
+                  <label
+                    style={{ display: "flex", alignItems: "center", gap: 4 }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={includeExamples}
+                      onChange={(e) => setIncludeExamples(e.target.checked)}
+                    />
+                    包含例句
+                  </label>
+                  {(searchInput || searchQuery) && (
+                    <Button secondary onClick={handleClearSearch}>
+                      清除搜尋
+                    </Button>
                   )}
                   {wordSelection.length > 0 && (
                     <Button danger onClick={handleBulkDeleteWords}>
                       刪除選取項目 ({wordSelection.length})
                     </Button>
                   )}
-                </div>
+                </form>
 
                 {/* 固定高度可滾動表格：新增選取欄與全選 */}
                 {displayedWords && displayedWords.length > 0 ? (
@@ -585,7 +695,9 @@ const NotebookManagementPage = () => {
                           <th style={{ width: "40%" }}>日文</th>
                           <th style={{ width: "25%" }}>中文</th>
                           <th style={{ width: "15%" }}>熟練度</th>
-                          <th style={{ textAlign: "right", width: "20%" }}>操作</th>
+                          <th style={{ textAlign: "right", width: "20%" }}>
+                            操作
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -599,7 +711,9 @@ const NotebookManagementPage = () => {
                               />
                             </td>
                             <td>
-                              <strong>{word.kanji_jp_word || word.jp_word}</strong>
+                              <strong>
+                                {word.kanji_jp_word || word.jp_word}
+                              </strong>
                               {word.kanji_jp_word && (
                                 <div style={{ color: "#777", fontSize: 12 }}>
                                   假名：{word.jp_word}
@@ -617,8 +731,13 @@ const NotebookManagementPage = () => {
                               </ProficiencyBadge>
                             </td>
                             <td style={{ textAlign: "right" }}>
-                              <Button onClick={() => handleEditWord(word)}>編輯</Button>
-                              <Button danger onClick={() => handleDeleteWord(word.id)}>
+                              <Button onClick={() => handleEditWord(word)}>
+                                編輯
+                              </Button>
+                              <Button
+                                danger
+                                onClick={() => handleDeleteWord(word.id)}
+                              >
                                 刪除
                               </Button>
                             </td>
