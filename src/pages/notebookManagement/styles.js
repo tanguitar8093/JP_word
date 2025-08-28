@@ -96,7 +96,7 @@ export const Button = styled.button`
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin: 0 4px;
+  margin: 3px;
 
   &:hover {
     background: #45a049;
@@ -199,8 +199,8 @@ export const TextArea = styled.textarea`
 
 export const FilterButtons = styled.div`
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 4px;
+  margin-bottom: 8px;
 
   @media (max-width: 768px) {
     flex-wrap: wrap;
@@ -292,16 +292,16 @@ export const WordTable = styled.table`
   }
 
   th:nth-child(1) {
-    width: 25%;
+    width: 35%;
   }
   th:nth-child(2) {
-    width: 20%;
+    width: 25%;
   }
   th:nth-child(3) {
-    width: 10%;
+    width: 20%;
   }
   th:nth-child(4) {
-    width: 30%;
+    width: 20%;
     text-align: right;
   }
 

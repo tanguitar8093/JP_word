@@ -274,7 +274,7 @@ export default function AnkiDemo() {
             </div>
             {current.kanji_jp_word && (
               <div style={{ marginTop: 4, color: "#666" }}>
-                假名：{current.jp_word}
+                {current.jp_word}
               </div>
             )}
             <Actions>

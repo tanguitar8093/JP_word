@@ -315,33 +315,66 @@ const NotebookManagementPage = () => {
             {notebooks.length === 0 ? (
               <p>尚未建立筆記本</p>
             ) : (
-              <NotebookList>
-                {notebooks.map((notebook) => (
-                  <NotebookItem
-                    key={notebook.id}
-                    selected={currentNotebookId === notebook.id}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={mergeSelection.includes(notebook.id)}
-                      onChange={() => handleMergeSelectionChange(notebook.id)}
-                      onClick={(e) => e.stopPropagation()} // Prevent triggering handleSelectNotebook
-                    />
-                    <span onClick={() => handleSelectNotebook(notebook)}>
-                      {notebook.name}
-                    </span>
-                    <Button onClick={() => handleExport(notebook.id)}>
-                      匯出
-                    </Button>
-                    <Button
-                      danger
-                      onClick={() => handleDeleteNotebook(notebook.id)}
-                    >
-                      刪除
-                    </Button>
-                  </NotebookItem>
-                ))}
-              </NotebookList>
+              <WordTableWrapper>
+                <WordTable>
+                  <thead>
+                    <tr>
+                      <th>選取</th>
+                      <th>名稱</th>
+                      <th>單字數</th>
+                      <th style={{ textAlign: "right" }}>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {notebooks.map((notebook) => {
+                      const selected = currentNotebookId === notebook.id;
+                      return (
+                        <tr
+                          key={notebook.id}
+                          style={{
+                            background: selected ? "#e8f5e9" : "transparent",
+                          }}
+                        >
+                          <td>
+                            <input
+                              type="checkbox"
+                              checked={mergeSelection.includes(notebook.id)}
+                              onChange={() =>
+                                handleMergeSelectionChange(notebook.id)
+                              }
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </td>
+                          <td>
+                            <span
+                              onClick={() => handleSelectNotebook(notebook)}
+                              style={{ cursor: "pointer", color: "#2e7d32" }}
+                            >
+                              {notebook.name}
+                            </span>
+                          </td>
+                          <td>
+                            {Array.isArray(notebook.context)
+                              ? notebook.context.length
+                              : 0}
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            <Button onClick={() => handleExport(notebook.id)}>
+                              匯出
+                            </Button>
+                            <Button
+                              danger
+                              onClick={() => handleDeleteNotebook(notebook.id)}
+                            >
+                              刪除
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </WordTable>
+              </WordTableWrapper>
             )}
             {mergeSelection.length > 1 && (
               <Button
@@ -450,7 +483,7 @@ const NotebookManagementPage = () => {
                               </strong>
                               {word.kanji_jp_word && (
                                 <div style={{ color: "#777", fontSize: 12 }}>
-                                  假名：{word.jp_word}
+                                  {word.jp_word}
                                 </div>
                               )}
                             </td>
