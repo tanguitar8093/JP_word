@@ -5,10 +5,6 @@ export const AppContainer = styled.div`
   max-width: 600px;
   margin: 60px auto;
   padding: 20px;
-  background: #f8f9fa;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  position: relative; /* 為懸浮設定定位 */
 `;
 
 // 標題

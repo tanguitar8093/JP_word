@@ -12,6 +12,7 @@ export const PanelContainer = styled.div`
   overflow: auto;
   max-height: 350px;
   scrollbar-width: none;
+  box-shadow: rgba(0, 0, 0, 0.08) 0px 8px 24px;
 `;
 
 export const LabelGroup = styled.label`

@@ -9,7 +9,7 @@ export default function ExampleSentence({
 }) {
   return (
     <Container>
-      <LabelRow>例句（日）:</LabelRow>
+      <LabelRow>例句:</LabelRow>
       <TextRow>
         {wordType == "jp_context" &&
           jp_ex_context.map((part, index) =>

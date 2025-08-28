@@ -14,6 +14,7 @@ export const CardContainer = styled.div`
   border-radius: 8px;
   background: #ffffff;
   margin-bottom: 16px;
+  box-shadow: rgba(0, 0, 0, 0.08) 0px 8px 24px;
 `;
 
 export const ProficiencyBadge = styled.div`
