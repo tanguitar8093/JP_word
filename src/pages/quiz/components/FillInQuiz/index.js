@@ -238,7 +238,7 @@ function Content() {
         <>
           <Overlay onClick={() => setShowSettings(false)} />
           <FloatingSettingsPanel>
-            <SettingsPanel context="quiz" />
+            <SettingsPanel context="fillin" />
           </FloatingSettingsPanel>
         </>
       )}

@@ -52,6 +52,7 @@ export default function SettingsPanel({ context }) {
 
   const isQuizContext = context === "quiz";
   const isReadingContext = context === "reading";
+  const isFillInContext = context === "fillin";
 
   return (
     <PanelContainer>
@@ -432,52 +433,54 @@ export default function SettingsPanel({ context }) {
         </div>
       </LabelGroup>
 
-      {/* Fill-in spelling difficulty settings */}
-      <LabelGroup>
-        <SettingTitle>拼字難度：</SettingTitle>
-        <div>
-          <label>
-            <input
-              type="radio"
-              name="fillInDifficulty"
-              value="easy"
-              checked={fillInDifficulty === "easy"}
-              onChange={(e) => dispatch(setFillInDifficulty(e.target.value))}
-            />
-            容易 (+4)
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="fillInDifficulty"
-              value="normal"
-              checked={fillInDifficulty === "normal"}
-              onChange={(e) => dispatch(setFillInDifficulty(e.target.value))}
-            />
-            一般 (+6)
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="fillInDifficulty"
-              value="hard"
-              checked={fillInDifficulty === "hard"}
-              onChange={(e) => dispatch(setFillInDifficulty(e.target.value))}
-            />
-            困難 (+8)
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="fillInDifficulty"
-              value="adaptive"
-              checked={fillInDifficulty === "adaptive"}
-              onChange={(e) => dispatch(setFillInDifficulty(e.target.value))}
-            />
-            自適應
-          </label>
-        </div>
-      </LabelGroup>
+      {/* Fill-in spelling difficulty settings - only visible on fill-in page */}
+      {isFillInContext && (
+        <LabelGroup>
+          <SettingTitle>拼字難度：</SettingTitle>
+          <div>
+            <label>
+              <input
+                type="radio"
+                name="fillInDifficulty"
+                value="easy"
+                checked={fillInDifficulty === "easy"}
+                onChange={(e) => dispatch(setFillInDifficulty(e.target.value))}
+              />
+              容易 (+4)
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="fillInDifficulty"
+                value="normal"
+                checked={fillInDifficulty === "normal"}
+                onChange={(e) => dispatch(setFillInDifficulty(e.target.value))}
+              />
+              一般 (+6)
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="fillInDifficulty"
+                value="hard"
+                checked={fillInDifficulty === "hard"}
+                onChange={(e) => dispatch(setFillInDifficulty(e.target.value))}
+              />
+              困難 (+8)
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="fillInDifficulty"
+                value="adaptive"
+                checked={fillInDifficulty === "adaptive"}
+                onChange={(e) => dispatch(setFillInDifficulty(e.target.value))}
+              />
+              自適應
+            </label>
+          </div>
+        </LabelGroup>
+      )}
     </PanelContainer>
   );
 }
