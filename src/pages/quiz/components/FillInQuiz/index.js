@@ -24,6 +24,9 @@ import {
 } from "../../../../pages/quiz/reducer/actions";
 import quizProgressService from "../../../../services/quizProgressService";
 import readingProgressService from "../../../../services/readingProgressService";
+import StatisticsPage from "../StatisticsPage";
+import AudioRecorderPage from "../../../AudioRecorder";
+import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actions";
 
 const IconContainer = styled.div`
   position: absolute;
@@ -52,7 +55,7 @@ function Content() {
   const [selectedAnswer, setSelectedAnswer] = useState("");
 
   const { state, dispatch } = useApp();
-  const { questions, currentQuestionIndex, quizCompleted } = state.quiz;
+  const { questions, currentQuestionIndex } = state.quiz;
   const {
     playbackOptions,
     playbackSpeed,
@@ -77,6 +80,7 @@ function Content() {
       quizProgressService.clearProgress();
       readingProgressService.clearProgress();
     } catch {}
+    dispatch(commitPendingProficiencyUpdates());
     dispatch(restartQuiz());
     setShowExitConfirmModal(false);
     navigate("/");
@@ -87,10 +91,13 @@ function Content() {
     setShowExitConfirmModal(false);
   }, []);
 
-  const { playSequence } = useAnswerPlayback({
+  const { playSequence, cancelPlayback } = useAnswerPlayback({
+    result,
+    question,
     onNext: () => dispatch(nextQuestionGame()),
     playbackOptions,
     rate: playbackSpeed,
+    autoProceed,
   });
 
   const speakManually = useCallback(
@@ -107,22 +114,18 @@ function Content() {
     [playSequence]
   );
 
-  // Clear local result when question changes to avoid residue
+  // 題目切換時自動播放發音（與 Quiz 一致）
+  useEffect(() => {
+    if (question && question.jp_word) {
+      speakManually(question.jp_word, "ja");
+    }
+  }, [question, speakManually]);
+
+  // 清理狀態於題目切換
   useEffect(() => {
     setResult(null);
     setSelectedAnswer("");
   }, [currentQuestionIndex]);
-
-  // Auto proceed after showing result if enabled
-  useEffect(() => {
-    if (!result || !autoProceed) return;
-    const t = setTimeout(() => {
-      setResult(null);
-      setSelectedAnswer("");
-      dispatch(nextQuestionGame());
-    }, 900);
-    return () => clearTimeout(t);
-  }, [result, autoProceed, dispatch]);
 
   return (
     <AppContainer>
@@ -150,6 +153,9 @@ function Content() {
       <Progress>
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
+
+      {/* 錄音區塊（與 Quiz 一致） */}
+      <AudioRecorderPage triggerReset={currentQuestionIndex} />
 
       {!result && (
         <FillInQuestionCard
@@ -191,6 +197,7 @@ function Content() {
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
             <button
               onClick={() => {
+                cancelPlayback();
                 setResult(null);
                 setSelectedAnswer("");
                 dispatch(nextQuestionGame());
@@ -244,6 +251,7 @@ export default function FillInQuiz() {
     sortOrder,
     playbackOptions,
     playbackSpeed,
+    wordType,
   } = state.systemSettings;
   const { quizCompleted, answeredQuestions, correctAnswersCount } = state.quiz;
   const [emptyAlert, setEmptyAlert] = useState(false);
@@ -298,25 +306,13 @@ export default function FillInQuiz() {
   ]);
 
   if (quizCompleted) {
-    // reuse existing results page for simplicity
     return (
-      <div style={{ padding: 20 }}>
-        <h3>完成！</h3>
-        <button
-          onClick={() => {
-            dispatch(restartQuiz());
-          }}
-        >
-          再測一次
-        </button>
-        <button
-          onClick={() => {
-            window.location.href = process.env.PUBLIC_URL + "/";
-          }}
-        >
-          回首頁
-        </button>
-      </div>
+      <StatisticsPage
+        answeredQuestions={answeredQuestions}
+        correctAnswersCount={correctAnswersCount}
+        speakManually={speakManually}
+        wordType={wordType}
+      />
     );
   }
 
