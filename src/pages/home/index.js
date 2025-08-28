@@ -127,10 +127,10 @@ const menuItems = [
     icon: "📔",
   },
   {
-    title: "錄音",
-    description: "練習發音",
-    path: "/recorder",
-    icon: "🎤",
+    title: "拼字",
+    description: "假名拼字練習",
+    path: "/fillin",
+    icon: "🔤",
   },
   {
     title: "設定",

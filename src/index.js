@@ -10,7 +10,6 @@ import FillInQuiz from "./pages/quiz/components/FillInQuiz";
 import SystemSettingsPage from "./pages/systemSettings";
 import NotebookManagementPage from "./pages/notebookManagement";
 import NavigationBlocker from "./components/NavigationBlocker";
-import AudioRecorderPage from "./pages/AudioRecorder";
 import Reading from "./pages/Reading/components/Reading";
 
 const rootElement = document.getElementById("root");
@@ -73,10 +72,6 @@ const router = createBrowserRouter(
               <SystemSettingsPage />
             </NavigationBlocker>
           ),
-        },
-        {
-          path: "recorder",
-          element: <AudioRecorderPage />,
         },
         {
           path: "reading",
