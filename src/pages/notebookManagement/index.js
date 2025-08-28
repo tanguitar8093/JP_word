@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import notebookService from "../../services/notebookService";
 import { useApp } from "../../store/contexts/AppContext";
 import { getNotebooks, setCurrentNotebook } from "../../store/reducer/actions";
@@ -19,7 +19,6 @@ import {
   WordList,
   WordItem,
   ProficiencyBadge,
-  // 新增表格樣式
   WordTableWrapper,
   WordTable,
 } from "./styles";
@@ -38,6 +37,8 @@ const NotebookManagementPage = () => {
   const [isEditWordModalVisible, setIsEditWordModalVisible] = useState(false);
   const [editingWordJson, setEditingWordJson] = useState("");
   const [mergeSelection, setMergeSelection] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [wordSelection, setWordSelection] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,6 +65,7 @@ const NotebookManagementPage = () => {
     setEditingContext(JSON.stringify(notebook.context, null, 2));
     dispatch(setCurrentNotebook(notebook.id));
     notebookService.setCurrentNotebookId(notebook.id);
+    setWordSelection([]); // 切換筆記本時清除單字勾選
   };
 
   const handleCreateNotebook = () => {
@@ -80,6 +82,27 @@ const NotebookManagementPage = () => {
     if (window.confirm("Are you sure you want to delete this notebook?")) {
       notebookService.deleteNotebook(id);
       refreshNotebooks(null); // Deselect
+    }
+  };
+
+  const handleDeleteSelectedNotebooks = () => {
+    if (mergeSelection.length === 0) return;
+    if (!window.confirm(`確定刪除已勾選的 ${mergeSelection.length} 個筆記本？此操作無法復原！`)) {
+      return;
+    }
+    try {
+      for (const id of mergeSelection) {
+        notebookService.deleteNotebook(id);
+      }
+      setMergeSelection([]);
+      // 若當前選中的筆記本被刪除，取消選擇
+      const stillExists = notebooks.some((n) => n.id === currentNotebookId);
+      refreshNotebooks(stillExists ? currentNotebookId : null);
+      if (!stillExists) {
+        setSelectedNotebook(null);
+      }
+    } catch (error) {
+      alert(error.message);
     }
   };
 
@@ -164,6 +187,7 @@ const NotebookManagementPage = () => {
       try {
         notebookService.deleteWordsFromNotebook(selectedNotebook.id, [wordId]);
         refreshNotebooks(selectedNotebook.id);
+        setWordSelection((prev) => prev.filter((id) => id !== wordId));
       } catch (error) {
         alert(error.message);
       }
@@ -272,11 +296,76 @@ const NotebookManagementPage = () => {
     event.target.value = null; // Reset file input
   };
 
-  const filteredContext =
-    selectedNotebook?.context.filter((word) => {
-      if (proficiencyFilter === 0) return true;
-      return word.proficiency === proficiencyFilter;
-    }) || [];
+  // 搜尋規則：優先比對常用欄位，並補以 JSON 字串比對（小型資料最直觀）
+  const matchesSearch = (word, q) => {
+    if (!q) return true;
+    const s = q.toLowerCase();
+    const fields = [
+      word.jp_word,
+      word.kanji_jp_word,
+      word.ch_word,
+      word.type,
+      String(word.id),
+    ]
+      .filter(Boolean)
+      .map((v) => String(v).toLowerCase());
+
+    if (fields.some((v) => v.includes(s))) return true;
+    try {
+      return JSON.stringify(word).toLowerCase().includes(s);
+    } catch {
+      return false;
+    }
+  };
+
+  const filteredByProficiency = useMemo(() => {
+    return (
+      selectedNotebook?.context.filter((word) => {
+        if (proficiencyFilter === 0) return true;
+        return word.proficiency === proficiencyFilter;
+      }) || []
+    );
+  }, [selectedNotebook, proficiencyFilter]);
+
+  const displayedWords = useMemo(() => {
+    const q = searchQuery.trim();
+    return filteredByProficiency.filter((w) => matchesSearch(w, q));
+  }, [filteredByProficiency, searchQuery]);
+
+  const allDisplayedSelected =
+    displayedWords.length > 0 &&
+    displayedWords.every((w) => wordSelection.includes(w.id));
+
+  const toggleSelectAllDisplayed = () => {
+    if (allDisplayedSelected) {
+      // 取消勾選本頁顯示
+      setWordSelection((prev) => prev.filter((id) => !displayedWords.some((w) => w.id === id)));
+    } else {
+      // 勾選本頁顯示
+      const ids = displayedWords.map((w) => w.id);
+      setWordSelection((prev) => Array.from(new Set([...prev, ...ids])));
+    }
+  };
+
+  const toggleSelectWord = (id) => {
+    setWordSelection((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDeleteWords = () => {
+    if (!selectedNotebook || wordSelection.length === 0) return;
+    if (!window.confirm(`確定刪除已勾選的 ${wordSelection.length} 個單字？此操作無法復原！`)) {
+      return;
+    }
+    try {
+      notebookService.deleteWordsFromNotebook(selectedNotebook.id, wordSelection);
+      refreshNotebooks(selectedNotebook.id);
+      setWordSelection([]);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   return (
     <Container>
@@ -302,12 +391,7 @@ const NotebookManagementPage = () => {
 
           <Section>
             <h2>匯入筆記本</h2>
-            <Input
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              fullWidth
-            />
+            <Input type="file" accept=".json" onChange={handleImport} fullWidth />
           </Section>
 
           <Section>
@@ -319,29 +403,28 @@ const NotebookManagementPage = () => {
                 <WordTable>
                   <thead>
                     <tr>
-                      <th>選取</th>
+                      <th style={{ width: 40 }}>選取</th>
                       <th>名稱</th>
-                      <th>單字數</th>
-                      <th style={{ textAlign: "right" }}>操作</th>
+                      <th style={{ width: 100 }}>單字數</th>
+                      <th style={{ textAlign: "right", width: 160 }}>操作</th>
                     </tr>
                   </thead>
                   <tbody>
                     {notebooks.map((notebook) => {
                       const selected = currentNotebookId === notebook.id;
+                      const wordsCount = Array.isArray(notebook.context)
+                        ? notebook.context.length
+                        : 0;
                       return (
                         <tr
                           key={notebook.id}
-                          style={{
-                            background: selected ? "#e8f5e9" : "transparent",
-                          }}
+                          style={{ background: selected ? "#e8f5e9" : "transparent" }}
                         >
                           <td>
                             <input
                               type="checkbox"
                               checked={mergeSelection.includes(notebook.id)}
-                              onChange={() =>
-                                handleMergeSelectionChange(notebook.id)
-                              }
+                              onChange={() => handleMergeSelectionChange(notebook.id)}
                               onClick={(e) => e.stopPropagation()}
                             />
                           </td>
@@ -353,19 +436,10 @@ const NotebookManagementPage = () => {
                               {notebook.name}
                             </span>
                           </td>
-                          <td>
-                            {Array.isArray(notebook.context)
-                              ? notebook.context.length
-                              : 0}
-                          </td>
+                          <td>{wordsCount}</td>
                           <td style={{ textAlign: "right" }}>
-                            <Button onClick={() => handleExport(notebook.id)}>
-                              匯出
-                            </Button>
-                            <Button
-                              danger
-                              onClick={() => handleDeleteNotebook(notebook.id)}
-                            >
+                            <Button onClick={() => handleExport(notebook.id)}>匯出</Button>
+                            <Button danger onClick={() => handleDeleteNotebook(notebook.id)}>
                               刪除
                             </Button>
                           </td>
@@ -377,11 +451,17 @@ const NotebookManagementPage = () => {
               </WordTableWrapper>
             )}
             {mergeSelection.length > 1 && (
+              <Button onClick={handleMergeNotebooks} style={{ marginTop: "10px" }}>
+                合併選取項目 ({mergeSelection.length})
+              </Button>
+            )}
+            {mergeSelection.length > 0 && (
               <Button
-                onClick={handleMergeNotebooks}
+                danger
+                onClick={handleDeleteSelectedNotebooks}
                 style={{ marginTop: "10px" }}
               >
-                合併選取項目 ({mergeSelection.length})
+                刪除選取項目 ({mergeSelection.length})
               </Button>
             )}
           </Section>
@@ -432,8 +512,8 @@ const NotebookManagementPage = () => {
                   onCancel={() => setModalVisible(false)}
                 />
                 <Button onClick={() => setModalVisible(true)}>編輯</Button>
-                <h3 style={{ marginTop: "24px" }}>
-                  單字列表({filteredContext.length})：
+                <h3 style={{ marginTop: "16px" }}>
+                  單字列表({displayedWords.length}/{selectedNotebook?.context?.length || 0})：
                 </h3>
                 <FilterButtons>
                   <Button
@@ -462,28 +542,67 @@ const NotebookManagementPage = () => {
                   </Button>
                 </FilterButtons>
 
-                {/* 以表格呈現固定高度可滾動列表 */}
-                {filteredContext && filteredContext.length > 0 ? (
+                {/* 搜尋與批次操作列 */}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    alignItems: "center",
+                    margin: "8px 0 12px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <Input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="搜尋單字（可輸入日文/中文/詞性/ID）"
+                    style={{ minWidth: 220 }}
+                  />
+                  {searchQuery && (
+                    <Button secondary onClick={() => setSearchQuery("")}>清除搜尋</Button>
+                  )}
+                  {wordSelection.length > 0 && (
+                    <Button danger onClick={handleBulkDeleteWords}>
+                      刪除選取項目 ({wordSelection.length})
+                    </Button>
+                  )}
+                </div>
+
+                {/* 固定高度可滾動表格：新增選取欄與全選 */}
+                {displayedWords && displayedWords.length > 0 ? (
                   <WordTableWrapper>
                     <WordTable>
                       <thead>
                         <tr>
-                          <th>日文</th>
-                          <th>中文</th>
-                          <th>熟練度</th>
-                          <th style={{ textAlign: "right" }}>操作</th>
+                          <th style={{ width: 40 }}>
+                            <input
+                              type="checkbox"
+                              checked={allDisplayedSelected}
+                              onChange={toggleSelectAllDisplayed}
+                            />
+                          </th>
+                          <th style={{ width: "40%" }}>日文</th>
+                          <th style={{ width: "25%" }}>中文</th>
+                          <th style={{ width: "15%" }}>熟練度</th>
+                          <th style={{ textAlign: "right", width: "20%" }}>操作</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredContext.map((word) => (
+                        {displayedWords.map((word) => (
                           <tr key={word.id}>
                             <td>
-                              <strong>
-                                {word.kanji_jp_word || word.jp_word}
-                              </strong>
+                              <input
+                                type="checkbox"
+                                checked={wordSelection.includes(word.id)}
+                                onChange={() => toggleSelectWord(word.id)}
+                              />
+                            </td>
+                            <td>
+                              <strong>{word.kanji_jp_word || word.jp_word}</strong>
                               {word.kanji_jp_word && (
                                 <div style={{ color: "#777", fontSize: 12 }}>
-                                  {word.jp_word}
+                                  假名：{word.jp_word}
                                 </div>
                               )}
                             </td>
@@ -498,13 +617,8 @@ const NotebookManagementPage = () => {
                               </ProficiencyBadge>
                             </td>
                             <td style={{ textAlign: "right" }}>
-                              <Button onClick={() => handleEditWord(word)}>
-                                編輯
-                              </Button>
-                              <Button
-                                danger
-                                onClick={() => handleDeleteWord(word.id)}
-                              >
+                              <Button onClick={() => handleEditWord(word)}>編輯</Button>
+                              <Button danger onClick={() => handleDeleteWord(word.id)}>
                                 刪除
                               </Button>
                             </td>
