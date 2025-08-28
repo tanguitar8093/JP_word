@@ -448,7 +448,7 @@ const NotebookManagementPage = () => {
   return (
     <Container>
       <Header>
-        <h1>筆記本管理</h1>
+        <h1>筆記本</h1>
         <BackButton onClick={handleExit}>返回</BackButton>
       </Header>
 
