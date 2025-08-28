@@ -102,13 +102,12 @@ function Content() {
     setShowExitConfirmModal(false);
   }, []);
 
+  // Use hook only for speaking/cancel; handle result playback and auto-next manually to avoid double triggers
   const { playSequence, cancelPlayback } = useAnswerPlayback({
-    result,
     question,
-    onNext: () => dispatch(nextQuestionGame()),
+    onNext: () => {},
     playbackOptions,
     rate: playbackSpeed,
-    autoProceed,
   });
 
   const speakManually = useCallback(
@@ -137,6 +136,34 @@ function Content() {
     setResult(null);
     setSelectedAnswer("");
   }, [currentQuestionIndex]);
+
+  // 在結果頁播放答題音與語音，結束後依設定自動前進
+  useEffect(() => {
+    if (!result || !question) return;
+    let stopped = false;
+    (async () => {
+      await playSequence(result, question, playbackOptions);
+      if (stopped) return;
+      if (autoProceed) {
+        // Clear local result before跳下一題，避免在 question 改變但 result 仍為真時再次觸發此效果而重播答題音
+        setResult(null);
+        setSelectedAnswer("");
+        dispatch(nextQuestionGame());
+      }
+    })();
+    return () => {
+      stopped = true;
+      cancelPlayback();
+    };
+  }, [
+    result,
+    question,
+    playbackOptions,
+    autoProceed,
+    dispatch,
+    playSequence,
+    cancelPlayback,
+  ]);
 
   // 自動儲存 Fill-in 進度（移動到下一題時）
   const prevIndexRef = React.useRef(state.quiz.currentQuestionIndex);
@@ -241,7 +268,13 @@ function Content() {
       {result && (
         <div style={{ maxWidth: 720, margin: "0 auto", padding: 12 }}>
           {/* 答案階段的熟練度控制 */}
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginBottom: 8,
+            }}
+          >
             {(() => {
               const currentProficiency =
                 (state.shared.pendingProficiencyUpdates || {})[question.id] ||
@@ -250,19 +283,25 @@ function Content() {
                 <StatProficiencyControlContainer>
                   <StatProficiencyButton
                     className={currentProficiency === 1 ? "active" : ""}
-                    onClick={() => dispatch(updatePendingProficiency(question.id, 1))}
+                    onClick={() =>
+                      dispatch(updatePendingProficiency(question.id, 1))
+                    }
                   >
                     低
                   </StatProficiencyButton>
                   <StatProficiencyButton
                     className={currentProficiency === 2 ? "active" : ""}
-                    onClick={() => dispatch(updatePendingProficiency(question.id, 2))}
+                    onClick={() =>
+                      dispatch(updatePendingProficiency(question.id, 2))
+                    }
                   >
                     中
                   </StatProficiencyButton>
                   <StatProficiencyButton
                     className={currentProficiency === 3 ? "active" : ""}
-                    onClick={() => dispatch(updatePendingProficiency(question.id, 3))}
+                    onClick={() =>
+                      dispatch(updatePendingProficiency(question.id, 3))
+                    }
                   >
                     高
                   </StatProficiencyButton>
