@@ -12,6 +12,7 @@ import NotebookManagementPage from "./pages/notebookManagement";
 import NavigationBlocker from "./components/NavigationBlocker";
 import Reading from "./pages/Reading/components/Reading";
 import WordTest from "./pages/wordTest"; 
+import DiagnosticsPage from "./pages/diagnostics"; // 新增：診斷頁
 
 const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
@@ -118,6 +119,10 @@ const routes = [
             <Reading />
           </NavigationBlocker>
         ),
+      },
+      {
+        path: "diagnostics",
+        element: <DiagnosticsPage />,
       },
     ],
   },
