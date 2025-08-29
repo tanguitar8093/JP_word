@@ -14,6 +14,11 @@ export function useAnswerPlayback({
   const playedForResult = useRef(false);
   const playbackRef = useRef(null);
 
+  const hasSpeech =
+    typeof window !== "undefined" &&
+    "speechSynthesis" in window &&
+    typeof window.SpeechSynthesisUtterance !== "undefined";
+
   // Reset played flag when question changes
   useEffect(() => {
     playedForResult.current = false;
@@ -23,8 +28,14 @@ export function useAnswerPlayback({
     if (playbackRef.current) {
       playbackRef.current.cancelled = true;
     }
-    window.speechSynthesis.cancel();
-  }, []);
+    if (hasSpeech) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (_) {
+        // ignore
+      }
+    }
+  }, [hasSpeech]);
 
   // Cleanup function for speech synthesis on unmount
   useEffect(() => {
@@ -44,7 +55,10 @@ export function useAnswerPlayback({
     return new Promise((resolve) => {
       const audio = new Audio(soundResult === "⭕" ? correctSound : wrongSound);
       audio.onended = resolve;
-      audio.play();
+      const p = audio.play();
+      if (p && typeof p.then === "function") {
+        p.catch(() => resolve());
+      }
     });
   }, []);
 
@@ -62,8 +76,14 @@ export function useAnswerPlayback({
 
       const isCancelled = () => playbackId.cancelled;
 
-      // We still need to cancel the browser's queue
-      window.speechSynthesis.cancel();
+      // We still need to cancel the browser's queue if available
+      if (hasSpeech) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch (_) {
+          // ignore
+        }
+      }
 
       try {
         if (isCancelled()) return;
@@ -89,7 +109,7 @@ export function useAnswerPlayback({
         }
       }
     },
-    [speakText, playSound]
+    [speakText, playSound, hasSpeech]
   );
 
   // Main effect to handle the flow after an answer is given
