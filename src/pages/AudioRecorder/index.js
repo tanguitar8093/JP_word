@@ -34,13 +34,6 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
       ? Capacitor.isPluginAvailable("VoiceRecorder")
       : false;
 
-  const isMediaSupported =
-    typeof navigator !== "undefined" &&
-    navigator.mediaDevices &&
-    typeof navigator.mediaDevices.getUserMedia === "function" &&
-    typeof window !== "undefined" &&
-    "MediaRecorder" in window;
-
   // 嘗試在首次互動時解鎖 WebView 的音訊播放限制
   useEffect(() => {
     const unlock = () => {
@@ -68,7 +61,7 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
       const finalHas = await VoiceRecorder.hasAudioRecordingPermission();
       return finalHas.value;
     } catch (e) {
-      setError("無法請求原生錄音權限，請確認系統設定與 App 權限");
+      // 簡化訊息（不顯示診斷性警告）
       return false;
     }
   };
@@ -78,9 +71,6 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
     if (isNative) {
       if (!isVRPluginAvailable) {
         setPermission(false);
-        setError(
-          "未偵測到原生錄音外掛，請執行 npx cap sync android 後重新安裝 App"
-        );
         return null;
       }
       const granted = await requestNativeMicPermission();
@@ -110,6 +100,22 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
     }
   };
 
+  const primePlayback = async () => {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ctx = new AC();
+      await ctx.resume().catch(() => {});
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      gain.gain.value = 0.0001; // 幾乎靜音
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    } catch (_) {}
+  };
+
   // Expose functions to parent component
   useImperativeHandle(ref, () => ({
     startRecording,
@@ -119,13 +125,42 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
         stopRecordingInternal();
       });
     },
-    play: () => {
+    // 改良：等待 audio 元素就緒再播放，確保自動流程能播出剛錄的音
+    play: async () => {
+      const waitForAudio = () =>
+        new Promise((resolve) => {
+          const start = Date.now();
+          const tick = () => {
+            const a = audioPlayerRef.current;
+            if (
+              a &&
+              a.src &&
+              (a.readyState >= 3 || a.duration > 0)
+            ) {
+              resolve(a);
+              return;
+            }
+            if (Date.now() - start > 4000) {
+              resolve(a || null);
+              return;
+            }
+            requestAnimationFrame(tick);
+          };
+          tick();
+        });
+
+      const a = await waitForAudio();
       return new Promise((resolve) => {
-        if (audioPlayerRef.current) {
+        if (a) {
           playResolver.current = resolve;
-          const p = audioPlayerRef.current.play();
-          if (p && typeof p.then === "function") {
-            p.catch(() => resolve());
+          try {
+            a.currentTime = 0;
+            const p = a.play();
+            if (p && typeof p.then === "function") {
+              p.catch(() => resolve());
+            }
+          } catch (_) {
+            resolve();
           }
         } else {
           resolve();
@@ -133,6 +168,7 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
       });
     },
     getMicrophonePermission,
+    prime: primePlayback,
   }));
 
   // Reset function
@@ -177,21 +213,19 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
   const startRecording = async () => {
     if (isNative) {
       if (!isVRPluginAvailable) {
-        setError(
-          "未偵測到原生錄音外掛，請執行 npx cap sync android 並重新安裝 APK"
-        );
+        // 不顯示診斷性警告
         return;
       }
       const granted = await getMicrophonePermission();
       if (!granted) {
-        setError("未取得麥克風權限，請到系統設定開啟對此 App 的麥克風存取");
+        setError("未取得麥克風權限");
         return;
       }
       try {
         await VoiceRecorder.startRecording();
         setIsRecording(true);
       } catch (e) {
-        setError("原生錄音啟動失敗（可能被其他 App 佔用或裝置不支援）");
+        setError("原生錄音啟動失敗");
       }
       return;
     }
@@ -283,10 +317,10 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
     <ButtonContainer>
       {error && <Status style={{ color: "#e53935" }}>{error}</Status>}
 
-      {/* 提示用戶到系統設定確認麥克風權限 */}
+      {/* 未取得權限 - 只在權限被拒絕時顯示（簡化提示文字） */}
       {!permission && (
         <InfoButton onClick={getMicrophonePermission}>
-          🎤 點擊允許錄音功能（若跳不出授權，請到系統設定 &gt; App &gt; 權限 開啟麥克風）
+          🎤 點擊允許錄音功能
         </InfoButton>
       )}
 

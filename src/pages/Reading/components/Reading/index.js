@@ -235,6 +235,9 @@ function QuizContent() {
           if (recorderRef.current) await recorderRef.current.stopRecording();
           if (isCancelled) return;
 
+          if (recorderRef.current && recorderRef.current.prime) {
+            try { await recorderRef.current.prime(); } catch {}
+          }
           if (recorderRef.current) await recorderRef.current.play();
           if (isCancelled) return;
 
@@ -283,6 +286,9 @@ function QuizContent() {
             if (recorderRef.current) await recorderRef.current.stopRecording();
             if (isCancelled) return;
 
+            if (recorderRef.current && recorderRef.current.prime) {
+              try { await recorderRef.current.prime(); } catch {}
+            }
             if (recorderRef.current) await recorderRef.current.play();
             if (isCancelled) return;
 
@@ -352,6 +358,9 @@ function QuizContent() {
   // autosave moved to outer component
 
   const handleStartAutoPlay = async () => {
+    if (recorderRef.current && recorderRef.current.prime) {
+      try { await recorderRef.current.prime(); } catch {}
+    }
     if (recorderRef.current && (readingRecordWord || readingRecordSentence)) {
       const stream = await recorderRef.current.getMicrophonePermission();
       if (stream) {
