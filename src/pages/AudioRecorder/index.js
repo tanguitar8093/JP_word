@@ -13,34 +13,70 @@ import {
   InfoButton,
   RecordIcon,
 } from "./styles";
+import { Capacitor } from "@capacitor/core";
+import { VoiceRecorder } from "capacitor-voice-recorder";
 
 const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
   const [permission, setPermission] = useState(false);
   const [stream, setStream] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [audioURL, setAudioURL] = useState("");
+  const [error, setError] = useState("");
   const mediaRecorder = useRef(null);
   const audioChunks = useRef([]);
   const audioPlayerRef = useRef(null);
   const stopResolver = useRef(null);
   const playResolver = useRef(null);
 
-  const getMicrophonePermission = async () => {
-    if ("MediaRecorder" in window) {
-      try {
-        const streamData = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
-        setPermission(true);
-        setStream(streamData);
-        return streamData; // Return stream on success
-      } catch (err) {
-        alert(err.message);
-        return null; // Return null on error
+  const isNative = Capacitor?.isNativePlatform?.() === true;
+
+  const isMediaSupported =
+    typeof navigator !== "undefined" &&
+    navigator.mediaDevices &&
+    typeof navigator.mediaDevices.getUserMedia === "function" &&
+    typeof window !== "undefined" &&
+    "MediaRecorder" in window;
+
+  const requestNativeMicPermission = async () => {
+    try {
+      const has = await VoiceRecorder.hasAudioRecordingPermission();
+      if (!has.value) {
+        await VoiceRecorder.requestAudioRecordingPermission();
       }
-    } else {
-      alert("您的瀏覽器不支援錄音功能。");
+      const finalHas = await VoiceRecorder.hasAudioRecordingPermission();
+      return finalHas.value;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const getMicrophonePermission = async () => {
+    setError("");
+    if (isNative) {
+      const granted = await requestNativeMicPermission();
+      setPermission(granted);
+      return granted ? true : null;
+    }
+    if (!isMediaSupported) {
+      setError("此裝置或 WebView 不支援錄音功能。");
       return null;
+    }
+    try {
+      // 建議加入明確 constraints
+      const streamData = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
+      });
+      setPermission(true);
+      setStream(streamData);
+      return streamData; // Return stream on success
+    } catch (err) {
+      setError(err && err.message ? err.message : "無法取得麥克風權限");
+      setPermission(false);
+      setStream(null);
+      return null; // Return null on error
     }
   };
 
@@ -57,7 +93,10 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
       return new Promise((resolve) => {
         if (audioPlayerRef.current) {
           playResolver.current = resolve;
-          audioPlayerRef.current.play();
+          const p = audioPlayerRef.current.play();
+          if (p && typeof p.then === "function") {
+            p.catch(() => resolve());
+          }
         } else {
           resolve();
         }
@@ -106,11 +145,22 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
   }, [triggerReset]);
 
   const startRecording = async () => {
+    if (isNative) {
+      const granted = await getMicrophonePermission();
+      if (!granted) return;
+      try {
+        await VoiceRecorder.startRecording();
+        setIsRecording(true);
+      } catch (e) {
+        setError("原生錄音啟動失敗");
+      }
+      return;
+    }
+
     let currentStream = stream;
     if (currentStream === null) {
       currentStream = await getMicrophonePermission();
     }
-
     if (!currentStream) return; // Don't start if permission is denied
 
     setIsRecording(true);
@@ -120,18 +170,50 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
     setAudioURL("");
     audioChunks.current = [];
 
-    const media = new MediaRecorder(currentStream, { type: "audio/webm" });
-    mediaRecorder.current = media;
-    mediaRecorder.current.start();
-
-    mediaRecorder.current.ondataavailable = (event) => {
-      if (event.data && event.data.size > 0) {
-        audioChunks.current.push(event.data);
+    try {
+      // 優先指定 mimeType，失敗則退回預設
+      let media;
+      try {
+        media = new MediaRecorder(currentStream, { mimeType: "audio/webm" });
+      } catch (_) {
+        media = new MediaRecorder(currentStream);
       }
-    };
+      mediaRecorder.current = media;
+      mediaRecorder.current.start();
+
+      mediaRecorder.current.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          audioChunks.current.push(event.data);
+        }
+      };
+    } catch (e) {
+      setError("此裝置不支援瀏覽器錄音");
+      setIsRecording(false);
+    }
   };
 
-  const stopRecordingInternal = () => {
+  const stopRecordingInternal = async () => {
+    if (isNative) {
+      try {
+        const result = await VoiceRecorder.stopRecording();
+        const { recordDataBase64, mimeType } = (result && result.value) || {};
+        if (recordDataBase64) {
+          const mime = mimeType || "audio/aac";
+          const audioUrl = `data:${mime};base64,${recordDataBase64}`;
+          setAudioURL(audioUrl);
+        }
+      } catch (e) {
+        setError("原生錄音停止失敗");
+      } finally {
+        setIsRecording(false);
+        if (stopResolver.current) {
+          stopResolver.current();
+          stopResolver.current = null;
+        }
+      }
+      return;
+    }
+
     setIsRecording(false);
     if (mediaRecorder.current && mediaRecorder.current.state !== "inactive") {
       mediaRecorder.current.stop();
@@ -141,6 +223,10 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
         const audioUrl = URL.createObjectURL(audioBlob);
         setAudioURL(audioUrl);
         audioChunks.current = [];
+        if (stopResolver.current) {
+          stopResolver.current();
+          stopResolver.current = null;
+        }
       };
     } else {
       if (stopResolver.current) {
@@ -156,8 +242,10 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
 
   return (
     <ButtonContainer>
+      {error && <Status style={{ color: "#e53935" }}>{error}</Status>}
+
       {/* 未取得權限 - 只在權限被拒絕時顯示 */}
-      {!permission && navigator.permissions && (
+      {!permission && (
         <InfoButton onClick={getMicrophonePermission}>
           🎤 點擊允許錄音功能
         </InfoButton>
