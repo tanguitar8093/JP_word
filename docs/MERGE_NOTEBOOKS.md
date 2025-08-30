@@ -25,11 +25,13 @@ All other selected notebooks are considered **Source Notebooks**. Their content 
 
 During the merge, the `context` (the list of words) of each notebook is combined.
 
--   **Duplicate Words**: A word is considered a duplicate if its `jp_word` property is identical to a word already included from the Primary Notebook or another, previously processed Source Notebook.
--   **Resolution Rule**: If a duplicate word is found, it is **ignored**. The version of the word from the Primary Notebook (or the one that was processed first) is always kept. No data is overwritten or combined from the duplicate entry.
+- **Duplicate Words**: A word is considered a duplicate if its `jp_word` property is identical to a word already included from the Primary Notebook or another, previously processed Source Notebook.
+- **Resolution Rule**: If a duplicate word is found, it is **ignored**. The version of the word from the Primary Notebook (or the one that was processed first) is always kept. No data is overwritten or combined from the duplicate entry.
 
 ## Outcome
 
--   The Primary Notebook's `context` is updated with the new, de-duplicated list of words.
--   All Source Notebooks are permanently deleted.
--   The UI will refresh, and the merged Primary Notebook will be selected.
+- The Primary Notebook's `context` is updated with the new, de-duplicated list of words.
+- All Source Notebooks are permanently deleted.
+- The UI will refresh, and the merged Primary Notebook will be selected.
+
+???
