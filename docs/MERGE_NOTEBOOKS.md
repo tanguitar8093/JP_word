@@ -33,5 +33,3 @@ During the merge, the `context` (the list of words) of each notebook is combined
 - The Primary Notebook's `context` is updated with the new, de-duplicated list of words.
 - All Source Notebooks are permanently deleted.
 - The UI will refresh, and the merged Primary Notebook will be selected.
-
-???
