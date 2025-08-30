@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { AppProvider } from "./store/contexts/AppContext"; // Import AppProvider
 
 import App from "./components/App"; // Import App component
 import HomePage from "./pages/home";
@@ -108,8 +109,6 @@ const router = createBrowserRouter(
     basename: process.env.PUBLIC_URL,
   }
 );
-
-import { AppProvider } from "./store/contexts/AppContext"; // Import AppProvider
 
 root.render(
   <StrictMode>

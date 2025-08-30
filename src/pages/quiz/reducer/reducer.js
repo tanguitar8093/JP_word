@@ -1,3 +1,5 @@
+import { sortQuestions } from "../../../utils/questionUtils";
+
 const initialState = {
   questions: [], // Initialize with an empty array
   currentQuestionIndex: 0,
@@ -7,8 +9,6 @@ const initialState = {
   answeredQuestions: [], // Stores { question, isCorrect } (from useQuizGame)
   quizCompleted: false, // (from useQuizGame)
 };
-
-import { sortQuestions } from "../../../utils/questionUtils";
 
 function reducer(state = initialState, action) {
   switch (action.type) {

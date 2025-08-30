@@ -7,6 +7,11 @@ import SettingsPanel from "../../../../components/SettingsPanel";
 import StatisticsPage from "../StatisticsPage"; // Import StatisticsPage
 import Modal from "../../../../components/Modal"; // Import the new Modal component
 import {
+  setPlaybackOptions,
+  setPlaybackSpeed,
+  setAutoProceed,
+} from "../../../../components/SettingsPanel/reducer"; // Import actions
+import {
   AppContainer,
   Title,
   Progress,
@@ -48,11 +53,7 @@ const HomeIcon = styled(SettingsToggle)`
 `;
 
 // The actual UI component that consumes the context
-import {
-  setPlaybackOptions,
-  setPlaybackSpeed,
-  setAutoProceed,
-} from "../../../../components/SettingsPanel/reducer"; // Import actions
+// (imports moved to top to satisfy eslint import/first)
 
 const proficiencyMap = {
   1: "低",
