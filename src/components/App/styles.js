@@ -43,6 +43,26 @@ export const SettingsToggle = styled.span`
   }
 `;
 
+// Log（紀錄/列表）按鈕，放在返回鍵的左邊，避免與設定重疊
+export const LogToggle = styled.span`
+  cursor: pointer;
+  font-size: 20px;
+  user-select: none;
+  transition: all 0.2s ease, transform 0.1s;
+  position: absolute;
+  top: 10px;
+  right: 120px; /* 比 BackPage(80px) 更靠左 */
+  z-index: 100;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+`;
+
 // info 按鈕
 export const InfoToggle = styled.span`
   cursor: pointer;
@@ -92,6 +112,16 @@ export const FloatingSettingsPanel = styled.div`
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   z-index: 99;
+  width: 360px;
+  max-width: calc(100vw - 20px);
+  max-height: 80vh;
+  overflow: auto;
+
+  @media (max-width: 480px) {
+    left: 10px; /* 兩側留白，避免跑版 */
+    right: 10px;
+    width: auto; /* 讓寬度自適應螢幕 */
+  }
 `;
 
 export const Overlay = styled.div`

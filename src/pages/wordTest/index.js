@@ -7,6 +7,7 @@ import {
   Progress,
   BackPage,
   SettingsToggle,
+  LogToggle,
   Overlay,
   FloatingSettingsPanel,
 } from "../../components/App/styles";
@@ -49,13 +50,12 @@ const GameBox = styled.div`
 `;
 
 const Btn = styled.button`
-  padding: 10px 14px;
+  padding: 5px 7px;
   border: 1px solid #ddd;
   background: ${(p) => (p.primary ? "#4caf50" : "#f7f7f7")};
   color: ${(p) => (p.primary ? "#fff" : "#333")};
   border-radius: 8px;
   cursor: pointer;
-  min-width: 120px;
   &:hover {
     filter: brightness(0.98);
   }
@@ -196,7 +196,7 @@ export default function WordTest() {
 
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
-  const [showQueues, setShowQueues] = useState(true);
+  const [showQueues, setShowQueues] = useState(false);
   const [showLocalSettings, setShowLocalSettings] = useState(false);
   const [draftConfig, setDraftConfig] = useState(defaultConfig);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -516,19 +516,15 @@ export default function WordTest() {
     <AppContainer>
       <Bar>
         <BackPage onClick={confirmExit}>↩️</BackPage>
-        <div style={{ display: "flex", gap: 8 }}>
-          <SettingsToggle onClick={() => setShowQueues((v) => !v)}>
-            🧾
-          </SettingsToggle>
-          <SettingsToggle
-            onClick={() => {
-              setDraftConfig(config);
-              setShowSettings((s) => !s);
-            }}
-          >
-            ⚙️
-          </SettingsToggle>
-        </div>
+        <LogToggle onClick={() => setShowQueues((v) => !v)}>🧾</LogToggle>
+        <SettingsToggle
+          onClick={() => {
+            setDraftConfig(config);
+            setShowSettings((s) => !s);
+          }}
+        >
+          ⚙️
+        </SettingsToggle>
       </Bar>
       <Title>單字練習</Title>
       <Progress>{progressText}</Progress>

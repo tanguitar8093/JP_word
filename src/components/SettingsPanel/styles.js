@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 export const PanelContainer = styled.div`
   margin-top: 5px;
-  padding: 5px 8px;
+  padding: 8px 10px;
   border: 1px solid #ccc;
   border-radius: 8px;
   background-color: #fdfdfd;
@@ -10,19 +10,20 @@ export const PanelContainer = styled.div`
   flex-direction: column;
   gap: 10px;
   overflow: auto;
-  max-height: 350px;
+  max-height: 60vh;
   scrollbar-width: thin; /* Firefox */
   scrollbar-color: #3b82f6 #f5f0e8; /* thumb 顏色 + track 顏色 */
 
   box-shadow: rgba(0, 0, 0, 0.08) 0px 8px 24px;
+  width: 100%;
 
   /* Chrome, Edge, Safari */
   &::-webkit-scrollbar {
-    width: 2px;
+    width: 4px;
   }
 
   &::-webkit-scrollbar-track {
-    background: #3b82f6;
+    background: #e9eefc;
     border-radius: 10px;
   }
 
@@ -34,7 +35,11 @@ export const PanelContainer = styled.div`
   &::-webkit-scrollbar-button {
     display: none; /* 隱藏上下箭頭 */
   }
-  box-shadow: rgba(0, 0, 0, 0.08) 0px 8px 24px;
+
+  @media (max-width: 480px) {
+    padding: 8px;
+    max-height: 70vh;
+  }
 `;
 
 export const LabelGroup = styled.label`
@@ -75,6 +80,16 @@ export const LabelGroup = styled.label`
   input[type="checkbox"],
   input[type="radio"] {
     margin-right: 5px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 13px;
+    input[type="number"] {
+      padding: 6px;
+    }
+    div {
+      gap: 8px;
+    }
   }
 `;
 
