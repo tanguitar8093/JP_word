@@ -311,6 +311,13 @@ export default function WordTest() {
     setQueueIdx((i) => i + 1);
   }, [currentId]);
 
+  // After revealing the answer, speak according to settings (same as Reading page)
+  useEffect(() => {
+    if (!isAnswerVisible) return;
+    if (!currentWord) return;
+    playSequence(null, currentWord, playbackOptions, { skipSound: true });
+  }, [isAnswerVisible, currentId, currentWord, playSequence, playbackOptions]);
+
   useEffect(() => {
     if (queueIdx < currentQueue.length) return;
     if (currentQueue.length === 0 && sliceIds.length === 0) return;
