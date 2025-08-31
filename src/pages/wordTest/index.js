@@ -15,6 +15,21 @@ import { useApp } from "../../store/contexts/AppContext";
 import notebookService from "../../services/notebookService";
 import { updateWordInNotebook } from "../../store/reducer/actions";
 import { shuffleArray } from "../../utils/questionUtils";
+import { useAnswerPlayback } from "../../hooks/useAnswerPlayback";
+import {
+  CardContainer,
+  HiraganaToggleContainer,
+  HiraganaTextContainer,
+  ToggleButton,
+  HiraganaText,
+  WordContainer,
+  SpeakButton,
+  ResultContainer,
+  AnswerText,
+  SubCard,
+  NextButton,
+} from "../Reading/components/ReadingCard/styles";
+import ExampleSentence from "../Reading/components/ExampleSentence";
 
 // 可開放給使用者調整的預設參數（此版先內建，後續可接到 SettingsPanel）
 const defaultConfig = {
@@ -128,6 +143,7 @@ export default function WordTest() {
   const navigate = useNavigate();
   const { state, dispatch } = useApp();
   const { notebooks, currentNotebookId } = state.shared;
+  const { playbackOptions, playbackSpeed, wordType } = state.systemSettings;
 
   // 參數（此版採用預設，可之後改為來自 Settings）
   const [config, setConfig] = useState(defaultConfig);
@@ -203,6 +219,7 @@ export default function WordTest() {
   const [draftConfig, setDraftConfig] = useState(defaultConfig);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [showHiragana, setShowHiragana] = useState(false);
 
   const handleClearAllStudy = useCallback(async () => {
     if (!currentNotebookId || !currentNotebook) return;
@@ -251,8 +268,41 @@ export default function WordTest() {
     loadSlice(0, allIds);
   }, [allIds, loadSlice]);
 
+  // 安全防護：若有題庫但片與佇列為空，強制載入第一片，避免 0/0 卡住
+  useEffect(() => {
+    if (
+      allIds.length > 0 &&
+      sliceIds.length === 0 &&
+      currentQueue.length === 0
+    ) {
+      loadSlice(0, allIds);
+    }
+  }, [allIds, sliceIds.length, currentQueue.length, loadSlice]);
+
   const currentId = currentQueue[queueIdx];
   const currentWord = byId.get(currentId);
+
+  // 手動播放（與 Reading 保持一致的行為）
+  const { playSequence, cancelPlayback } = useAnswerPlayback({
+    result: null,
+    question: currentWord,
+    onNext: () => {},
+    playbackOptions,
+    rate: playbackSpeed,
+  });
+  const speakManually = useCallback(
+    (text, lang) => {
+      const options = {};
+      if (lang === "ja") {
+        options.jp = true;
+        playSequence(null, { jp_word: text }, options, { skipSound: true });
+      } else if (lang === "zh") {
+        options.ch = true;
+        playSequence(null, { ch_word: text }, options, { skipSound: true });
+      }
+    },
+    [playSequence]
+  );
 
   const onRemember = useCallback(() => {
     if (!currentId) return;
@@ -413,35 +463,87 @@ export default function WordTest() {
           </SettingsToggle>
         </div>
       </Bar>
-      <Title>單字挑戰</Title>
+      <Title>單字練習</Title>
       <Progress>{progressText}</Progress>
 
-      <GameBox>
-        {currentWord ? (
-          <>
-            <WordBlock>
-              <div style={{ fontSize: "1.8rem", marginBottom: 4 }}>
-                {currentWord.jp_word}
-              </div>
-              {currentWord.kanji_jp_word && (
-                <div style={{ color: "#666", marginBottom: 6 }}>
-                  {currentWord.kanji_jp_word}
-                </div>
+      {currentWord ? (
+        <CardContainer>
+          {/* 平假名/漢字切換（沿用 Reading 風格，可選） */}
+          {currentWord.kanji_jp_word && (
+            <>
+              <HiraganaToggleContainer>
+                <ToggleButton onClick={() => setShowHiragana((v) => !v)}>
+                  {showHiragana ? "🔽平/片" : "▶️平/片"}
+                </ToggleButton>
+              </HiraganaToggleContainer>
+              {showHiragana && (
+                <HiraganaTextContainer>
+                  <HiraganaText>
+                    {wordType === "kanji_jp_word"
+                      ? currentWord.jp_word
+                      : currentWord.kanji_jp_word}
+                  </HiraganaText>
+                </HiraganaTextContainer>
               )}
-              <div style={{ color: "#333" }}>{currentWord.ch_word}</div>
-            </WordBlock>
+            </>
+          )}
 
-            <BtnRow>
-              <Btn onClick={onNotYet}>還沒記住</Btn>
-              <Btn primary onClick={onRemember}>
-                記住
-              </Btn>
-            </BtnRow>
-          </>
-        ) : (
+          {/* 主字顯示 + 發音 */}
+          <WordContainer>
+            {wordType === "kanji_jp_word" && (
+              <span>{currentWord.kanji_jp_word || currentWord.jp_word}</span>
+            )}
+            {wordType === "jp_word" && <span>{currentWord.jp_word}</span>}
+            {wordType === "jp_context" && (
+              <span>
+                {(currentWord.jp_context || []).map((part, index) =>
+                  part.kanji ? (
+                    <ruby key={index}>
+                      {part.kanji}
+                      <rt>{part.hiragana}</rt>
+                    </ruby>
+                  ) : (
+                    <span key={index}>{part.hiragana}</span>
+                  )
+                )}
+              </span>
+            )}
+            <SpeakButton
+              onClick={() => speakManually(currentWord.jp_word, "ja")}
+            >
+              🔊
+            </SpeakButton>
+          </WordContainer>
+
+          {/* 答案/例句（直接顯示） */}
+          <ResultContainer>
+            <SubCard>
+              <AnswerText correct>
+                {currentWord.ch_word} [{currentWord.type}]
+              </AnswerText>
+            </SubCard>
+            <ExampleSentence
+              jp_ex={currentWord.jp_ex_statement}
+              ch_ex={currentWord.ch_ex_statement}
+              speak={speakManually}
+              jp_ex_context={currentWord.jp_ex_statement_context}
+              wordType={wordType}
+            />
+
+            {/* 操作按鈕（維持記住/未記住，沿用 NextButton 風格） */}
+            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <NextButton onClick={onNotYet} style={{ borderColor: "#ccc" }}>
+                還沒記住
+              </NextButton>
+              <NextButton onClick={onRemember}>記住</NextButton>
+            </div>
+          </ResultContainer>
+        </CardContainer>
+      ) : (
+        <GameBox>
           <div>片尾處理中…</div>
-        )}
-      </GameBox>
+        </GameBox>
+      )}
 
       {/* 狀態面板：顯示 current_quene（剩餘）與 memory_quene，可切換顯示 */}
       {showQueues && (
@@ -619,9 +721,18 @@ export default function WordTest() {
                     setQueueIdx(0);
                     setMemorySet(new Set());
                     setVisitedSet(new Set());
-                    // 等下一個 tick 按新排序重載
+                    // 立即以新的 slice_length 載入第一片，避免出現 0/0 卡住
                     setTimeout(() => {
-                      // allIds 由 config 推導，更新後 useMemo 將重算並觸發首次載入 effect
+                      const start = 0;
+                      const end = Math.min(
+                        allIds.length,
+                        start + Math.max(1, draftConfig.slice_length)
+                      );
+                      const ids = allIds.slice(start, end);
+                      setSliceIds(ids);
+                      setMemorySet(new Set());
+                      setCurrentQueue(shuffleArray(ids));
+                      setQueueIdx(0);
                     }, 0);
                     setShowLocalSettings(false);
                   }}
