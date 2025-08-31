@@ -82,6 +82,7 @@ const notebookService = {
         [id]: {
           id,
           name: "Hello JP word",
+          word_test: {},
           context: [
             {
               id: uuidv4(),
@@ -154,13 +155,14 @@ const notebookService = {
     notebooks[id] = {
       id,
       name,
+      word_test: {},
       context: [{}],
     };
     _saveNotebooksToStorage(notebooks);
     return notebooks[id];
   },
 
-  updateNotebook: (id, { name, context }) => {
+  updateNotebook: (id, { name, context, word_test }) => {
     const notebooks = _getNotebooksFromStorage();
     if (!notebooks[id]) {
       throw new Error("Notebook not found.");
@@ -176,6 +178,20 @@ const notebookService = {
     if (context) {
       _validateContext(context);
       notebooks[id].context = _ensureContextIds(context);
+    }
+
+    // Allow updating top-level word_test store for WordTest progress/state
+    if (word_test !== undefined) {
+      // Accept null to clear, object to set/merge
+      if (word_test === null) {
+        notebooks[id].word_test = {};
+      } else if (typeof word_test === "object") {
+        notebooks[id].word_test = { ...word_test };
+      } else {
+        console.warn(
+          "notebookService.updateNotebook: ignored invalid word_test value"
+        );
+      }
     }
 
     _saveNotebooksToStorage(notebooks);
@@ -348,7 +364,7 @@ const notebookService = {
           const newNotebook = notebookService.createNotebook(json.name);
           const updatedNotebook = notebookService.updateNotebook(
             newNotebook.id,
-            { context: json.context }
+            { context: json.context, word_test: json.word_test || {} }
           );
           resolve(updatedNotebook);
         } catch (error) {
@@ -360,6 +376,18 @@ const notebookService = {
       };
       reader.readAsText(file);
     });
+  },
+
+  // Convenience helper dedicated to updating only the top-level word_test field
+  updateNotebookWordTest: (id, wordTestData) => {
+    const notebooks = _getNotebooksFromStorage();
+    if (!notebooks[id]) {
+      throw new Error("Notebook not found.");
+    }
+    const data = wordTestData === null ? {} : wordTestData;
+    notebooks[id].word_test = { ...data };
+    _saveNotebooksToStorage(notebooks);
+    return notebooks[id].word_test;
   },
 };
 

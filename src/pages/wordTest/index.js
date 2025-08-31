@@ -128,6 +128,8 @@ export default function WordTest() {
   const { playbackOptions, playbackSpeed, wordType } = state.systemSettings;
 
   const [config, setConfig] = useState(defaultConfig);
+  const [restored, setRestored] = useState(false);
+  const [attemptedRestore, setAttemptedRestore] = useState(false);
 
   const currentNotebook = useMemo(
     () => notebooks.find((n) => n.id === currentNotebookId),
@@ -152,18 +154,25 @@ export default function WordTest() {
     return filtered.slice(0, Math.max(0, config.max_word_study));
   }, [currentNotebook, config.max_word_study]);
 
-  const initialOrderedWords = useMemo(() => {
+  // Build a map for lookup and a default order
+  const byId = useMemo(
+    () => new Map((eligibleWords || []).map((w) => [w.id, w])),
+    [eligibleWords]
+  );
+  const defaultOrderWords = useMemo(() => {
     return sortWords(eligibleWords, config.sort_type);
   }, [eligibleWords, config.sort_type]);
-
-  const byId = useMemo(
-    () => new Map(initialOrderedWords.map((w) => [w.id, w])),
-    [initialOrderedWords]
+  const defaultAllIds = useMemo(
+    () => defaultOrderWords.map((w) => w.id),
+    [defaultOrderWords]
   );
-  const allIds = useMemo(
-    () => initialOrderedWords.map((w) => w.id),
-    [initialOrderedWords]
-  );
+  // Allow restoring a persisted order instead of recomputing (prevents shuffle mismatch)
+  const [overrideAllIds, setOverrideAllIds] = useState(null);
+  const allIds = useMemo(() => {
+    const ids = overrideAllIds || defaultAllIds;
+    // Filter out ids that no longer exist in current context
+    return ids.filter((id) => byId.has(id));
+  }, [overrideAllIds, defaultAllIds, byId]);
 
   const [round, setRound] = useState(0);
   const [wordIndex, setWordIndex] = useState(0);
@@ -209,6 +218,10 @@ export default function WordTest() {
           updateWordInNotebook(currentNotebookId, w.id, { studyted: 0 })
         );
       }
+      // Also clear persisted WordTest progress
+      try {
+        notebookService.updateNotebookWordTest(currentNotebookId, null);
+      } catch (_) {}
     } catch (e) {
       console.error("清除進度失敗", e);
     } finally {
@@ -234,11 +247,13 @@ export default function WordTest() {
   );
 
   useEffect(() => {
+    if (!attemptedRestore) return; // wait until restore attempt completes
+    if (restored) return; // skip auto-reset if we've restored a session
     setRound(0);
     setWordIndex(0);
     setVisitedSet(new Set());
     loadSlice(0, allIds);
-  }, [allIds, loadSlice]);
+  }, [allIds, loadSlice, restored, attemptedRestore]);
 
   useEffect(() => {
     if (
@@ -385,6 +400,96 @@ export default function WordTest() {
     navigate("/");
   }, [navigate]);
 
+  const handleFinishAndExit = useCallback(() => {
+    try {
+      if (currentNotebookId) {
+        // Clear the saved progress after a completed session
+        notebookService.updateNotebookWordTest(currentNotebookId, null);
+      }
+    } catch (_) {}
+    setShowFinishModal(false);
+    navigate("/");
+  }, [currentNotebookId, navigate]);
+
+  // Attempt to restore saved WordTest progress from the notebook
+  useEffect(() => {
+    if (!currentNotebookId) return;
+    if (attemptedRestore || restored) return;
+    try {
+      const nb = notebookService.getNotebook(currentNotebookId);
+      const saved = nb && nb.word_test;
+      if (!saved || typeof saved !== "object") {
+        setAttemptedRestore(true);
+        return;
+      }
+      if (saved.schemaVersion !== 1) {
+        setAttemptedRestore(true);
+        return;
+      }
+      // Align config if needed, and honor saved order to avoid shuffle mismatches
+      if (saved.config) setConfig(saved.config);
+      if (Array.isArray(saved.allIds) && saved.allIds.length > 0) {
+        setOverrideAllIds(saved.allIds);
+      }
+      setRound(saved.round || 0);
+      setWordIndex(saved.wordIndex || 0);
+      setSliceIds(saved.sliceIds || []);
+      setCurrentQueue(saved.currentQueue || []);
+      setQueueIdx(saved.queueIdx || 0);
+      setMemorySet(new Set(saved.memorySet || []));
+      setVisitedSet(new Set(saved.visitedSet || []));
+      setShowHiragana(!!saved.showHiragana);
+      if (typeof saved.isAnswerVisible === "boolean") {
+        setIsAnswerVisible(saved.isAnswerVisible);
+      }
+      setRestored(true);
+      setAttemptedRestore(true);
+    } catch (e) {
+      // ignore restore errors
+      setAttemptedRestore(true);
+    }
+  }, [currentNotebookId, attemptedRestore, restored]);
+
+  // Auto-save WordTest progress to the notebook's word_test field
+  useEffect(() => {
+    if (!currentNotebookId) return;
+    if (allIds.length === 0) return;
+    try {
+      const payload = {
+        schemaVersion: 1,
+        notebookId: currentNotebookId,
+        allIds,
+        config,
+        round,
+        wordIndex,
+        sliceIds,
+        currentQueue,
+        queueIdx,
+        memorySet: Array.from(memorySet),
+        visitedSet: Array.from(visitedSet),
+        showHiragana,
+        isAnswerVisible,
+        savedAt: Date.now(),
+      };
+      notebookService.updateNotebookWordTest(currentNotebookId, payload);
+    } catch (e) {
+      // noop
+    }
+  }, [
+    currentNotebookId,
+    allIds,
+    config,
+    round,
+    wordIndex,
+    sliceIds,
+    currentQueue,
+    queueIdx,
+    memorySet,
+    visitedSet,
+    showHiragana,
+    isAnswerVisible,
+  ]);
+
   if (!currentNotebookId || !currentNotebook) {
     return (
       <AppContainer>
@@ -504,10 +609,23 @@ export default function WordTest() {
               />
 
               <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                <NextButton onClick={onNotYet} style={{ borderColor: "#ccc" }}>
+                <NextButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onNotYet();
+                  }}
+                  style={{ borderColor: "#ccc" }}
+                >
                   還沒記住
                 </NextButton>
-                <NextButton onClick={onRemember}>記住</NextButton>
+                <NextButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemember();
+                  }}
+                >
+                  記住
+                </NextButton>
               </div>
             </ResultContainer>
           )}
@@ -603,13 +721,15 @@ export default function WordTest() {
                     setQueueIdx(0);
                     setMemorySet(new Set());
                     setVisitedSet(new Set());
+                    setOverrideAllIds(null); // recalc order for new settings
                     setTimeout(() => {
                       const start = 0;
                       const end = Math.min(
-                        allIds.length,
+                        (overrideAllIds || defaultAllIds).length,
                         start + Math.max(1, draftConfig.slice_length)
                       );
-                      const ids = allIds.slice(start, end);
+                      const sourceIds = overrideAllIds || defaultAllIds;
+                      const ids = sourceIds.slice(start, end);
                       setSliceIds(ids);
                       setMemorySet(new Set());
                       setCurrentQueue(shuffleArray(ids));
@@ -652,7 +772,7 @@ export default function WordTest() {
           <Overlay onClick={() => setShowFinishModal(false)} />
           <Modal
             message="完成！本次有作答的單字已 +1。返回首頁？"
-            onConfirm={handleExit}
+            onConfirm={handleFinishAndExit}
             onCancel={() => setShowFinishModal(false)}
             isVisible
           />
