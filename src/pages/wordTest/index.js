@@ -432,7 +432,22 @@ export default function WordTest() {
         <CardContainer
           onClick={() => !isAnswerVisible && setIsAnswerVisible(true)}
         >
-          {currentWord.kanji_jp_word && (
+          {wordType === "jp_word" && (
+            <>
+              <HiraganaToggleContainer>
+                <ToggleButton onClick={() => setShowHiragana((v) => !v)}>
+                  {showHiragana ? "🔽漢" : "▶️漢"}
+                </ToggleButton>
+              </HiraganaToggleContainer>
+              {showHiragana && (
+                <HiraganaTextContainer>
+                  <HiraganaText>{currentWord.kanji_jp_word}</HiraganaText>
+                </HiraganaTextContainer>
+              )}
+            </>
+          )}
+
+          {currentWord.kanji_jp_word && wordType === "kanji_jp_word" && (
             <>
               <HiraganaToggleContainer>
                 <ToggleButton onClick={() => setShowHiragana((v) => !v)}>
@@ -441,11 +456,7 @@ export default function WordTest() {
               </HiraganaToggleContainer>
               {showHiragana && (
                 <HiraganaTextContainer>
-                  <HiraganaText>
-                    {wordType === "kanji_jp_word"
-                      ? currentWord.jp_word
-                      : currentWord.kanji_jp_word}
-                  </HiraganaText>
+                  <HiraganaText>{currentWord.jp_word}</HiraganaText>
                 </HiraganaTextContainer>
               )}
             </>
