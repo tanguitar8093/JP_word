@@ -290,6 +290,12 @@ export default function WordTest() {
     [playSequence]
   );
 
+  // Auto play the question word when a new item appears
+  useEffect(() => {
+    if (!currentWord || !currentWord.jp_word) return;
+    speakManually(currentWord.jp_word, "ja");
+  }, [currentId]);
+
   const onRemember = useCallback(() => {
     if (!currentId) return;
     setIsAnswerVisible(false);
@@ -583,7 +589,10 @@ export default function WordTest() {
               </span>
             )}
             <SpeakButton
-              onClick={() => speakManually(currentWord.jp_word, "ja")}
+              onClick={(e) => {
+                e.stopPropagation();
+                speakManually(currentWord.jp_word, "ja");
+              }}
             >
               🔊
             </SpeakButton>
@@ -620,7 +629,7 @@ export default function WordTest() {
                     onRemember();
                   }}
                 >
-                  記住
+                  記住了
                 </NextButton>
               </div>
             </ResultContainer>
