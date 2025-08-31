@@ -12,7 +12,7 @@ import SystemSettingsPage from "./pages/systemSettings";
 import NotebookManagementPage from "./pages/notebookManagement";
 import NavigationBlocker from "./components/NavigationBlocker";
 import Reading from "./pages/Reading/components/Reading";
-import AnkiDemo from "./pages/anki"; // 新增：Anki Demo
+import WordTest from "./pages/wordTest"; // 新增：Anki Demo
 
 const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
@@ -56,13 +56,13 @@ const router = createBrowserRouter(
           ),
         },
         {
-          path: "anki",
+          path: "word_test",
           element: (
             <NavigationBlocker
               clearOnConfirm
               message="偵測到進行中的學習任務，將會刪除進度，是否繼續？"
             >
-              <AnkiDemo />
+              <WordTest />
             </NavigationBlocker>
           ),
         },
