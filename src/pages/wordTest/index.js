@@ -16,6 +16,7 @@ import notebookService from "../../services/notebookService";
 import { updateWordInNotebook } from "../../store/reducer/actions";
 import { shuffleArray } from "../../utils/questionUtils";
 import { useAnswerPlayback } from "../../hooks/useAnswerPlayback";
+import SettingsPanel from "../../components/SettingsPanel";
 import {
   CardContainer,
   HiraganaToggleContainer,
@@ -31,7 +32,6 @@ import {
 } from "../Reading/components/ReadingCard/styles";
 import ExampleSentence from "../Reading/components/ExampleSentence";
 
-// 可開放給使用者調整的預設參數（此版先內建，後續可接到 SettingsPanel）
 const defaultConfig = {
   slice_length: 5,
   max_word_study: 20,
@@ -39,7 +39,6 @@ const defaultConfig = {
   round_count: 1,
 };
 
-// UI
 const GameBox = styled.div`
   background: #fff;
   border: 1px solid #eee;
@@ -47,20 +46,6 @@ const GameBox = styled.div`
   padding: 16px;
   margin-top: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-`;
-
-const WordBlock = styled.div`
-  font-size: 1.4rem;
-  line-height: 1.6;
-  margin: 12px 0 16px;
-  text-align: center;
-`;
-
-const BtnRow = styled.div`
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin-top: 12px;
 `;
 
 const Btn = styled.button`
@@ -118,10 +103,8 @@ const ListItem = styled.li`
   margin: 2px 0;
 `;
 
-// 根據 sort_type 產生排序後的清單（輸入 words 陣列，輸出同長度陣列）
 function sortWords(words, sortType) {
   if (sortType === "asc") {
-    // 依 jp_word 長度分組，每組內隨機，之後由短到長串接
     const groups = new Map();
     words.forEach((w) => {
       const len = (w.jp_word || "").length;
@@ -135,7 +118,6 @@ function sortWords(words, sortType) {
     });
     return result;
   }
-  // normal: 全體隨機
   return shuffleArray(words);
 }
 
@@ -145,16 +127,13 @@ export default function WordTest() {
   const { notebooks, currentNotebookId } = state.shared;
   const { playbackOptions, playbackSpeed, wordType } = state.systemSettings;
 
-  // 參數（此版採用預設，可之後改為來自 Settings）
   const [config, setConfig] = useState(defaultConfig);
 
-  // 來源：當前 Notebook 的 context
   const currentNotebook = useMemo(
     () => notebooks.find((n) => n.id === currentNotebookId),
     [notebooks, currentNotebookId]
   );
 
-  // 依規格篩選：studyted == 0 或沒有 studyted 的單字，按原 notebook 順序取前 max_word_study
   const eligibleWords = useMemo(() => {
     const ctx =
       currentNotebook && Array.isArray(currentNotebook.context)
@@ -162,24 +141,21 @@ export default function WordTest() {
         : [];
     const filtered = ctx.filter((w) => {
       if (!w || !w.jp_word) return false;
-      // 兼容舊欄位 studyed，寫入時以 studyted 為主
       const s =
         typeof w.studyted === "number"
           ? w.studyted
           : typeof w.studyed === "number"
           ? w.studyed
           : 0;
-      return s === 0; // 無屬性視為 0
+      return s === 0;
     });
     return filtered.slice(0, Math.max(0, config.max_word_study));
   }, [currentNotebook, config.max_word_study]);
 
-  // 初始排序（normal: 隨機；asc: 分組）
   const initialOrderedWords = useMemo(() => {
     return sortWords(eligibleWords, config.sort_type);
   }, [eligibleWords, config.sort_type]);
 
-  // 快速索引
   const byId = useMemo(
     () => new Map(initialOrderedWords.map((w) => [w.id, w])),
     [initialOrderedWords]
@@ -189,9 +165,8 @@ export default function WordTest() {
     [initialOrderedWords]
   );
 
-  // 遊戲全域狀態
-  const [round, setRound] = useState(0); // 0-based
-  const [wordIndex, setWordIndex] = useState(0); // 當前切片起始索引（0-based）
+  const [round, setRound] = useState(0);
+  const [wordIndex, setWordIndex] = useState(0);
   const slicesCount = useMemo(
     () => Math.ceil(allIds.length / Math.max(1, config.slice_length)),
     [allIds.length, config.slice_length]
@@ -204,14 +179,12 @@ export default function WordTest() {
     [wordIndex, allIds.length, config.slice_length]
   );
 
-  // 切片狀態
-  const [sliceIds, setSliceIds] = useState([]); // 本片 id 集
-  const [currentQueue, setCurrentQueue] = useState([]); // 目前跑的佇列（id 陣列）
-  const [queueIdx, setQueueIdx] = useState(0); // 目前在 currentQueue 的位置
-  const [memorySet, setMemorySet] = useState(() => new Set()); // 已記住的 id 集
-  const [visitedSet, setVisitedSet] = useState(() => new Set()); // 本次實際作答過的 id 集
+  const [sliceIds, setSliceIds] = useState([]);
+  const [currentQueue, setCurrentQueue] = useState([]);
+  const [queueIdx, setQueueIdx] = useState(0);
+  const [memorySet, setMemorySet] = useState(() => new Set());
+  const [visitedSet, setVisitedSet] = useState(() => new Set());
 
-  // UI 狀態
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [showQueues, setShowQueues] = useState(true);
@@ -220,12 +193,13 @@ export default function WordTest() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [showHiragana, setShowHiragana] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [isAnswerVisible, setIsAnswerVisible] = useState(false);
 
   const handleClearAllStudy = useCallback(async () => {
     if (!currentNotebookId || !currentNotebook) return;
     try {
       setClearing(true);
-      // 僅對有 jp_word 的詞條重置 studyted
       for (const w of currentNotebook.context || []) {
         if (!w || !w.id || !w.jp_word) continue;
         await notebookService.updateWordInNotebook(currentNotebookId, w.id, {
@@ -243,7 +217,6 @@ export default function WordTest() {
     }
   }, [currentNotebookId, currentNotebook, dispatch]);
 
-  // 初始化或切片變更時載入切片
   const loadSlice = useCallback(
     (startIdx, idsOrder = allIds) => {
       const start = Math.max(0, startIdx);
@@ -254,13 +227,12 @@ export default function WordTest() {
       const ids = idsOrder.slice(start, end);
       setSliceIds(ids);
       setMemorySet(new Set());
-      setCurrentQueue(shuffleArray(ids)); // 每片初次載入時隨機
+      setCurrentQueue(shuffleArray(ids));
       setQueueIdx(0);
     },
     [allIds, config.slice_length]
   );
 
-  // 首次與依賴變更
   useEffect(() => {
     setRound(0);
     setWordIndex(0);
@@ -268,7 +240,6 @@ export default function WordTest() {
     loadSlice(0, allIds);
   }, [allIds, loadSlice]);
 
-  // 安全防護：若有題庫但片與佇列為空，強制載入第一片，避免 0/0 卡住
   useEffect(() => {
     if (
       allIds.length > 0 &&
@@ -282,14 +253,14 @@ export default function WordTest() {
   const currentId = currentQueue[queueIdx];
   const currentWord = byId.get(currentId);
 
-  // 手動播放（與 Reading 保持一致的行為）
-  const { playSequence, cancelPlayback } = useAnswerPlayback({
+  const { playSequence } = useAnswerPlayback({
     result: null,
     question: currentWord,
     onNext: () => {},
     playbackOptions,
     rate: playbackSpeed,
   });
+
   const speakManually = useCallback(
     (text, lang) => {
       const options = {};
@@ -306,6 +277,7 @@ export default function WordTest() {
 
   const onRemember = useCallback(() => {
     if (!currentId) return;
+    setIsAnswerVisible(false);
     setVisitedSet((prev) => new Set(prev).add(currentId));
     setMemorySet((prev) => new Set(prev).add(currentId));
     setQueueIdx((i) => i + 1);
@@ -313,33 +285,29 @@ export default function WordTest() {
 
   const onNotYet = useCallback(() => {
     if (!currentId) return;
+    setIsAnswerVisible(false);
     setVisitedSet((prev) => new Set(prev).add(currentId));
     setQueueIdx((i) => i + 1);
   }, [currentId]);
 
-  // 佇列走完時的片尾檢查
   useEffect(() => {
-    if (queueIdx < currentQueue.length) return; // 尚未走完
-    if (currentQueue.length === 0 && sliceIds.length === 0) return; // 無資料
+    if (queueIdx < currentQueue.length) return;
+    if (currentQueue.length === 0 && sliceIds.length === 0) return;
 
     const allCovered = sliceIds.every((id) => memorySet.has(id));
     if (allCovered) {
-      // 本片通過
-      const hasNextSlice = wordIndex + config.slice_length < allIds.length; // 注意不+1，避免漏題
+      const hasNextSlice = wordIndex + config.slice_length < allIds.length;
       if (hasNextSlice) {
         const nextStart = wordIndex + config.slice_length;
         setWordIndex(nextStart);
         loadSlice(nextStart, allIds);
       } else {
-        // 本輪所有切片完成 → 進入下一輪或結束
         const nextRound = round + 1;
         setRound(nextRound);
         if (nextRound >= config.round_count) {
-          // 遊戲結束：僅針對本次有作答的題目（visitedSet）做 studyted +1 並提示完成
           (async () => {
             try {
               const nbId = currentNotebookId;
-              // 批次更新整批選中單字
               for (const id of Array.from(visitedSet)) {
                 const word = byId.get(id);
                 if (!word) continue;
@@ -360,26 +328,22 @@ export default function WordTest() {
               setShowFinishModal(true);
             } catch (e) {
               console.error("更新 studyted 失敗", e);
-              setShowFinishModal(true); // 即使失敗也讓玩家結束流程
+              setShowFinishModal(true);
             }
           })();
         } else {
-          // 重新一輪：依規格「全部重新一輪，將單字隨機排序」
           const reshuffled = shuffleArray(allIds);
           setWordIndex(0);
-          // 重設片並從第一片開始
           setSliceIds([]);
           setCurrentQueue([]);
           setQueueIdx(0);
           setMemorySet(new Set());
-          // 延遲到下一輪 render 再載入，確保使用最新順序
           setTimeout(() => loadSlice(0, reshuffled), 0);
         }
       }
       return;
     }
 
-    // 尚未全部記住 → 把沒記住的重做
     const pending = sliceIds.filter((id) => !memorySet.has(id));
     setCurrentQueue(pending);
     setQueueIdx(0);
@@ -397,9 +361,9 @@ export default function WordTest() {
     byId,
     dispatch,
     loadSlice,
+    visitedSet,
   ]);
 
-  // 顯示資訊文字
   const progressText = useMemo(() => {
     const inSliceTotal = sliceIds.length;
     const inSliceDone = Math.min(queueIdx, inSliceTotal);
@@ -415,14 +379,12 @@ export default function WordTest() {
     config.round_count,
   ]);
 
-  // 離開處理
   const confirmExit = useCallback(() => setShowExitConfirm(true), []);
   const handleExit = useCallback(() => {
     setShowExitConfirm(false);
     navigate("/");
   }, [navigate]);
 
-  // 空資料處理
   if (!currentNotebookId || !currentNotebook) {
     return (
       <AppContainer>
@@ -456,7 +418,7 @@ export default function WordTest() {
           <SettingsToggle
             onClick={() => {
               setDraftConfig(config);
-              setShowLocalSettings(true);
+              setShowSettings((s) => !s);
             }}
           >
             ⚙️
@@ -467,8 +429,9 @@ export default function WordTest() {
       <Progress>{progressText}</Progress>
 
       {currentWord ? (
-        <CardContainer>
-          {/* 平假名/漢字切換（沿用 Reading 風格，可選） */}
+        <CardContainer
+          onClick={() => !isAnswerVisible && setIsAnswerVisible(true)}
+        >
           {currentWord.kanji_jp_word && (
             <>
               <HiraganaToggleContainer>
@@ -488,7 +451,6 @@ export default function WordTest() {
             </>
           )}
 
-          {/* 主字顯示 + 發音 */}
           <WordContainer>
             {wordType === "kanji_jp_word" && (
               <span>{currentWord.kanji_jp_word || currentWord.jp_word}</span>
@@ -515,29 +477,29 @@ export default function WordTest() {
             </SpeakButton>
           </WordContainer>
 
-          {/* 答案/例句（直接顯示） */}
-          <ResultContainer>
-            <SubCard>
-              <AnswerText correct>
-                {currentWord.ch_word} [{currentWord.type}]
-              </AnswerText>
-            </SubCard>
-            <ExampleSentence
-              jp_ex={currentWord.jp_ex_statement}
-              ch_ex={currentWord.ch_ex_statement}
-              speak={speakManually}
-              jp_ex_context={currentWord.jp_ex_statement_context}
-              wordType={wordType}
-            />
+          {isAnswerVisible && (
+            <ResultContainer>
+              <SubCard>
+                <AnswerText correct>
+                  {currentWord.ch_word} [{currentWord.type}]
+                </AnswerText>
+              </SubCard>
+              <ExampleSentence
+                jp_ex={currentWord.jp_ex_statement}
+                ch_ex={currentWord.ch_ex_statement}
+                speak={speakManually}
+                jp_ex_context={currentWord.jp_ex_statement_context}
+                wordType={wordType}
+              />
 
-            {/* 操作按鈕（維持記住/未記住，沿用 NextButton 風格） */}
-            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-              <NextButton onClick={onNotYet} style={{ borderColor: "#ccc" }}>
-                還沒記住
-              </NextButton>
-              <NextButton onClick={onRemember}>記住</NextButton>
-            </div>
-          </ResultContainer>
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                <NextButton onClick={onNotYet} style={{ borderColor: "#ccc" }}>
+                  還沒記住
+                </NextButton>
+                <NextButton onClick={onRemember}>記住</NextButton>
+              </div>
+            </ResultContainer>
+          )}
         </CardContainer>
       ) : (
         <GameBox>
@@ -545,151 +507,54 @@ export default function WordTest() {
         </GameBox>
       )}
 
-      {/* 狀態面板：顯示 current_quene（剩餘）與 memory_quene，可切換顯示 */}
       {showQueues && (
         <PanelGrid>
           <Panel>
-            <PanelTitle>
-              current_quene（剩餘） ·{" "}
-              {Math.max(0, currentQueue.length - queueIdx)}
-            </PanelTitle>
+            <PanelTitle>current_queue（剩餘）</PanelTitle>
             <List>
               {currentQueue.slice(queueIdx).map((id) => {
                 const w = byId.get(id);
-                if (!w) return null;
-                const label = w.kanji_jp_word
-                  ? `${w.jp_word}（${w.kanji_jp_word}）`
-                  : w.jp_word;
                 return (
                   <ListItem key={id}>
-                    {label} · {w.ch_word}
+                    {w ? `${w.jp_word} — ${w.ch_word}` : id}
                   </ListItem>
                 );
               })}
             </List>
           </Panel>
           <Panel>
-            <PanelTitle>memory_quene · {memorySet.size}</PanelTitle>
+            <PanelTitle>memory_queue（已記住，本片）</PanelTitle>
             <List>
-              {Array.from(memorySet).map((id) => {
-                const w = byId.get(id);
-                if (!w) return null;
-                const label = w.kanji_jp_word
-                  ? `${w.jp_word}（${w.kanji_jp_word}）`
-                  : w.jp_word;
-                return (
-                  <ListItem key={id}>
-                    {label} · {w.ch_word}
-                  </ListItem>
-                );
-              })}
+              {sliceIds
+                .filter((id) => memorySet.has(id))
+                .map((id) => {
+                  const w = byId.get(id);
+                  return (
+                    <ListItem key={id}>
+                      {w ? `${w.jp_word} — ${w.ch_word}` : id}
+                    </ListItem>
+                  );
+                })}
             </List>
           </Panel>
         </PanelGrid>
       )}
 
-      {showExitConfirm && (
+      {(showSettings || showLocalSettings) && (
         <>
-          <Overlay onClick={() => setShowExitConfirm(false)} />
-          <Modal
-            message="確定要離開單字挑戰嗎？目前進度不會保存。"
-            onConfirm={handleExit}
-            onCancel={() => setShowExitConfirm(false)}
-            isVisible
-          />
-        </>
-      )}
-
-      {showFinishModal && (
-        <>
-          <Overlay onClick={() => setShowFinishModal(false)} />
-          <Modal
-            message="恭喜完成！已將本輪所有單字的 studyted +1。"
-            onConfirm={() => {
-              setShowFinishModal(false);
-              navigate("/");
+          <Overlay
+            onClick={() => {
+              setShowSettings(false);
+              setShowLocalSettings(false);
             }}
-            disableCancel
-            isVisible
           />
-        </>
-      )}
-
-      {showLocalSettings && (
-        <>
-          <Overlay onClick={() => setShowLocalSettings(false)} />
           <FloatingSettingsPanel>
             <div style={{ padding: 12 }}>
-              <h3 style={{ marginTop: 0 }}>單字挑戰設定（僅此頁）</h3>
-              <div style={{ display: "grid", gap: 10 }}>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span>切片測試數量（slice_length）</span>
-                  <input
-                    type="number"
-                    min={1}
-                    value={draftConfig.slice_length}
-                    onChange={(e) =>
-                      setDraftConfig((d) => ({
-                        ...d,
-                        slice_length: Math.max(
-                          1,
-                          parseInt(e.target.value || "1", 10)
-                        ),
-                      }))
-                    }
-                  />
-                </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span>要學習的單字上限（max_word_study）</span>
-                  <input
-                    type="number"
-                    min={1}
-                    value={draftConfig.max_word_study}
-                    onChange={(e) =>
-                      setDraftConfig((d) => ({
-                        ...d,
-                        max_word_study: Math.max(
-                          1,
-                          parseInt(e.target.value || "1", 10)
-                        ),
-                      }))
-                    }
-                  />
-                </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span>題目排序方式（sort_type）</span>
-                  <select
-                    value={draftConfig.sort_type}
-                    onChange={(e) =>
-                      setDraftConfig((d) => ({
-                        ...d,
-                        sort_type: e.target.value,
-                      }))
-                    }
-                  >
-                    <option value="normal">normal（隨機）</option>
-                    <option value="asc">asc（依字數分組，由短到長）</option>
-                  </select>
-                </label>
-                <label style={{ display: "grid", gap: 6 }}>
-                  <span>每個單字累計答對的次數才過關（round_count）</span>
-                  <input
-                    type="number"
-                    min={1}
-                    value={draftConfig.round_count}
-                    onChange={(e) =>
-                      setDraftConfig((d) => ({
-                        ...d,
-                        round_count: Math.max(
-                          1,
-                          parseInt(e.target.value || "1", 10)
-                        ),
-                      }))
-                    }
-                  />
-                </label>
-              </div>
-
+              <SettingsPanel
+                context="wordtest"
+                wordTestConfig={draftConfig}
+                onWordTestConfigChange={(cfg) => setDraftConfig(cfg)}
+              />
               <div
                 style={{
                   display: "flex",
@@ -708,12 +573,18 @@ export default function WordTest() {
                 >
                   清除整本進度（studyted → 0）
                 </Btn>
-                <Btn onClick={() => setShowLocalSettings(false)}>取消</Btn>
+                <Btn
+                  onClick={() => {
+                    setShowSettings(false);
+                    setShowLocalSettings(false);
+                  }}
+                >
+                  取消
+                </Btn>
                 <Btn
                   primary
                   onClick={() => {
                     setConfig(draftConfig);
-                    // 立即以新設定重置本輪
                     setRound(0);
                     setWordIndex(0);
                     setSliceIds([]);
@@ -721,7 +592,6 @@ export default function WordTest() {
                     setQueueIdx(0);
                     setMemorySet(new Set());
                     setVisitedSet(new Set());
-                    // 立即以新的 slice_length 載入第一片，避免出現 0/0 卡住
                     setTimeout(() => {
                       const start = 0;
                       const end = Math.min(
@@ -734,16 +604,12 @@ export default function WordTest() {
                       setCurrentQueue(shuffleArray(ids));
                       setQueueIdx(0);
                     }, 0);
+                    setShowSettings(false);
                     setShowLocalSettings(false);
                   }}
                 >
                   套用
                 </Btn>
-              </div>
-
-              <div style={{ marginTop: 8, color: "#777", fontSize: 12 }}>
-                說明：此面板只影響本頁。完成所有切片且達到 round_count
-                後，僅針對本次學習範圍的單字（本頁選中的清單）執行 studyted +1。
               </div>
             </div>
           </FloatingSettingsPanel>
@@ -765,6 +631,30 @@ export default function WordTest() {
             onCancel={() => {
               if (!clearing) setShowClearConfirm(false);
             }}
+            isVisible
+          />
+        </>
+      )}
+
+      {showFinishModal && (
+        <>
+          <Overlay onClick={() => setShowFinishModal(false)} />
+          <Modal
+            message="完成！本次有作答的單字已 +1。返回首頁？"
+            onConfirm={handleExit}
+            onCancel={() => setShowFinishModal(false)}
+            isVisible
+          />
+        </>
+      )}
+
+      {showExitConfirm && (
+        <>
+          <Overlay onClick={() => setShowExitConfirm(false)} />
+          <Modal
+            message="確定離開單字挑戰？未更新的進度將遺失。"
+            onConfirm={handleExit}
+            onCancel={() => setShowExitConfirm(false)}
             isVisible
           />
         </>

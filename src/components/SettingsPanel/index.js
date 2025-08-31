@@ -19,7 +19,11 @@ import {
   setFillInDifficulty,
 } from "./reducer";
 
-export default function SettingsPanel({ context }) {
+export default function SettingsPanel({
+  context,
+  wordTestConfig,
+  onWordTestConfigChange,
+}) {
   const { state, dispatch } = useApp();
   const { systemSettings } = state;
   const {
@@ -53,6 +57,7 @@ export default function SettingsPanel({ context }) {
   const isQuizContext = context === "quiz";
   const isReadingContext = context === "reading";
   const isFillInContext = context === "fillin";
+  const isWordTestContext = context === "wordtest";
 
   return (
     <PanelContainer>
@@ -288,7 +293,7 @@ export default function SettingsPanel({ context }) {
           </label>
         </div>
       </LabelGroup>
-      {autoProceed !== undefined && context !== "reading" && (
+      {autoProceed !== undefined && !isReadingContext && !isWordTestContext && (
         <LabelGroup>
           <SettingTitle>自動下一題：</SettingTitle>
           <label>
@@ -480,6 +485,97 @@ export default function SettingsPanel({ context }) {
             </label>
           </div>
         </LabelGroup>
+      )}
+
+      {isWordTestContext && (
+        <>
+          <SettingTitle>單字挑戰設定</SettingTitle>
+          <LabelGroup>
+            <SettingTitle>切片測試數量（slice_length）</SettingTitle>
+            <input
+              type="number"
+              min="1"
+              value={wordTestConfig?.slice_length ?? 5}
+              onChange={(e) =>
+                onWordTestConfigChange?.({
+                  ...wordTestConfig,
+                  slice_length: Math.max(
+                    1,
+                    parseInt(e.target.value || "1", 10)
+                  ),
+                })
+              }
+            />
+          </LabelGroup>
+          <LabelGroup>
+            <SettingTitle>要學習的單字上限（max_word_study）</SettingTitle>
+            <input
+              type="number"
+              min="1"
+              value={wordTestConfig?.max_word_study ?? 20}
+              onChange={(e) =>
+                onWordTestConfigChange?.({
+                  ...wordTestConfig,
+                  max_word_study: Math.max(
+                    1,
+                    parseInt(e.target.value || "1", 10)
+                  ),
+                })
+              }
+            />
+          </LabelGroup>
+          <LabelGroup>
+            <SettingTitle>題目排序方式（sort_type）</SettingTitle>
+            <div>
+              <label>
+                <input
+                  type="radio"
+                  name="wordtest_sort"
+                  value="normal"
+                  checked={(wordTestConfig?.sort_type ?? "normal") === "normal"}
+                  onChange={(e) =>
+                    onWordTestConfigChange?.({
+                      ...wordTestConfig,
+                      sort_type: e.target.value,
+                    })
+                  }
+                />
+                normal（隨機）
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="wordtest_sort"
+                  value="asc"
+                  checked={(wordTestConfig?.sort_type ?? "normal") === "asc"}
+                  onChange={(e) =>
+                    onWordTestConfigChange?.({
+                      ...wordTestConfig,
+                      sort_type: e.target.value,
+                    })
+                  }
+                />
+                asc（依字數分組，由短到長）
+              </label>
+            </div>
+          </LabelGroup>
+          <LabelGroup>
+            <SettingTitle>
+              每個單字累計答對的次數才過關（round_count）
+            </SettingTitle>
+            <input
+              type="number"
+              min="1"
+              value={wordTestConfig?.round_count ?? 1}
+              onChange={(e) =>
+                onWordTestConfigChange?.({
+                  ...wordTestConfig,
+                  round_count: Math.max(1, parseInt(e.target.value || "1", 10)),
+                })
+              }
+            />
+          </LabelGroup>
+        </>
       )}
     </PanelContainer>
   );
