@@ -28,8 +28,8 @@
    🔄 學習流程
    初始化階段
    載入單字資料
-   決定新卡: studyted == 0 的單字 (最多 max_word_study 個)
-   決定複習卡: studyted > 0 的單字，按 studyted 升序 (最多 max_word_review 個)
+   決定新卡: studied == 0 的單字 (最多 max_word_study 個)
+   決定複習卡: studied > 0 的單字，按 studied 升序 (最多 max_word_review 個)
    排序題目 (asc 或 normal)
    階段 1-6: 學習階段
    階段 1 (探索新卡): 累計 memory_meet 長度 ≥ slice_length
@@ -46,7 +46,7 @@
    重練 memory_forget 中的單字
    循環直到 memory_forget 清空
    階段 9: 通過訓練
-   更新所有單字的 studyted += 1
+   更新所有單字的 studied += 1
    📊 記憶陣列邏輯
    階段 1-3 (新卡學習)
    記住:
@@ -92,7 +92,7 @@
    複習上限: 20 個
    排序: 隨機
    📈 學習進度
-   學習度 (studyted)
+   學習度 (studied)
    每次完成訓練 +1
    用於決定複習優先順序
    值越小越優先複習

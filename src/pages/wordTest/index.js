@@ -10,6 +10,7 @@ import {
   LogToggle,
   Overlay,
   FloatingSettingsPanel,
+  InfoToggle,
 } from "../../components/App/styles";
 import Modal from "../../components/Modal";
 import { useApp } from "../../store/contexts/AppContext";
@@ -103,6 +104,31 @@ const ListItem = styled.li`
   margin: 2px 0;
 `;
 
+// Consistent icon group (align with Reading/Quiz)
+const IconContainer = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px; /* Keep it on the right side */
+  z-index: 100;
+`;
+
+const IconGroup = styled.div`
+  display: flex;
+  gap: 10px; /* Adjust gap between icons */
+  flex-direction: row-reverse; /* Put HomeIcon (↩️) on the far right */
+`;
+
+const HomeIcon = styled(SettingsToggle)`
+  right: 5px;
+`;
+
+function getStudyValue(w) {
+  // Canonical field
+  const raw = w && typeof w === "object" ? w.studied ?? 0 : 0;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
 function sortWords(words, sortType) {
   if (sortType === "asc") {
     const groups = new Map();
@@ -143,13 +169,7 @@ export default function WordTest() {
         : [];
     const filtered = ctx.filter((w) => {
       if (!w || !w.jp_word) return false;
-      const s =
-        typeof w.studyted === "number"
-          ? w.studyted
-          : typeof w.studyed === "number"
-          ? w.studyed
-          : 0;
-      return s === 0;
+      return getStudyValue(w) === 0; // treat null/undefined/NaN as 0
     });
     return filtered.slice(0, Math.max(0, config.max_word_study));
   }, [currentNotebook, config.max_word_study]);
@@ -173,6 +193,14 @@ export default function WordTest() {
     // Filter out ids that no longer exist in current context
     return ids.filter((id) => byId.has(id));
   }, [overrideAllIds, defaultAllIds, byId]);
+
+  // If a restored order becomes invalid (e.g., all turned to studied>0),
+  // fall back to the freshly computed default order so remaining new cards appear.
+  useEffect(() => {
+    if (overrideAllIds && allIds.length === 0 && defaultAllIds.length > 0) {
+      setOverrideAllIds(null);
+    }
+  }, [overrideAllIds, allIds.length, defaultAllIds.length]);
 
   const [round, setRound] = useState(0);
   const [wordIndex, setWordIndex] = useState(0);
@@ -212,10 +240,12 @@ export default function WordTest() {
       for (const w of currentNotebook.context || []) {
         if (!w || !w.id || !w.jp_word) continue;
         await notebookService.updateWordInNotebook(currentNotebookId, w.id, {
-          studyted: 0,
+          studied: 0,
         });
         dispatch(
-          updateWordInNotebook(currentNotebookId, w.id, { studyted: 0 })
+          updateWordInNotebook(currentNotebookId, w.id, {
+            studied: 0,
+          })
         );
       }
       // Also clear persisted WordTest progress
@@ -339,23 +369,20 @@ export default function WordTest() {
               for (const id of Array.from(visitedSet)) {
                 const word = byId.get(id);
                 if (!word) continue;
-                const base =
-                  typeof word.studyted === "number"
-                    ? word.studyted
-                    : typeof word.studyed === "number"
-                    ? word.studyed
-                    : 0;
+                const base = getStudyValue(word);
                 const newStudy = base + 1;
                 await notebookService.updateWordInNotebook(nbId, id, {
-                  studyted: newStudy,
+                  studied: newStudy,
                 });
                 dispatch(
-                  updateWordInNotebook(nbId, id, { studyted: newStudy })
+                  updateWordInNotebook(nbId, id, {
+                    studied: newStudy,
+                  })
                 );
               }
               setShowFinishModal(true);
             } catch (e) {
-              console.error("更新 studyted 失敗", e);
+              console.error("更新 studied 失敗", e);
               setShowFinishModal(true);
             }
           })();
@@ -516,10 +543,19 @@ export default function WordTest() {
   if (allIds.length === 0) {
     return (
       <AppContainer>
-        <BackPage onClick={() => navigate("/")}>🏠</BackPage>
+        <IconContainer>
+          <IconGroup>
+            <SettingsToggle onClick={() => setShowSettings((s) => !s)}>
+              ⚙️
+            </SettingsToggle>
+            <HomeIcon onClick={() => setShowExitConfirm(true)}>↩️</HomeIcon>
+            <InfoToggle onClick={() => setShowQueues((v) => !v)}>ℹ️</InfoToggle>
+            <BackPage onClick={() => navigate("/")}>🏠</BackPage>
+          </IconGroup>
+        </IconContainer>
         <Title>單字挑戰</Title>
         <div>
-          沒有可學的新卡（studyted == 0）。請到「筆記本」匯入或調整資料。
+          沒有可學的新卡（studied == 0）。請到「筆記本」匯入或調整資料。
         </div>
       </AppContainer>
     );
@@ -527,18 +563,21 @@ export default function WordTest() {
 
   return (
     <AppContainer>
-      <Bar>
-        <BackPage onClick={confirmExit}>↩️</BackPage>
-        <LogToggle onClick={() => setShowQueues((v) => !v)}>🧾</LogToggle>
-        <SettingsToggle
-          onClick={() => {
-            setDraftConfig(config);
-            setShowSettings((s) => !s);
-          }}
-        >
-          ⚙️
-        </SettingsToggle>
-      </Bar>
+      <IconContainer>
+        <IconGroup>
+          <SettingsToggle
+            onClick={() => {
+              setDraftConfig(config);
+              setShowSettings((s) => !s);
+            }}
+          >
+            ⚙️
+          </SettingsToggle>
+          <HomeIcon onClick={confirmExit}>↩️</HomeIcon>
+          <InfoToggle onClick={() => setShowQueues((v) => !v)}>ℹ️</InfoToggle>
+          <BackPage onClick={() => navigate("/")}>🏠</BackPage>
+        </IconGroup>
+      </IconContainer>
       <Title>單字練習</Title>
       <Progress>{progressText}</Progress>
 
@@ -712,7 +751,7 @@ export default function WordTest() {
                     borderColor: "#f3c2c2",
                   }}
                 >
-                  清除整本進度（studyted → 0）
+                  清除整本進度（studied → 0）
                 </Btn>
                 <Btn
                   onClick={() => {
@@ -766,7 +805,7 @@ export default function WordTest() {
             message={
               clearing
                 ? "清除中，請稍候…"
-                : "確定要將此筆記本所有單字的 studyted 歸零嗎？此動作不可還原。"
+                : "確定要將此筆記本所有單字的 studied 歸零嗎？此動作不可還原。"
             }
             onConfirm={() => {
               if (!clearing) handleClearAllStudy();

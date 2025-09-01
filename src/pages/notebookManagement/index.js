@@ -42,6 +42,12 @@ const NotebookManagementPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [includeExamples, setIncludeExamples] = useState(false); // 是否將例句納入搜尋
   const [wordSelection, setWordSelection] = useState([]);
+  // 學習度列表：選單與列表狀態（不影響原本 UI）
+  const [studiedMinDraft, setStudiedMinDraft] = useState(null); // number|null
+  const [studiedMaxDraft, setStudiedMaxDraft] = useState(null); // number|null
+  const [studiedRangeApplied, setStudiedRangeApplied] = useState(null); // {min,max}|null
+  const [studiedSelection, setStudiedSelection] = useState([]);
+  const [studiedSetValue, setStudiedSetValue] = useState(0); // for batch set
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -198,6 +204,123 @@ const NotebookManagementPage = () => {
       } catch (error) {
         alert(error.message);
       }
+    }
+  };
+
+  // ===== 學習度統計（提供下拉選單範圍） =====
+  const studiedStats = useMemo(() => {
+    const ctx = selectedNotebook?.context || [];
+    let min = Number.POSITIVE_INFINITY;
+    let max = Number.NEGATIVE_INFINITY;
+    for (const w of ctx) {
+      const v = Number(w?.studied ?? 0);
+      if (!Number.isFinite(v)) continue;
+      if (v < min) min = v;
+      if (v > max) max = v;
+    }
+    if (min === Number.POSITIVE_INFINITY) min = 0;
+    if (max === Number.NEGATIVE_INFINITY) max = 0;
+    return { min, max };
+  }, [selectedNotebook]);
+
+  const studiedMinOptions = useMemo(() => {
+    const arr = [];
+    for (let i = studiedStats.min; i <= studiedStats.max; i++) arr.push(i);
+    return arr;
+  }, [studiedStats.min, studiedStats.max]);
+
+  const studiedMaxOptions = useMemo(() => {
+    if (studiedMinDraft == null) return [];
+    const arr = [];
+    for (let i = studiedMinDraft; i <= studiedStats.max; i++) arr.push(i);
+    return arr;
+  }, [studiedMinDraft, studiedStats.max]);
+
+  // 當 min 改變時，max 初始值為其可選清單的最小值（即與 min 相同）
+  useEffect(() => {
+    if (studiedMinDraft != null) {
+      const opts = studiedMaxOptions;
+      setStudiedMaxDraft(opts.length > 0 ? opts[0] : null);
+    } else {
+      setStudiedMaxDraft(null);
+    }
+  }, [studiedMinDraft, studiedMaxOptions]);
+
+  // 套用學習度區間後的列表
+  const studiedFilteredWords = useMemo(() => {
+    if (!selectedNotebook || !studiedRangeApplied) return [];
+    const { min, max } = studiedRangeApplied;
+    return (selectedNotebook.context || []).filter((w) => {
+      const v = Number(w?.studied ?? 0);
+      return Number.isFinite(v) && v >= min && v <= max;
+    });
+  }, [selectedNotebook, studiedRangeApplied]);
+
+  const studiedAllSelected =
+    studiedFilteredWords.length > 0 &&
+    studiedFilteredWords.every((w) => studiedSelection.includes(w.id));
+
+  const toggleSelectAllStudied = () => {
+    if (studiedAllSelected) {
+      setStudiedSelection((prev) =>
+        prev.filter((id) => !studiedFilteredWords.some((w) => w.id === id))
+      );
+    } else {
+      const ids = studiedFilteredWords.map((w) => w.id);
+      setStudiedSelection((prev) => Array.from(new Set([...prev, ...ids])));
+    }
+  };
+
+  const toggleSelectStudiedWord = (id) => {
+    setStudiedSelection((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkResetStudied = () => {
+    if (!selectedNotebook || studiedSelection.length === 0) return;
+    if (
+      !window.confirm(
+        `確定將選取的 ${studiedSelection.length} 個單字學習度重置為 0？`
+      )
+    )
+      return;
+    try {
+      for (const id of studiedSelection) {
+        notebookService.updateWordInNotebook(selectedNotebook.id, id, {
+          studied: 0,
+        });
+      }
+      refreshNotebooks(selectedNotebook.id);
+      setStudiedSelection([]);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleBulkApplyStudied = () => {
+    if (!selectedNotebook || studiedSelection.length === 0) return;
+    const v = Number(studiedSetValue);
+    if (!Number.isFinite(v) || v < 0) {
+      alert("請輸入有效的非負整數");
+      return;
+    }
+    if (
+      !window.confirm(
+        `確定將選取的 ${studiedSelection.length} 個單字學習度設為 ${v}？`
+      )
+    )
+      return;
+    try {
+      for (const id of studiedSelection) {
+        notebookService.updateWordInNotebook(selectedNotebook.id, id, {
+          studied: v,
+        });
+      }
+      refreshNotebooks(selectedNotebook.id);
+      setStudiedSelection([]);
+    } catch (error) {
+      alert(error.message);
     }
   };
 
@@ -759,6 +882,191 @@ const NotebookManagementPage = () => {
                 ) : (
                   <p>目前沒有符合條件的單字</p>
                 )}
+
+                {/* ===== 新增：學習度列表（studied） ===== */}
+                <div style={{ marginTop: 24 }}>
+                  <h3>
+                    學習度列表
+                    {studiedRangeApplied
+                      ? `（${studiedRangeApplied.min} ~ ${studiedRangeApplied.max}）(${studiedFilteredWords.length})`
+                      : "（未選擇）"}
+                  </h3>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      flexWrap: "wrap",
+                      marginBottom: 8,
+                    }}
+                  >
+                    <label>min</label>
+                    <select
+                      value={studiedMinDraft ?? ""}
+                      onChange={(e) =>
+                        setStudiedMinDraft(
+                          e.target.value === "" ? null : Number(e.target.value)
+                        )
+                      }
+                    >
+                      <option value="">選擇</option>
+                      {studiedMinOptions.map((v) => (
+                        <option key={v} value={v}>
+                          {v}
+                        </option>
+                      ))}
+                    </select>
+                    <span>~</span>
+                    <label>max</label>
+                    <select
+                      value={studiedMaxDraft ?? ""}
+                      onChange={(e) =>
+                        setStudiedMaxDraft(
+                          e.target.value === "" ? null : Number(e.target.value)
+                        )
+                      }
+                      disabled={studiedMinDraft == null}
+                    >
+                      {studiedMinDraft == null ? (
+                        <option value="">先選 min</option>
+                      ) : (
+                        studiedMaxOptions.map((v) => (
+                          <option key={v} value={v}>
+                            {v}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                    <Button
+                      onClick={() => {
+                        if (studiedMinDraft == null || studiedMaxDraft == null)
+                          return;
+                        if (studiedMaxDraft < studiedMinDraft) return;
+                        setStudiedRangeApplied({
+                          min: studiedMinDraft,
+                          max: studiedMaxDraft,
+                        });
+                        setStudiedSelection([]);
+                      }}
+                    >
+                      確定
+                    </Button>
+                  </div>
+
+                  {studiedRangeApplied && studiedFilteredWords.length > 0 ? (
+                    <>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 8,
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                          margin: "8px 0",
+                        }}
+                      >
+                        <Button danger onClick={handleBulkResetStudied}>
+                          批次重置（→0）
+                        </Button>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                          }}
+                        >
+                          <span>批次設為</span>
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            min={0}
+                            step={1}
+                            value={studiedSetValue}
+                            onChange={(e) => setStudiedSetValue(e.target.value)}
+                            style={{ width: 90, padding: 6 }}
+                          />
+                          <Button onClick={handleBulkApplyStudied}>套用</Button>
+                        </div>
+                        {studiedSelection.length > 0 && (
+                          <span style={{ color: "#666", fontSize: 12 }}>
+                            已選取 {studiedSelection.length} 筆
+                          </span>
+                        )}
+                      </div>
+                      <WordTableWrapper>
+                        <WordTable>
+                          <thead>
+                            <tr>
+                              <th style={{ width: 40 }}>
+                                <input
+                                  type="checkbox"
+                                  checked={studiedAllSelected}
+                                  onChange={toggleSelectAllStudied}
+                                />
+                              </th>
+                              <th style={{ width: "35%" }}>日文</th>
+                              <th style={{ width: "25%" }}>中文</th>
+                              <th style={{ width: "20%", textAlign: "left" }}>
+                                學習度 (studied)
+                              </th>
+                              <th style={{ textAlign: "right", width: "20%" }}>
+                                操作
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {studiedFilteredWords.map((word) => (
+                              <tr key={word.id}>
+                                <td>
+                                  <input
+                                    type="checkbox"
+                                    checked={studiedSelection.includes(word.id)}
+                                    onChange={() =>
+                                      toggleSelectStudiedWord(word.id)
+                                    }
+                                  />
+                                </td>
+                                <td>
+                                  <strong>
+                                    {word.kanji_jp_word || word.jp_word}
+                                  </strong>
+                                  {word.kanji_jp_word && (
+                                    <div
+                                      style={{ color: "#777", fontSize: 12 }}
+                                    >
+                                      {word.jp_word}
+                                    </div>
+                                  )}
+                                  <div style={{ color: "#777", fontSize: 12 }}>
+                                    {word.type}
+                                  </div>
+                                </td>
+                                <td>{word.ch_word}</td>
+                                <td>
+                                  <span style={{ fontWeight: 600 }}>
+                                    {Number(word?.studied ?? 0)}
+                                  </span>
+                                </td>
+                                <td style={{ textAlign: "right" }}>
+                                  <Button onClick={() => handleEditWord(word)}>
+                                    編輯
+                                  </Button>
+                                  <Button
+                                    danger
+                                    onClick={() => handleDeleteWord(word.id)}
+                                  >
+                                    刪除
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </WordTable>
+                      </WordTableWrapper>
+                    </>
+                  ) : studiedRangeApplied ? (
+                    <p>此學習度區間沒有單字</p>
+                  ) : null}
+                </div>
 
                 <Modal
                   isVisible={isEditWordModalVisible}

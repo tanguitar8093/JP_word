@@ -3,6 +3,15 @@ import { v4 as uuidv4 } from "uuid";
 const NOTEBOOK_STORAGE_KEY = "notebooks";
 const CURRENT_NOTEBOOK_ID_KEY = "currentNotebookId";
 
+// Normalize a word's study counter to the canonical field 'studied'
+const _normalizeStudy = (word) => {
+  if (!word || typeof word !== "object") return word;
+  const base = word.studied ?? 0;
+  const n = Number(base);
+  const v = Number.isFinite(n) && n >= 0 ? n : 0;
+  return { ...word, studied: v };
+};
+
 // Private method to get notebooks from localStorage
 const _getNotebooksFromStorage = () => {
   try {
@@ -21,6 +30,24 @@ const _saveNotebooksToStorage = (notebooks) => {
   } catch (error) {
     console.error("notebookService: Error saving to localStorage", error);
   }
+};
+
+// Migration: ensure all words have a numeric 'studied' (remove legacy fields)
+const _migrateStudyFields = (notebooks) => {
+  let changed = false;
+  for (const id of Object.keys(notebooks)) {
+    const nb = notebooks[id];
+    if (!nb || !Array.isArray(nb.context)) continue;
+    const newCtx = nb.context.map((w) => _normalizeStudy(w));
+    // Also ensure ids exist
+    const ensured = _ensureContextIds(newCtx);
+    // Detect changes roughly
+    if (ensured !== nb.context) {
+      notebooks[id] = { ...nb, context: ensured };
+      changed = true;
+    }
+  }
+  if (changed) _saveNotebooksToStorage(notebooks);
 };
 
 // Private method for validating the context structure
@@ -68,6 +95,13 @@ const _ensureContextIds = (context) => {
     if (!newWord.id && Object.keys(newWord).length > 0) {
       newWord.id = uuidv4();
     }
+    // Normalize study counter to canonical 'studied'
+    if (Object.keys(newWord).length > 0) {
+      const base = newWord.studied ?? 0;
+      const n = Number(base);
+      const v = Number.isFinite(n) && n >= 0 ? n : 0;
+      newWord.studied = v;
+    }
     return newWord;
   });
 };
@@ -107,11 +141,19 @@ const notebookService = {
                 { kanji: "", hiragana: "を" },
                 { kanji: "", hiragana: "！" },
               ],
+              studied: 0,
             },
           ],
         },
       };
       _saveNotebooksToStorage(initialNotebook);
+      return;
+    }
+    // Run migration for existing data
+    try {
+      _migrateStudyFields(notebooks);
+    } catch (e) {
+      console.warn("notebookService: migration skipped", e);
     }
   },
   initCurrentNotebook: () => {
