@@ -1,6 +1,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, createHashRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  createHashRouter,
+  RouterProvider,
+} from "react-router-dom";
 
 import App from "./components/App"; // Import App component
 import HomePage from "./pages/home";
@@ -11,16 +15,16 @@ import SystemSettingsPage from "./pages/systemSettings";
 import NotebookManagementPage from "./pages/notebookManagement";
 import NavigationBlocker from "./components/NavigationBlocker";
 import Reading from "./pages/Reading/components/Reading";
-import WordTest from "./pages/wordTest"; 
+import WordTest from "./pages/wordTest";
 import DiagnosticsPage from "./pages/diagnostics"; // 新增：診斷頁
 
 const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
 
-// 動態決定 basename：
-// - Capacitor (capacitor:// 或 http://localhost 的情況) 使用 "/"
-// - Web 且 PUBLIC_URL 存在且不是 "." 時使用 PUBLIC_URL
-// - 其他情況預設 "/"
+// Router 策略：
+// - Android (Capacitor) 用 HashRouter（避免原生 WebView 路由問題）
+// - GitHub Pages 用 HashRouter（靜態主機無法處理子路徑直連）
+// - 其他一般 Web 用 BrowserRouter + basename
 const isCapacitorLike = () => {
   const href = window.location.href;
   return (
@@ -29,12 +33,9 @@ const isCapacitorLike = () => {
     href.startsWith("https://localhost")
   );
 };
+const isGhPages = () => /\.github\.io$/.test(window.location.hostname);
 const publicUrl = process.env.PUBLIC_URL;
-const resolvedBasename = isCapacitorLike()
-  ? "/"
-  : publicUrl && publicUrl !== "."
-  ? publicUrl
-  : "/";
+const resolvedBasename = publicUrl && publicUrl !== "." ? publicUrl : "/";
 
 const routes = [
   {
@@ -128,7 +129,8 @@ const routes = [
   },
 ];
 
-const router = isCapacitorLike()
+const useHash = isCapacitorLike() || isGhPages();
+const router = useHash
   ? createHashRouter(routes)
   : createBrowserRouter(routes, { basename: resolvedBasename });
 
