@@ -16,6 +16,20 @@ import {
 import { Capacitor } from "@capacitor/core";
 import { VoiceRecorder } from "capacitor-voice-recorder";
 
+// 將 base64 轉為 Blob，避免部份裝置/ WebView 對 data:audio/aac;base64 播放相容性問題
+function base64ToBlob(base64, mime) {
+  try {
+    const byteChars = atob(base64);
+    const byteNumbers = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++)
+      byteNumbers[i] = byteChars.charCodeAt(i);
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mime });
+  } catch (_) {
+    return null;
+  }
+}
+
 const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
   const [permission, setPermission] = useState(false);
   const [stream, setStream] = useState(null);
@@ -29,10 +43,21 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
   const playResolver = useRef(null);
 
   const isNative = Capacitor?.isNativePlatform?.() === true;
+  // 某些環境下 isPluginAvailable 可能回傳不準，補上 API 存在性檢查
   const isVRPluginAvailable =
-    isNative && typeof Capacitor?.isPluginAvailable === "function"
-      ? Capacitor.isPluginAvailable("VoiceRecorder")
-      : false;
+    isNative &&
+    ((typeof Capacitor?.isPluginAvailable === "function" &&
+      Capacitor.isPluginAvailable("VoiceRecorder")) ||
+      !!(VoiceRecorder && typeof VoiceRecorder.startRecording === "function"));
+
+  // Web 錄音支援檢查（避免未宣告變數）
+  const isMediaSupported = !!(
+    typeof navigator !== "undefined" &&
+    navigator.mediaDevices &&
+    typeof navigator.mediaDevices.getUserMedia === "function" &&
+    typeof window !== "undefined" &&
+    typeof window.MediaRecorder !== "undefined"
+  );
 
   // 嘗試在首次互動時解鎖 WebView 的音訊播放限制
   useEffect(() => {
@@ -70,11 +95,13 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
     setError("");
     if (isNative) {
       if (!isVRPluginAvailable) {
+        setError("原生錄音外掛未載入，請重新安裝並同步專案");
         setPermission(false);
         return null;
       }
       const granted = await requestNativeMicPermission();
       setPermission(!!granted);
+      if (!granted) setError("未取得麥克風權限");
       return granted ? true : null;
     }
     if (!isMediaSupported) {
@@ -132,11 +159,7 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
           const start = Date.now();
           const tick = () => {
             const a = audioPlayerRef.current;
-            if (
-              a &&
-              a.src &&
-              (a.readyState >= 3 || a.duration > 0)
-            ) {
+            if (a && a.src && (a.readyState >= 3 || a.duration > 0)) {
               resolve(a);
               return;
             }
@@ -271,9 +294,25 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
         const result = await VoiceRecorder.stopRecording();
         const { recordDataBase64, mimeType } = (result && result.value) || {};
         if (recordDataBase64) {
-          const mime = mimeType || "audio/aac";
-          const audioUrl = `data:${mime};base64,${recordDataBase64}`;
-          setAudioURL(audioUrl);
+          // 某些 WebView 對 data:audio/aac;base64 播放不佳 → 轉成 Blob URL，並將 AAC 對應為常見容器型別
+          const preferredMime =
+            mimeType === "audio/aac" ? "audio/mp4" : mimeType || "audio/mp4";
+          const blob = base64ToBlob(recordDataBase64, preferredMime);
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            setAudioURL((prev) => {
+              if (prev) URL.revokeObjectURL(prev);
+              return url;
+            });
+          } else {
+            // 退回 data URL（最保守）
+            const url = `data:${
+              mimeType || "audio/aac"
+            };base64,${recordDataBase64}`;
+            setAudioURL(url);
+          }
+        } else {
+          setError("未取得錄音資料");
         }
       } catch (e) {
         setError("原生錄音停止失敗");
@@ -316,6 +355,12 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
   return (
     <ButtonContainer>
       {error && <Status style={{ color: "#e53935" }}>{error}</Status>}
+      {/* 在原生裝置但外掛不可用時，直接顯示提示 */}
+      {isNative && !isVRPluginAvailable && !permission && (
+        <Status>
+          原生錄音外掛未載入，請重新安裝並執行 npx cap sync android
+        </Status>
+      )}
 
       {/* 未取得權限 - 只在權限被拒絕時顯示（簡化提示文字） */}
       {!permission && (
