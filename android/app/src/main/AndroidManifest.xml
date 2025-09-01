@@ -36,6 +36,12 @@
     </application>
 
     <!-- Permissions -->
-
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 錄音權限（必要） -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- 可選：調整音訊路由/音量等（部分裝置有幫助） -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <!-- 可選：宣告麥克風硬體，設定為非必要，避免無麥克風裝置無法安裝 -->
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
 </manifest>
