@@ -6,12 +6,12 @@ import App from "./components/App"; // Import App component
 import HomePage from "./pages/home";
 import Quiz from "./pages/quiz/components/Quiz";
 import FillInQuiz from "./pages/quiz/components/FillInQuiz";
-
+import { AppProvider } from "./store/contexts/AppContext"; // Import AppProvider
 import SystemSettingsPage from "./pages/systemSettings";
 import NotebookManagementPage from "./pages/notebookManagement";
 import NavigationBlocker from "./components/NavigationBlocker";
 import Reading from "./pages/Reading/components/Reading";
-import WordTest from "./pages/wordTest"; // 新增：Anki Demo
+import WordTest from "./pages/wordTest"; 
 
 const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
@@ -73,13 +73,13 @@ const routes = [
         ),
       },
       {
-        path: "anki",
+        path: "word_test",
         element: (
           <NavigationBlocker
             clearOnConfirm
             message="偵測到進行中的學習任務，將會刪除進度，是否繼續？"
           >
-            <AnkiDemo />
+            <WordTest />
           </NavigationBlocker>
         ),
       },
