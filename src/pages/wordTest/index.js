@@ -549,6 +549,7 @@ export default function WordTest() {
               ⚙️
             </SettingsToggle>
             <HomeIcon onClick={() => setShowExitConfirm(true)}>↩️</HomeIcon>
+            <LogToggle onClick={() => setShowQueues((v) => !v)}>🧾</LogToggle>
             <InfoToggle onClick={() => setShowQueues((v) => !v)}>ℹ️</InfoToggle>
             <BackPage onClick={() => navigate("/")}>🏠</BackPage>
           </IconGroup>
@@ -574,6 +575,7 @@ export default function WordTest() {
             ⚙️
           </SettingsToggle>
           <HomeIcon onClick={confirmExit}>↩️</HomeIcon>
+          <LogToggle onClick={() => setShowQueues((v) => !v)}>🧾</LogToggle>
           <InfoToggle onClick={() => setShowQueues((v) => !v)}>ℹ️</InfoToggle>
           <BackPage onClick={() => navigate("/")}>🏠</BackPage>
         </IconGroup>
