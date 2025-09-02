@@ -38,7 +38,7 @@ const defaultConfig = {
   slice_length: 5,
   max_word_study: 20,
   sort_type: "normal", // normal | asc
-  round_count: 1,
+  round_count: 3,
 };
 
 const GameBox = styled.div`
