@@ -50,6 +50,22 @@ const GameBox = styled.div`
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 `;
 
+const StageToggleWrap = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 6px 0 10px;
+`;
+
+const StageBtn = styled.button`
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid ${(p) => (p.active ? "#4caf50" : "#ddd")};
+  color: ${(p) => (p.active ? "#fff" : "#333")};
+  background: ${(p) => (p.active ? "#4caf50" : "#f7f7f7")};
+  cursor: pointer;
+`;
+
 const Btn = styled.button`
   padding: 5px 7px;
   border: 1px solid #ddd;
@@ -154,6 +170,8 @@ export default function WordTest() {
   const { playbackOptions, playbackSpeed, wordType } = state.systemSettings;
 
   const [config, setConfig] = useState(defaultConfig);
+  // Stage: 'new' | 'review' (future: 'test', 'wrong')
+  const [stage, setStage] = useState("new");
   const [restored, setRestored] = useState(false);
   const [attemptedRestore, setAttemptedRestore] = useState(false);
 
@@ -167,12 +185,36 @@ export default function WordTest() {
       currentNotebook && Array.isArray(currentNotebook.context)
         ? currentNotebook.context
         : [];
-    const filtered = ctx.filter((w) => {
+    if (stage === "new") {
+      const filtered = ctx.filter((w) => {
+        if (!w || !w.jp_word) return false;
+        return getStudyValue(w) === 0; // treat null/undefined/NaN as 0
+      });
+      return filtered.slice(0, Math.max(0, config.max_word_study));
+    }
+    // review: pick studied > 0, choose the lowest-studied items up to max_word_study
+    const studiedItems = ctx.filter((w) => {
       if (!w || !w.jp_word) return false;
-      return getStudyValue(w) === 0; // treat null/undefined/NaN as 0
+      return getStudyValue(w) > 0;
     });
-    return filtered.slice(0, Math.max(0, config.max_word_study));
-  }, [currentNotebook, config.max_word_study]);
+    if (studiedItems.length <= config.max_word_study) return studiedItems;
+    const groups = new Map();
+    for (const w of studiedItems) {
+      const s = getStudyValue(w);
+      if (!groups.has(s)) groups.set(s, []);
+      groups.get(s).push(w);
+    }
+    const keys = Array.from(groups.keys()).sort((a, b) => a - b);
+    const picked = [];
+    for (const k of keys) {
+      const arr = shuffleArray(groups.get(k));
+      for (const w of arr) {
+        picked.push(w);
+        if (picked.length >= config.max_word_study) return picked;
+      }
+    }
+    return picked;
+  }, [currentNotebook, config.max_word_study, stage]);
 
   // Build a map for lookup and a default order
   const byId = useMemo(
@@ -234,6 +276,23 @@ export default function WordTest() {
   const [isAnswerVisible, setIsAnswerVisible] = useState(false);
   // Prevent re-triggering end-of-session logic once finished
   const [sessionDone, setSessionDone] = useState(false);
+
+  // switch stage helper (reset state and re-attempt restore)
+  const switchStage = useCallback((nextStage) => {
+    setStage(nextStage);
+    setRestored(false);
+    setAttemptedRestore(false);
+    setRound(0);
+    setWordIndex(0);
+    setSliceIds([]);
+    setCurrentQueue([]);
+    setQueueIdx(0);
+    setMemorySet(new Set());
+    setVisitedSet(new Set());
+    setOverrideAllIds(null);
+    setIsAnswerVisible(false);
+    setSessionDone(false);
+  }, []);
 
   const handleClearAllStudy = useCallback(async () => {
     if (!currentNotebookId || !currentNotebook) return;
@@ -473,7 +532,12 @@ export default function WordTest() {
         setAttemptedRestore(true);
         return;
       }
-      if (saved.schemaVersion !== 1) {
+      if (saved.schemaVersion !== 1 && saved.schemaVersion !== 2) {
+        setAttemptedRestore(true);
+        return;
+      }
+      const savedStage = saved.stage || "new";
+      if (savedStage !== stage) {
         setAttemptedRestore(true);
         return;
       }
@@ -499,7 +563,7 @@ export default function WordTest() {
       // ignore restore errors
       setAttemptedRestore(true);
     }
-  }, [currentNotebookId, attemptedRestore, restored]);
+  }, [currentNotebookId, attemptedRestore, restored, stage]);
 
   // Auto-save WordTest progress to the notebook's word_test field
   useEffect(() => {
@@ -507,8 +571,9 @@ export default function WordTest() {
     if (allIds.length === 0) return;
     try {
       const payload = {
-        schemaVersion: 1,
+        schemaVersion: 2,
         notebookId: currentNotebookId,
+        stage,
         allIds,
         config,
         round,
@@ -528,6 +593,7 @@ export default function WordTest() {
     }
   }, [
     currentNotebookId,
+    stage,
     allIds,
     config,
     round,
@@ -566,8 +632,21 @@ export default function WordTest() {
           </IconGroup>
         </IconContainer>
         <Title>單字挑戰</Title>
+        <StageToggleWrap>
+          <StageBtn active={stage === "new"} onClick={() => switchStage("new")}>
+            新卡
+          </StageBtn>
+          <StageBtn
+            active={stage === "review"}
+            onClick={() => switchStage("review")}
+          >
+            複習
+          </StageBtn>
+        </StageToggleWrap>
         <div>
-          沒有可學的新卡（studied == 0）。請到「筆記本」匯入或調整資料。
+          {stage === "new"
+            ? "沒有可學的新卡（studied == 0）。請到「筆記本」匯入或調整資料。"
+            : "沒有可複習的單字（studied > 0）。"}
         </div>
       </AppContainer>
     );
@@ -592,6 +671,17 @@ export default function WordTest() {
         </IconGroup>
       </IconContainer>
       <Title>單字練習</Title>
+      <StageToggleWrap>
+        <StageBtn active={stage === "new"} onClick={() => switchStage("new")}>
+          新卡
+        </StageBtn>
+        <StageBtn
+          active={stage === "review"}
+          onClick={() => switchStage("review")}
+        >
+          複習
+        </StageBtn>
+      </StageToggleWrap>
       <Progress>{progressText}</Progress>
 
       {currentWord ? (
