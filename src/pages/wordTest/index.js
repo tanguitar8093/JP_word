@@ -232,6 +232,8 @@ export default function WordTest() {
   const [showHiragana, setShowHiragana] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isAnswerVisible, setIsAnswerVisible] = useState(false);
+  // Prevent re-triggering end-of-session logic once finished
+  const [sessionDone, setSessionDone] = useState(false);
 
   const handleClearAllStudy = useCallback(async () => {
     if (!currentNotebookId || !currentNotebook) return;
@@ -349,6 +351,8 @@ export default function WordTest() {
   }, [isAnswerVisible, currentId, currentWord, playSequence, playbackOptions]);
 
   useEffect(() => {
+    // Stop any further progression once the session is finished
+    if (sessionDone) return;
     if (queueIdx < currentQueue.length) return;
     if (currentQueue.length === 0 && sliceIds.length === 0) return;
 
@@ -363,6 +367,11 @@ export default function WordTest() {
         const nextRound = round + 1;
         setRound(nextRound);
         if (nextRound >= config.round_count) {
+          // Mark as finished and clear queues to avoid the effect firing again
+          setSessionDone(true);
+          setSliceIds([]);
+          setCurrentQueue([]);
+          setQueueIdx(0);
           (async () => {
             try {
               const nbId = currentNotebookId;
@@ -417,6 +426,7 @@ export default function WordTest() {
     dispatch,
     loadSlice,
     visitedSet,
+    sessionDone,
   ]);
 
   const progressText = useMemo(() => {
@@ -448,6 +458,7 @@ export default function WordTest() {
       }
     } catch (_) {}
     setShowFinishModal(false);
+    setSessionDone(false);
     navigate("/");
   }, [currentNotebookId, navigate]);
 
@@ -774,6 +785,7 @@ export default function WordTest() {
                     setQueueIdx(0);
                     setMemorySet(new Set());
                     setVisitedSet(new Set());
+                    setSessionDone(false);
                     setOverrideAllIds(null); // recalc order for new settings
                     setTimeout(() => {
                       const start = 0;
