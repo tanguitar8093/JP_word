@@ -177,7 +177,7 @@ export default function WordTest() {
   const { playbackOptions, playbackSpeed, wordType } = state.systemSettings;
 
   const [config, setConfig] = useState(defaultConfig);
-  // Stage: 'new' | 'review' (future: 'test', 'wrong')
+  // Stage: 'new' | 'review' | 'test' | 'wrong'
   const [stage, setStage] = useState("new");
   const [restored, setRestored] = useState(false);
   const [attemptedRestore, setAttemptedRestore] = useState(false);
@@ -186,6 +186,10 @@ export default function WordTest() {
     () => notebooks.find((n) => n.id === currentNotebookId),
     [notebooks, currentNotebookId]
   );
+
+  // Pools for Stage 3/4
+  const [sessionPool, setSessionPool] = useState(() => new Set()); // union of learned ids in stage 1+2
+  const [wrongSet, setWrongSet] = useState(() => new Set()); // wrong ids collected in Stage 3
 
   const eligibleWords = useMemo(() => {
     const ctx =
@@ -233,14 +237,42 @@ export default function WordTest() {
     return picked;
   }, [currentNotebook, config.max_word_study, stage]);
 
+  const testWords = useMemo(() => {
+    if (stage !== "test") return [];
+    const ctx =
+      currentNotebook && Array.isArray(currentNotebook.context)
+        ? currentNotebook.context
+        : [];
+    const allowed = new Set(sessionPool);
+    const arr = ctx.filter((w) => allowed.has(w.id));
+    return arr.slice();
+  }, [stage, sessionPool, currentNotebook]);
+
+  const wrongWords = useMemo(() => {
+    if (stage !== "wrong") return [];
+    const ctx =
+      currentNotebook && Array.isArray(currentNotebook.context)
+        ? currentNotebook.context
+        : [];
+    const allowed = new Set(wrongSet);
+    const arr = ctx.filter((w) => allowed.has(w.id));
+    return arr.slice();
+  }, [stage, wrongSet, currentNotebook]);
+
   // Build a map for lookup and a default order
+  const pageWords =
+    stage === "test"
+      ? testWords
+      : stage === "wrong"
+      ? wrongWords
+      : eligibleWords;
   const byId = useMemo(
-    () => new Map((eligibleWords || []).map((w) => [w.id, w])),
-    [eligibleWords]
+    () => new Map((pageWords || []).map((w) => [w.id, w])),
+    [pageWords]
   );
   const defaultOrderWords = useMemo(() => {
-    return sortWords(eligibleWords, config.sort_type);
-  }, [eligibleWords, config.sort_type]);
+    return sortWords(pageWords, config.sort_type);
+  }, [pageWords, config.sort_type]);
   const defaultAllIds = useMemo(
     () => defaultOrderWords.map((w) => w.id),
     [defaultOrderWords]
@@ -253,7 +285,7 @@ export default function WordTest() {
     return ids.filter((id) => byId.has(id));
   }, [overrideAllIds, defaultAllIds, byId]);
 
-  // If a restored order becomes invalid (e.g., all turned to studied>0),
+  // If a restored order becomes invalid (e.g., no words in current stage),
   // fall back to the freshly computed default order so remaining new cards appear.
   useEffect(() => {
     if (overrideAllIds && allIds.length === 0 && defaultAllIds.length > 0) {
@@ -283,6 +315,9 @@ export default function WordTest() {
 
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
+  const [finishMessage, setFinishMessage] = useState(
+    "完成！本次有作答的單字已 +1。返回首頁？"
+  );
   const [showQueues, setShowQueues] = useState(false);
   const [showLocalSettings, setShowLocalSettings] = useState(false);
   const [draftConfig, setDraftConfig] = useState(defaultConfig);
@@ -408,16 +443,31 @@ export default function WordTest() {
     if (!currentId) return;
     setIsAnswerVisible(false);
     setVisitedSet((prev) => new Set(prev).add(currentId));
-    setMemorySet((prev) => new Set(prev).add(currentId));
+    if (stage === "new" || stage === "review") {
+      setMemorySet((prev) => new Set(prev).add(currentId));
+    } else if (stage === "wrong") {
+      // mark learned and remove from wrong set
+      setMemorySet((prev) => new Set(prev).add(currentId));
+      setWrongSet((prev) => {
+        const n = new Set(prev);
+        n.delete(currentId);
+        return n;
+      });
+    } else {
+      // test: only record answered
+    }
     setQueueIdx((i) => i + 1);
-  }, [currentId]);
+  }, [currentId, stage]);
 
   const onNotYet = useCallback(() => {
     if (!currentId) return;
     setIsAnswerVisible(false);
     setVisitedSet((prev) => new Set(prev).add(currentId));
+    if (stage === "test") {
+      setWrongSet((prev) => new Set(prev).add(currentId));
+    }
     setQueueIdx((i) => i + 1);
-  }, [currentId]);
+  }, [currentId, stage]);
 
   // After revealing the answer, speak according to settings (same as Reading page)
   useEffect(() => {
@@ -431,6 +481,64 @@ export default function WordTest() {
     if (sessionDone) return;
     if (queueIdx < currentQueue.length) return;
     if (currentQueue.length === 0 && sliceIds.length === 0) return;
+
+    if (stage === "test") {
+      // Present each exactly once; go to next slice or switch to wrong/finish
+      const hasNextSlice = wordIndex + config.slice_length < allIds.length;
+      if (hasNextSlice) {
+        const nextStart = wordIndex + config.slice_length;
+        setWordIndex(nextStart);
+        loadSlice(nextStart, allIds);
+      } else {
+        if (wrongSet.size > 0) {
+          // move to wrong practice
+          switchStage("wrong");
+        } else {
+          setSessionDone(true);
+          setSliceIds([]);
+          setCurrentQueue([]);
+          setQueueIdx(0);
+          setFinishMessage("測試完成！全部記住了。返回首頁？");
+          setShowFinishModal(true);
+        }
+      }
+      return;
+    }
+
+    // Wrong practice: repeat until all wrong remembered; then finish
+    if (stage === "wrong") {
+      const allCoveredWrong = sliceIds.every((id) => memorySet.has(id));
+      if (allCoveredWrong) {
+        const hasNextSlice = wordIndex + config.slice_length < allIds.length;
+        if (hasNextSlice) {
+          const nextStart = wordIndex + config.slice_length;
+          setWordIndex(nextStart);
+          loadSlice(nextStart, allIds);
+        } else {
+          // If wrongSet still has items (shouldn't if remembered), just reshuffle remaining
+          if (wrongSet.size > 0) {
+            const remaining = allIds.filter((id) => !memorySet.has(id));
+            if (remaining.length > 0) {
+              setSliceIds(remaining);
+              setCurrentQueue(remaining);
+              setQueueIdx(0);
+              return;
+            }
+          }
+          setSessionDone(true);
+          setSliceIds([]);
+          setCurrentQueue([]);
+          setQueueIdx(0);
+          setFinishMessage("錯題練習完成！測試全對。返回首頁？");
+          setShowFinishModal(true);
+        }
+      } else {
+        const pending = sliceIds.filter((id) => !memorySet.has(id));
+        setCurrentQueue(pending);
+        setQueueIdx(0);
+      }
+      return;
+    }
 
     const allCovered = sliceIds.every((id) => memorySet.has(id));
     if (allCovered) {
@@ -468,6 +576,13 @@ export default function WordTest() {
                   })
                 );
               }
+              // add visited words to session pool for Stage 3 testing
+              setSessionPool((prev) => {
+                const n = new Set(prev);
+                for (const id of Array.from(visitedSet)) n.add(id);
+                return n;
+              });
+              setFinishMessage("完成！本次有作答的單字已 +1。返回首頁？");
               setShowFinishModal(true);
             } catch (e) {
               console.error("更新 studied 失敗", e);
@@ -506,6 +621,9 @@ export default function WordTest() {
     loadSlice,
     visitedSet,
     sessionDone,
+    stage,
+    wrongSet,
+    switchStage,
   ]);
 
   const progressText = useMemo(() => {
@@ -552,7 +670,11 @@ export default function WordTest() {
         setAttemptedRestore(true);
         return;
       }
-      if (saved.schemaVersion !== 1 && saved.schemaVersion !== 2) {
+      if (
+        saved.schemaVersion !== 1 &&
+        saved.schemaVersion !== 2 &&
+        saved.schemaVersion !== 3
+      ) {
         setAttemptedRestore(true);
         return;
       }
@@ -566,6 +688,9 @@ export default function WordTest() {
       if (Array.isArray(saved.allIds) && saved.allIds.length > 0) {
         setOverrideAllIds(saved.allIds);
       }
+      if (Array.isArray(saved.sessionPool))
+        setSessionPool(new Set(saved.sessionPool));
+      if (Array.isArray(saved.wrongSet)) setWrongSet(new Set(saved.wrongSet));
       setRound(saved.round || 0);
       setWordIndex(saved.wordIndex || 0);
       setSliceIds(saved.sliceIds || []);
@@ -591,7 +716,7 @@ export default function WordTest() {
     if (allIds.length === 0) return;
     try {
       const payload = {
-        schemaVersion: 2,
+        schemaVersion: 3,
         notebookId: currentNotebookId,
         stage,
         allIds,
@@ -603,6 +728,8 @@ export default function WordTest() {
         queueIdx,
         memorySet: Array.from(memorySet),
         visitedSet: Array.from(visitedSet),
+        sessionPool: Array.from(sessionPool),
+        wrongSet: Array.from(wrongSet),
         showHiragana,
         isAnswerVisible,
         savedAt: Date.now(),
@@ -623,6 +750,8 @@ export default function WordTest() {
     queueIdx,
     memorySet,
     visitedSet,
+    sessionPool,
+    wrongSet,
     showHiragana,
     isAnswerVisible,
   ]);
@@ -662,11 +791,27 @@ export default function WordTest() {
           >
             複習
           </StageBtn>
+          <StageBtn
+            active={stage === "test"}
+            onClick={() => switchStage("test")}
+          >
+            測試
+          </StageBtn>
+          <StageBtn
+            active={stage === "wrong"}
+            onClick={() => switchStage("wrong")}
+          >
+            錯題
+          </StageBtn>
         </StageToggleWrap>
         <div>
           {stage === "new"
             ? "沒有可學的新卡（studied == 0）。請到「筆記本」匯入或調整資料。"
-            : "沒有可複習的單字（studied > 0）。"}
+            : stage === "review"
+            ? "沒有可複習的單字（studied > 0）。"
+            : stage === "test"
+            ? "沒有可測試的單字（需先完成新卡或複習）。"
+            : "沒有需要練習的錯題。"}
         </div>
       </AppContainer>
     );
@@ -700,6 +845,15 @@ export default function WordTest() {
           onClick={() => switchStage("review")}
         >
           複習
+        </StageBtn>
+        <StageBtn active={stage === "test"} onClick={() => switchStage("test")}>
+          測試
+        </StageBtn>
+        <StageBtn
+          active={stage === "wrong"}
+          onClick={() => switchStage("wrong")}
+        >
+          錯題
         </StageBtn>
       </StageToggleWrap>
       <Progress>{progressText}</Progress>
@@ -946,7 +1100,7 @@ export default function WordTest() {
         <>
           <Overlay onClick={() => setShowFinishModal(false)} />
           <Modal
-            message="完成！本次有作答的單字已 +1。返回首頁？"
+            message={finishMessage}
             onConfirm={handleFinishAndExit}
             onCancel={() => setShowFinishModal(false)}
             isVisible
