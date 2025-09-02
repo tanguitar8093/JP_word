@@ -39,6 +39,7 @@ const defaultConfig = {
   max_word_study: 20,
   sort_type: "normal", // normal | asc
   round_count: 3,
+  review_interval: 0.5, // hours; minimum 0.05
 };
 
 const GameBox = styled.div`
@@ -145,6 +146,12 @@ function getStudyValue(w) {
   return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
+function getLastStudyTime(w) {
+  const raw = w && typeof w === "object" ? w.lastStudyTime ?? 0 : 0;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : 0; // default 0 => very old
+}
+
 function sortWords(words, sortType) {
   if (sortType === "asc") {
     const groups = new Map();
@@ -192,10 +199,20 @@ export default function WordTest() {
       });
       return filtered.slice(0, Math.max(0, config.max_word_study));
     }
-    // review: pick studied > 0, choose the lowest-studied items up to max_word_study
+    // review: pick studied > 0 AND past review interval, then choose the lowest-studied items up to max_word_study
+    const now = Date.now();
+    const hours = Number(
+      config.review_interval ?? defaultConfig.review_interval
+    );
+    const clampHours = isNaN(hours)
+      ? defaultConfig.review_interval
+      : Math.max(0.05, hours);
+    const thresholdMs = clampHours * 3600 * 1000;
     const studiedItems = ctx.filter((w) => {
       if (!w || !w.jp_word) return false;
-      return getStudyValue(w) > 0;
+      if (!(getStudyValue(w) > 0)) return false;
+      const last = getLastStudyTime(w);
+      return now - last > thresholdMs;
     });
     if (studiedItems.length <= config.max_word_study) return studiedItems;
     const groups = new Map();
@@ -439,12 +456,15 @@ export default function WordTest() {
                 if (!word) continue;
                 const base = getStudyValue(word);
                 const newStudy = base + 1;
+                const nowTs = Date.now();
                 await notebookService.updateWordInNotebook(nbId, id, {
                   studied: newStudy,
+                  lastStudyTime: nowTs,
                 });
                 dispatch(
                   updateWordInNotebook(nbId, id, {
                     studied: newStudy,
+                    lastStudyTime: nowTs,
                   })
                 );
               }

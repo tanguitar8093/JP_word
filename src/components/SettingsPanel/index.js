@@ -575,6 +575,24 @@ export default function SettingsPanel({
               }
             />
           </LabelGroup>
+          <LabelGroup>
+            <SettingTitle>複習間隔（小時，review_interval）</SettingTitle>
+            <input
+              type="number"
+              min="0.05"
+              step="0.05"
+              value={wordTestConfig?.review_interval ?? 0.5}
+              onChange={(e) =>
+                onWordTestConfigChange?.({
+                  ...wordTestConfig,
+                  review_interval: Math.max(
+                    0.05,
+                    parseFloat(e.target.value || "0.5")
+                  ),
+                })
+              }
+            />
+          </LabelGroup>
         </>
       )}
     </PanelContainer>
