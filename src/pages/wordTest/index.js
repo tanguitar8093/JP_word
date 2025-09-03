@@ -170,6 +170,19 @@ function sortWords(words, sortType) {
   return shuffleArray(words);
 }
 
+function uniqueByWordKey(words) {
+  const seen = new Set();
+  const result = [];
+  for (const w of words || []) {
+    if (!w) continue;
+    const key = `${w.jp_word || ""}|${w.kanji_jp_word || ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(w);
+  }
+  return result;
+}
+
 export default function WordTest() {
   const navigate = useNavigate();
   const { state, dispatch } = useApp();
@@ -201,7 +214,8 @@ export default function WordTest() {
         if (!w || !w.jp_word) return false;
         return getStudyValue(w) === 0; // treat null/undefined/NaN as 0
       });
-      return filtered.slice(0, Math.max(0, config.max_word_study));
+      const uniq = uniqueByWordKey(filtered);
+      return uniq.slice(0, Math.max(0, config.max_word_study));
     }
     // review: pick studied > 0 AND past review interval, then choose the lowest-studied items up to max_word_study
     const now = Date.now();
@@ -218,9 +232,10 @@ export default function WordTest() {
       const last = getLastStudyTime(w);
       return now - last > thresholdMs;
     });
-    if (studiedItems.length <= config.max_word_study) return studiedItems;
+    const uniqStudied = uniqueByWordKey(studiedItems);
+    if (uniqStudied.length <= config.max_word_study) return uniqStudied;
     const groups = new Map();
-    for (const w of studiedItems) {
+    for (const w of uniqStudied) {
       const s = getStudyValue(w);
       if (!groups.has(s)) groups.set(s, []);
       groups.get(s).push(w);
@@ -235,7 +250,7 @@ export default function WordTest() {
       }
     }
     return picked;
-  }, [currentNotebook, config.max_word_study, stage]);
+  }, [currentNotebook, config.max_word_study, config.review_interval, stage]);
 
   const testWords = useMemo(() => {
     if (stage !== "test") return [];
@@ -245,7 +260,7 @@ export default function WordTest() {
         : [];
     const allowed = new Set(sessionPool);
     const arr = ctx.filter((w) => allowed.has(w.id));
-    return arr.slice();
+    return uniqueByWordKey(arr).slice();
   }, [stage, sessionPool, currentNotebook]);
 
   const wrongWords = useMemo(() => {
@@ -256,7 +271,7 @@ export default function WordTest() {
         : [];
     const allowed = new Set(wrongSet);
     const arr = ctx.filter((w) => allowed.has(w.id));
-    return arr.slice();
+    return uniqueByWordKey(arr).slice();
   }, [stage, wrongSet, currentNotebook]);
 
   // Build a map for lookup and a default order
@@ -281,8 +296,8 @@ export default function WordTest() {
   const [overrideAllIds, setOverrideAllIds] = useState(null);
   const allIds = useMemo(() => {
     const ids = overrideAllIds || defaultAllIds;
-    // Filter out ids that no longer exist in current context
-    return ids.filter((id) => byId.has(id));
+    // Filter out ids that no longer exist in current context, and deduplicate defensively
+    return Array.from(new Set(ids.filter((id) => byId.has(id))));
   }, [overrideAllIds, defaultAllIds, byId]);
 
   // If a restored order becomes invalid (e.g., no words in current stage),
@@ -380,7 +395,7 @@ export default function WordTest() {
         idsOrder.length,
         start + Math.max(1, config.slice_length)
       );
-      const ids = idsOrder.slice(start, end);
+      const ids = Array.from(new Set(idsOrder.slice(start, end)));
       setSliceIds(ids);
       setMemorySet(new Set());
       setCurrentQueue(shuffleArray(ids));
@@ -591,6 +606,8 @@ export default function WordTest() {
           })();
         } else {
           const reshuffled = shuffleArray(allIds);
+          // Ensure the entire new round uses the same order for all slices
+          setOverrideAllIds(reshuffled);
           setWordIndex(0);
           setSliceIds([]);
           setCurrentQueue([]);
@@ -1058,7 +1075,9 @@ export default function WordTest() {
                         start + Math.max(1, draftConfig.slice_length)
                       );
                       const sourceIds = overrideAllIds || defaultAllIds;
-                      const ids = sourceIds.slice(start, end);
+                      const ids = Array.from(
+                        new Set(sourceIds.slice(start, end))
+                      );
                       setSliceIds(ids);
                       setMemorySet(new Set());
                       setCurrentQueue(shuffleArray(ids));
