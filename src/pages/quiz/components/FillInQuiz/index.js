@@ -108,6 +108,7 @@ function Content() {
     playbackOptions,
     playbackSpeed,
     autoProceed,
+  gameSoundEffects,
     proficiencyFilter,
     startQuestionIndex,
     wordRangeCount,
@@ -147,6 +148,7 @@ function Content() {
     onNext: () => {},
     playbackOptions,
     rate: playbackSpeed,
+  gameSoundEffects,
   });
 
   const speakManually = useCallback(
@@ -185,7 +187,9 @@ function Content() {
     if (!result || !question) return;
     let stopped = false;
     (async () => {
-      await playSequence(result, question, playbackOptions);
+      await playSequence(result, question, playbackOptions, {
+        skipSound: !gameSoundEffects,
+      });
       if (stopped) return;
       if (autoProceed) {
         // Clear local result before跳下一題，避免在 question 改變但 result 仍為真時再次觸發此效果而重播答題音
@@ -206,6 +210,7 @@ function Content() {
     dispatch,
     playSequence,
     cancelPlayback,
+    gameSoundEffects,
   ]);
 
   // 自動儲存 Fill-in 進度（移動到下一題時）

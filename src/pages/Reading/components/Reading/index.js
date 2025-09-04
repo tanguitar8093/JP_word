@@ -204,6 +204,7 @@ function QuizContent() {
     onNext: () => dispatch(nextQuestionGame()), // Changed dispatch type
     playbackOptions, // Now from global state
     rate: playbackSpeed, // Use playbackSpeed from global state
+  gameSoundEffects: state.systemSettings?.gameSoundEffects,
   });
 
   const playBeep = () => {

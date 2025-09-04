@@ -10,6 +10,7 @@ export function useAnswerPlayback({
   playbackOptions,
   rate,
   autoProceed,
+  gameSoundEffects = true,
 }) {
   const playedForResult = useRef(false);
   const playbackRef = useRef(null);
@@ -118,7 +119,9 @@ export function useAnswerPlayback({
 
     const run = async () => {
       playedForResult.current = true;
-      await playSequence(result, question, playbackOptions);
+      await playSequence(result, question, playbackOptions, {
+        skipSound: !gameSoundEffects,
+      });
 
       // If the ref is null, our sequence finished without being interrupted.
       if (playbackRef.current === null) {
@@ -128,7 +131,15 @@ export function useAnswerPlayback({
       }
     };
     run();
-  }, [result, question, playbackOptions, onNext, playSequence, autoProceed]);
+  }, [
+    result,
+    question,
+    playbackOptions,
+    onNext,
+    playSequence,
+    autoProceed,
+    gameSoundEffects,
+  ]);
 
   return { playSequence, cancelPlayback };
 }

@@ -17,6 +17,7 @@ import {
   setReadingSentenceRecordTime,
   setReadingPlaybackRepeatCount,
   setFillInDifficulty,
+  setGameSoundEffects,
 } from "./reducer";
 
 export default function SettingsPanel({
@@ -30,6 +31,7 @@ export default function SettingsPanel({
     playbackOptions,
     playbackSpeed,
     autoProceed,
+  gameSoundEffects,
     proficiencyFilter,
     startQuestionIndex,
     wordRangeCount,
@@ -216,6 +218,18 @@ export default function SettingsPanel({
       )}
 
       <SettingTitle>通用設定</SettingTitle>
+      <LabelGroup>
+        <SettingTitle>遊戲音效（答對/答錯）：</SettingTitle>
+        <label>
+          <input
+            type="checkbox"
+            checked={!!gameSoundEffects}
+            onChange={(e) => dispatch(setGameSoundEffects(e.target.checked))}
+          />
+          開啟
+        </label>
+      </LabelGroup>
+
       <LabelGroup>
         <SettingTitle>播放速度: {playbackSpeed}</SettingTitle>
         <RangeInput

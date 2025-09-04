@@ -4,6 +4,7 @@ export const SET_PROFICIENCY_FILTER = "systemSettings/SET_PROFICIENCY_FILTER";
 export const SET_PLAYBACK_SPEED = "systemSettings/SET_PLAYBACK_SPEED";
 export const SET_PLAYBACK_CONTENT = "systemSettings/SET_PLAYBACK_CONTENT";
 export const SET_AUTO_PROCEED = "systemSettings/SET_AUTO_PROCEED";
+export const SET_GAME_SOUND_EFFECTS = "systemSettings/SET_GAME_SOUND_EFFECTS";
 
 export const SET_START_QUESTION_INDEX =
   "systemSettings/SET_START_QUESTION_INDEX"; // New action type
@@ -63,6 +64,11 @@ export const setPlaybackContent = (content) => ({
 export const setAutoProceed = (autoProceed) => ({
   type: SET_AUTO_PROCEED,
   payload: autoProceed,
+});
+
+export const setGameSoundEffects = (enabled) => ({
+  type: SET_GAME_SOUND_EFFECTS,
+  payload: enabled,
 });
 
 export const setStartQuestionIndex = (index) => ({

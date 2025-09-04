@@ -4,6 +4,7 @@ import {
   SET_PLAYBACK_SPEED,
   SET_PLAYBACK_CONTENT,
   SET_AUTO_PROCEED,
+  SET_GAME_SOUND_EFFECTS,
   SET_START_QUESTION_INDEX,
   SET_WORD_RANGE_COUNT,
   SET_SORT_ORDER,
@@ -39,6 +40,7 @@ export const initialState = {
   playbackSpeed: 1.0,
   playbackContent: "jp",
   autoProceed: false,
+  gameSoundEffects: true,
   startQuestionIndex: 1, //(data index 0)
   wordRangeCount: 9999,
   sortOrder: "none",
@@ -99,6 +101,11 @@ function reducer(state = initialState, action) {
       return {
         ...state,
         autoProceed: action.payload,
+      };
+    case SET_GAME_SOUND_EFFECTS:
+      return {
+        ...state,
+        gameSoundEffects: action.payload,
       };
     case SET_START_QUESTION_INDEX:
       return {

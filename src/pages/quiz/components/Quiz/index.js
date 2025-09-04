@@ -120,6 +120,7 @@ function QuizContent() {
     playbackOptions,
     playbackSpeed,
     autoProceed,
+  gameSoundEffects,
     proficiencyFilter,
     startQuestionIndex,
     wordRangeCount,
@@ -167,7 +168,8 @@ function QuizContent() {
     onNext: () => dispatch(nextQuestionGame()), // Changed dispatch type
     playbackOptions, // Now from global state
     rate: playbackSpeed, // Use playbackSpeed from global state
-    autoProceed, // Pass autoProceed from global state
+  autoProceed, // Pass autoProceed from global state
+  gameSoundEffects,
   });
 
   const speakManually = useCallback(
