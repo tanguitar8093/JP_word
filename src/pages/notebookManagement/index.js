@@ -1116,7 +1116,8 @@ const NotebookManagementPage = () => {
                 {/* ===== 新增：錯誤列表（word_bug=true） ===== */}
                 <div style={{ marginTop: 24 }}>
                   <h3>
-                    錯誤列表（word_bug=true）{bugWords.length > 0 ? `（${bugWords.length}）` : ""}
+                    錯誤列表（word_bug=true）
+                    {bugWords.length > 0 ? `（${bugWords.length}）` : ""}
                   </h3>
                   {bugWords.length > 0 ? (
                     <>
@@ -1130,7 +1131,9 @@ const NotebookManagementPage = () => {
                         }}
                       >
                         {bugSelection.length > 0 && (
-                          <Button onClick={handleBulkFixBugs}>已修正（{bugSelection.length}）</Button>
+                          <Button onClick={handleBulkFixBugs}>
+                            已修正（{bugSelection.length}）
+                          </Button>
                         )}
                       </div>
                       <WordTableWrapper>
@@ -1161,17 +1164,25 @@ const NotebookManagementPage = () => {
                                   <input
                                     type="checkbox"
                                     checked={bugSelection.includes(word.id)}
-                                    onChange={() => toggleSelectBugWord(word.id)}
+                                    onChange={() =>
+                                      toggleSelectBugWord(word.id)
+                                    }
                                   />
                                 </td>
                                 <td>
-                                  <strong>{word.kanji_jp_word || word.jp_word}</strong>
+                                  <strong>
+                                    {word.kanji_jp_word || word.jp_word}
+                                  </strong>
                                   {word.kanji_jp_word && (
                                     <>
-                                      <div style={{ color: "#777", fontSize: 12 }}>
+                                      <div
+                                        style={{ color: "#777", fontSize: 12 }}
+                                      >
                                         {word.jp_word}
                                       </div>
-                                      <div style={{ color: "#777", fontSize: 12 }}>
+                                      <div
+                                        style={{ color: "#777", fontSize: 12 }}
+                                      >
                                         {word.type}
                                       </div>
                                     </>
@@ -1188,7 +1199,9 @@ const NotebookManagementPage = () => {
                                   </ProficiencyBadge>
                                 </td>
                                 <td style={{ textAlign: "right" }}>
-                                  <Button onClick={() => handleEditWord(word)}>編輯</Button>
+                                  <Button onClick={() => handleEditWord(word)}>
+                                    編輯
+                                  </Button>
                                   <Button
                                     danger
                                     onClick={() => handleDeleteWord(word.id)}

@@ -23,8 +23,6 @@ import {
   AnswerText,
   NextButton,
   SubCard,
-  ProficiencyControlContainer,
-  ProficiencyButton,
 } from "./styles";
 import ExampleSentence from "../ExampleSentence";
 
@@ -49,6 +47,8 @@ export default function QuestionCard({
     }
   }, [q, speakManually]);
 
+  // controls moved out of the card
+
   const handleCheckAnswer = (answer) => {
     dispatch(checkAnswer(answer));
   };
@@ -62,54 +62,11 @@ export default function QuestionCard({
     dispatch(updatePendingProficiency(question.id, proficiency));
   };
 
-  const currentProficiency =
-    pendingProficiencyUpdates[question.id] || question.proficiency;
-  const currentNotebookId = state.shared.currentNotebookId;
-  const toggleBugFlag = async () => {
-    try {
-      const newVal = !q.word_bug;
-      await notebookService.updateWordInNotebook(currentNotebookId, q.id, {
-        word_bug: newVal,
-      });
-      dispatch(
-        updateWordInNotebook(currentNotebookId, q.id, { word_bug: newVal })
-      );
-    } catch (e) {
-      console.error("toggle bug flag failed", e);
-    }
-  };
+  // removed proficiency and bug controls here
 
   return (
     <CardContainer>
-      {/* 熟練度 */}
-      <ProficiencyControlContainer>
-        <ProficiencyButton
-          className={currentProficiency === 1 ? "active" : ""}
-          onClick={() => handleProficiencyChange(1)}
-        >
-          低
-        </ProficiencyButton>
-        <ProficiencyButton
-          className={currentProficiency === 2 ? "active" : ""}
-          onClick={() => handleProficiencyChange(2)}
-        >
-          中
-        </ProficiencyButton>
-        <ProficiencyButton
-          className={currentProficiency === 3 ? "active" : ""}
-          onClick={() => handleProficiencyChange(3)}
-        >
-          高
-        </ProficiencyButton>
-        {/* 錯誤分類 */}
-        <ProficiencyButton
-          className={q.word_bug ? "active" : ""}
-          onClick={toggleBugFlag}
-          title="標記為錯誤/取消"
-        >
-          錯
-        </ProficiencyButton>
-      </ProficiencyControlContainer>
+      {/* controls moved to top bar outside of card */}
 
       {wordType == "jp_word" && (
         <>

@@ -35,6 +35,10 @@ import notebookService from "../../../../services/notebookService";
 import { setCurrentNotebook } from "../../../../store/reducer/actions";
 
 import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actions"; // Import commitPendingProficiencyUpdates
+import {
+  updatePendingProficiency,
+  updateWordInNotebook,
+} from "../../../../store/reducer/actions";
 
 const IconContainer = styled.div`
   position: absolute;
@@ -51,6 +55,41 @@ const IconGroup = styled.div`
 
 const HomeIcon = styled(SettingsToggle)`
   right: 5px;
+`;
+
+// Top bar: recorder (left) + controls (right)
+const TopBar = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+`;
+
+const RightPanel = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+const TinyButton = styled.button`
+  padding: 2px 6px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  line-height: 1.4;
+
+  &:hover {
+    background-color: #e7e7e7;
+  }
+
+  &.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+  }
 `;
 
 // The actual UI component that consumes the context
@@ -88,6 +127,14 @@ function QuizContent() {
   } = state.systemSettings;
   const { notebooks, currentNotebookId } = state.shared;
   const question = questions[currentQuestionIndex];
+
+  // Local bug flag for optimistic UI
+  const [isBug, setIsBug] = useState(() =>
+    question ? !!question.word_bug : false
+  );
+  useEffect(() => {
+    setIsBug(question ? !!question.word_bug : false);
+  }, [question?.id, question?.word_bug]);
 
   const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
   const notebookName = currentNotebook ? currentNotebook.name : "";
@@ -177,10 +224,93 @@ function QuizContent() {
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
 
-      {/* 錄音模組（置於卡片外左上，與 FillIn 一致） */}
-      <div style={{ display: "flex", justifyContent: "flex-start" }}>
-        <AudioRecorderPage triggerReset={currentQuestionIndex} />
-      </div>
+      {/* Top bar: left recorder, right proficiency/bug panel */}
+      <TopBar>
+        <div style={{ display: "flex", justifyContent: "flex-start" }}>
+          <AudioRecorderPage triggerReset={currentQuestionIndex} />
+        </div>
+        {/* Right-side controls for current question */}
+        {question && (
+          <RightPanel>
+            {/* Proficiency */}
+            <TinyButton
+              className={
+                (state.shared.pendingProficiencyUpdates[question.id] ||
+                  question.proficiency) === 1
+                  ? "active"
+                  : ""
+              }
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(updatePendingProficiency(question.id, 1));
+              }}
+              title="設為低熟練度"
+            >
+              低
+            </TinyButton>
+            <TinyButton
+              className={
+                (state.shared.pendingProficiencyUpdates[question.id] ||
+                  question.proficiency) === 2
+                  ? "active"
+                  : ""
+              }
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(updatePendingProficiency(question.id, 2));
+              }}
+              title="設為中熟練度"
+            >
+              中
+            </TinyButton>
+            <TinyButton
+              className={
+                (state.shared.pendingProficiencyUpdates[question.id] ||
+                  question.proficiency) === 3
+                  ? "active"
+                  : ""
+              }
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(updatePendingProficiency(question.id, 3));
+              }}
+              title="設為高熟練度"
+            >
+              高
+            </TinyButton>
+            {/* Bug toggle */}
+            <TinyButton
+              className={isBug ? "active" : ""}
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  const nbId = state.shared.currentNotebookId;
+                  const newVal = !isBug;
+                  setIsBug(newVal); // optimistic
+                  await notebookService.updateWordInNotebook(
+                    nbId,
+                    question.id,
+                    {
+                      word_bug: newVal,
+                    }
+                  );
+                  dispatch(
+                    updateWordInNotebook(nbId, question.id, {
+                      word_bug: newVal,
+                    })
+                  );
+                } catch (e) {
+                  console.error("toggle bug (Quiz) failed", e);
+                  setIsBug((prev) => !prev); // revert
+                }
+              }}
+              title="標記為錯誤/取消"
+            >
+              錯
+            </TinyButton>
+          </RightPanel>
+        )}
+      </TopBar>
 
       <QuestionCard
         speakManually={speakManually}
@@ -254,6 +384,7 @@ export default function Quiz() {
   // Hydrate from saved progress if any
   useEffect(() => {
     if (quizCompleted) return;
+    if (hydratedFromProgress) return; // avoid re-hydrating on notebooks updates
     const saved = quizProgressService.loadProgress();
     if (!saved) return;
     if (!notebooks || notebooks.length === 0) return; // wait until notebooks are loaded
@@ -298,10 +429,18 @@ export default function Quiz() {
       },
     });
     setHydratedFromProgress(true);
-  }, [quizCompleted, notebooks, currentNotebookId, dispatch]);
+  }, [
+    quizCompleted,
+    notebooks,
+    currentNotebookId,
+    dispatch,
+    hydratedFromProgress,
+  ]);
 
   useEffect(() => {
     if (!quizCompleted && !hydratedFromProgress) {
+      // 避免在題目已載入的情況下，因 notebooks 內容更新（例如 word_bug 切換）而重新初始化並改變選項順序
+      if (state.quiz.questions && state.quiz.questions.length > 0) return;
       // If there is valid saved progress for an existing notebook, skip normal initialization to avoid race
       const saved = quizProgressService.loadProgress();
       if (

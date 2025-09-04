@@ -18,8 +18,6 @@ import {
   AnswerText,
   NextButton,
   SubCard,
-  ProficiencyControlContainer,
-  ProficiencyButton,
 } from "./styles";
 import ExampleSentence from "../ExampleSentence";
 
@@ -52,6 +50,8 @@ const ReadingCard = forwardRef(
       setIsAnswerVisible(studyMode === "auto");
     }, [q, studyMode]);
 
+    // removed local bug flag; controls moved outside the card
+
     const handleNextQuestion = () => {
       dispatch(nextQuestionGame());
     };
@@ -70,22 +70,7 @@ const ReadingCard = forwardRef(
       }
     };
 
-    const currentProficiency =
-      pendingProficiencyUpdates[question.id] || question.proficiency;
-    const currentNotebookId = state.shared.currentNotebookId;
-    const toggleBugFlag = async () => {
-      try {
-        const newVal = !q.word_bug;
-        await notebookService.updateWordInNotebook(currentNotebookId, q.id, {
-          word_bug: newVal,
-        });
-        dispatch(
-          updateWordInNotebook(currentNotebookId, q.id, { word_bug: newVal })
-        );
-      } catch (e) {
-        console.error("toggle bug flag failed", e);
-      }
-    };
+    // controls removed from card
 
     if (!q) {
       return null; // Don't render if there is no question
@@ -96,35 +81,7 @@ const ReadingCard = forwardRef(
         onClick={handleCardClick}
         style={{ visibility: isPaused ? "hidden" : "visible" }}
       >
-        {/* 熟練度 */}
-        <ProficiencyControlContainer>
-          <ProficiencyButton
-            className={currentProficiency === 1 ? "active" : ""}
-            onClick={() => handleProficiencyChange(1)}
-          >
-            低
-          </ProficiencyButton>
-          <ProficiencyButton
-            className={currentProficiency === 2 ? "active" : ""}
-            onClick={() => handleProficiencyChange(2)}
-          >
-            中
-          </ProficiencyButton>
-          <ProficiencyButton
-            className={currentProficiency === 3 ? "active" : ""}
-            onClick={() => handleProficiencyChange(3)}
-          >
-            高
-          </ProficiencyButton>
-          {/* 錯誤分類 */}
-          <ProficiencyButton
-            className={q.word_bug ? "active" : ""}
-            onClick={toggleBugFlag}
-            title="標記為錯誤/取消"
-          >
-            錯
-          </ProficiencyButton>
-        </ProficiencyControlContainer>
+        {/* controls moved to top bar outside of card to avoid re-render issues */}
 
         {wordType == "jp_word" && (
           <>

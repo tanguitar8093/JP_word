@@ -7,12 +7,9 @@ import {
   OptionsGrid,
   OptionButton,
   ControlsRow,
-  ProficiencyControlContainer,
-  ProficiencyButton,
 } from "./styles";
 import { useApp } from "../../../../store/contexts/AppContext";
 import { updateFillInAdaptiveStats } from "../../../../components/SettingsPanel/reducer";
-import { updatePendingProficiency } from "../../../../store/reducer/actions";
 
 const HIRAGANA =
   "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんがぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽゃゅょっー";
@@ -79,13 +76,7 @@ export default function FillInQuestionCard({
   const { fillInDifficulty, fillInAdaptive } = state.systemSettings;
   const target = useMemo(() => toChars(question?.jp_word || ""), [question]);
 
-  // 目前熟練度（沿用 Quiz 的 pending 機制）
-  const currentProficiency =
-    state.shared.pendingProficiencyUpdates[question.id] || question.proficiency;
-
-  const setProficiency = (level) => {
-    dispatch(updatePendingProficiency(question.id, level));
-  };
+  // controls moved to top bar; no in-card proficiency/bug toggles
 
   // 根據設定難度決定干擾數
   const extraByDifficulty = useMemo(() => {
@@ -210,27 +201,7 @@ export default function FillInQuestionCard({
 
   return (
     <CardContainer>
-      {/* 熟練度控制（與 Quiz 一致） */}
-      <ProficiencyControlContainer>
-        <ProficiencyButton
-          className={currentProficiency === 1 ? "active" : ""}
-          onClick={() => setProficiency(1)}
-        >
-          低
-        </ProficiencyButton>
-        <ProficiencyButton
-          className={currentProficiency === 2 ? "active" : ""}
-          onClick={() => setProficiency(2)}
-        >
-          中
-        </ProficiencyButton>
-        <ProficiencyButton
-          className={currentProficiency === 3 ? "active" : ""}
-          onClick={() => setProficiency(3)}
-        >
-          高
-        </ProficiencyButton>
-      </ProficiencyControlContainer>
+      {/* 熟練度/錯誤控制已移至頂部右側面板 */}
 
       {/* 原有內容 */}
       <Prompt>

@@ -960,18 +960,26 @@ export default function WordTest() {
                     e.stopPropagation();
                     try {
                       const newVal = !currentWord.word_bug;
-                      await notebookService.updateWordInNotebook(
-                        currentNotebookId,
-                        currentId,
-                        { word_bug: newVal }
-                      );
+                      // optimistic UI: update local selectedNotebook cache word if available
+                      // Note: WordTest maintains its own state; we keep minimal local optimism by dispatching first
                       dispatch(
                         updateWordInNotebook(currentNotebookId, currentId, {
                           word_bug: newVal,
                         })
                       );
+                      await notebookService.updateWordInNotebook(
+                        currentNotebookId,
+                        currentId,
+                        { word_bug: newVal }
+                      );
                     } catch (e) {
                       console.error("toggle bug flag failed", e);
+                      // revert on failure
+                      dispatch(
+                        updateWordInNotebook(currentNotebookId, currentId, {
+                          word_bug: currentWord.word_bug,
+                        })
+                      );
                     }
                   }}
                   title="標記為錯誤/取消"
