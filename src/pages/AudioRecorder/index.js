@@ -369,10 +369,11 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
         </InfoButton>
       )}
 
-      {/* 已取得權限但尚未錄音 */}
-      {permission && !isRecording && !audioURL && (
+      {/* 已取得權限且目前非錄音中：顯示開始/重新錄音按鈕（不會因為已有錄音而消失） */}
+      {permission && !isRecording && (
         <InfoButton onClick={startRecording}>
-          <RecordIcon recording={false} /> 點擊開始錄音
+          <RecordIcon recording={false} />{" "}
+          {audioURL ? "重新錄音" : "點擊開始錄音"}
         </InfoButton>
       )}
 
@@ -385,7 +386,7 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
         </>
       )}
 
-      {/* 播放 bar，只在錄音完成後顯示 */}
+      {/* 播放 bar：錄音完成後顯示（與重新錄音按鈕同時存在，可重複錄音） */}
       {permission && !isRecording && audioURL && (
         <AudioPlayer
           ref={audioPlayerRef}

@@ -33,6 +33,7 @@ import {
   NextButton,
 } from "../Reading/components/ReadingCard/styles";
 import ExampleSentence from "../Reading/components/ExampleSentence";
+import AudioRecorderPage from "../AudioRecorder";
 
 const defaultConfig = {
   slice_length: 5,
@@ -937,6 +938,9 @@ export default function WordTest() {
               🔊
             </SpeakButton>
           </WordContainer>
+
+          {/* 錄音模組（與 Quiz 位置一致） */}
+          <AudioRecorderPage triggerReset={currentId} />
 
           {isAnswerVisible && (
             <ResultContainer>

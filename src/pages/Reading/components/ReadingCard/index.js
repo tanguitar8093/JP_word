@@ -155,9 +155,10 @@ const ReadingCard = forwardRef(
           </SpeakButton>
         </WordContainer>
 
-        {studyMode === "auto" && (
-          <AudioRecorderPage ref={ref} triggerReset={currentQuestionIndex} />
-        )}
+        <AudioRecorderPage
+          ref={studyMode === "auto" ? ref : undefined}
+          triggerReset={currentQuestionIndex}
+        />
 
         {isAnswerVisible && (
           <ResultContainer>
