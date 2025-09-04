@@ -48,6 +48,8 @@ const NotebookManagementPage = () => {
   const [studiedRangeApplied, setStudiedRangeApplied] = useState(null); // {min,max}|null
   const [studiedSelection, setStudiedSelection] = useState([]);
   const [studiedSetValue, setStudiedSetValue] = useState(0); // for batch set
+  // 錯誤列表（word_bug=true）選取
+  const [bugSelection, setBugSelection] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -424,6 +426,49 @@ const NotebookManagementPage = () => {
     };
     reader.readAsText(file);
     event.target.value = null; // Reset file input
+  };
+
+  // ===== 錯誤列表（word_bug=true） =====
+  const bugWords = useMemo(() => {
+    if (!selectedNotebook) return [];
+    return (selectedNotebook.context || []).filter((w) => w.word_bug === true);
+  }, [selectedNotebook]);
+
+  const bugAllSelected =
+    bugWords.length > 0 && bugWords.every((w) => bugSelection.includes(w.id));
+
+  const toggleSelectAllBugWords = () => {
+    if (bugAllSelected) {
+      setBugSelection((prev) =>
+        prev.filter((id) => !bugWords.some((w) => w.id === id))
+      );
+    } else {
+      const ids = bugWords.map((w) => w.id);
+      setBugSelection((prev) => Array.from(new Set([...prev, ...ids])));
+    }
+  };
+
+  const toggleSelectBugWord = (id) => {
+    setBugSelection((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkFixBugs = () => {
+    if (!selectedNotebook || bugSelection.length === 0) return;
+    if (!window.confirm(`確定將選取的 ${bugSelection.length} 筆標記為已修正？`))
+      return;
+    try {
+      for (const id of bugSelection) {
+        notebookService.updateWordInNotebook(selectedNotebook.id, id, {
+          word_bug: false,
+        });
+      }
+      refreshNotebooks(selectedNotebook.id);
+      setBugSelection([]);
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   // === 進階搜尋規則（最佳化） ===
@@ -1066,6 +1111,100 @@ const NotebookManagementPage = () => {
                   ) : studiedRangeApplied ? (
                     <p>此學習度區間沒有單字</p>
                   ) : null}
+                </div>
+
+                {/* ===== 新增：錯誤列表（word_bug=true） ===== */}
+                <div style={{ marginTop: 24 }}>
+                  <h3>
+                    錯誤列表（word_bug=true）{bugWords.length > 0 ? `（${bugWords.length}）` : ""}
+                  </h3>
+                  {bugWords.length > 0 ? (
+                    <>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 8,
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                          margin: "8px 0",
+                        }}
+                      >
+                        {bugSelection.length > 0 && (
+                          <Button onClick={handleBulkFixBugs}>已修正（{bugSelection.length}）</Button>
+                        )}
+                      </div>
+                      <WordTableWrapper>
+                        <WordTable>
+                          <thead>
+                            <tr>
+                              <th style={{ width: 40 }}>
+                                <input
+                                  type="checkbox"
+                                  checked={bugAllSelected}
+                                  onChange={toggleSelectAllBugWords}
+                                />
+                              </th>
+                              <th style={{ width: "35%" }}>日文</th>
+                              <th style={{ width: "25%" }}>中文</th>
+                              <th style={{ width: "20%", textAlign: "left" }}>
+                                熟練度
+                              </th>
+                              <th style={{ textAlign: "right", width: "20%" }}>
+                                操作
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {bugWords.map((word) => (
+                              <tr key={word.id}>
+                                <td>
+                                  <input
+                                    type="checkbox"
+                                    checked={bugSelection.includes(word.id)}
+                                    onChange={() => toggleSelectBugWord(word.id)}
+                                  />
+                                </td>
+                                <td>
+                                  <strong>{word.kanji_jp_word || word.jp_word}</strong>
+                                  {word.kanji_jp_word && (
+                                    <>
+                                      <div style={{ color: "#777", fontSize: 12 }}>
+                                        {word.jp_word}
+                                      </div>
+                                      <div style={{ color: "#777", fontSize: 12 }}>
+                                        {word.type}
+                                      </div>
+                                    </>
+                                  )}
+                                </td>
+                                <td>{word.ch_word}</td>
+                                <td>
+                                  <ProficiencyBadge level={word.proficiency}>
+                                    {word.proficiency === 1
+                                      ? "低"
+                                      : word.proficiency === 2
+                                      ? "中"
+                                      : "高"}
+                                  </ProficiencyBadge>
+                                </td>
+                                <td style={{ textAlign: "right" }}>
+                                  <Button onClick={() => handleEditWord(word)}>編輯</Button>
+                                  <Button
+                                    danger
+                                    onClick={() => handleDeleteWord(word.id)}
+                                  >
+                                    刪除
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </WordTable>
+                      </WordTableWrapper>
+                    </>
+                  ) : (
+                    <p>目前沒有標記為錯誤的單字</p>
+                  )}
                 </div>
 
                 <Modal

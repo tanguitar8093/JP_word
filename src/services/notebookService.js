@@ -38,7 +38,14 @@ const _migrateStudyFields = (notebooks) => {
   for (const id of Object.keys(notebooks)) {
     const nb = notebooks[id];
     if (!nb || !Array.isArray(nb.context)) continue;
-    const newCtx = nb.context.map((w) => _normalizeStudy(w));
+    const newCtx = nb.context.map((w) => {
+      const n = _normalizeStudy(w);
+      // ensure word_bug exists and is boolean
+      if (typeof n.word_bug !== "boolean") {
+        n.word_bug = false;
+      }
+      return n;
+    });
     // Also ensure ids exist
     const ensured = _ensureContextIds(newCtx);
     // Detect changes roughly
@@ -142,6 +149,7 @@ const notebookService = {
                 { kanji: "", hiragana: "！" },
               ],
               studied: 0,
+              word_bug: false,
             },
           ],
         },

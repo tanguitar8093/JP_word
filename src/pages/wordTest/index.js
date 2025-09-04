@@ -31,9 +31,11 @@ import {
   AnswerText,
   SubCard,
   NextButton,
+  ProficiencyButton,
 } from "../Reading/components/ReadingCard/styles";
 import ExampleSentence from "../Reading/components/ExampleSentence";
 import AudioRecorderPage from "../AudioRecorder";
+// duplicate imports removed
 
 const defaultConfig = {
   slice_length: 5,
@@ -951,6 +953,32 @@ export default function WordTest() {
                   {currentWord.ch_word} [{currentWord.type}]
                 </AnswerText>
               </SubCard>
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <ProficiencyButton
+                  className={currentWord.word_bug ? "active" : ""}
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      const newVal = !currentWord.word_bug;
+                      await notebookService.updateWordInNotebook(
+                        currentNotebookId,
+                        currentId,
+                        { word_bug: newVal }
+                      );
+                      dispatch(
+                        updateWordInNotebook(currentNotebookId, currentId, {
+                          word_bug: newVal,
+                        })
+                      );
+                    } catch (e) {
+                      console.error("toggle bug flag failed", e);
+                    }
+                  }}
+                  title="標記為錯誤/取消"
+                >
+                  錯
+                </ProficiencyButton>
+              </div>
               <ExampleSentence
                 jp_ex={currentWord.jp_ex_statement}
                 ch_ex={currentWord.ch_ex_statement}

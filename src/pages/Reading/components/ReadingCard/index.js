@@ -1,7 +1,11 @@
 import React, { useState, useEffect, forwardRef } from "react";
 import { useApp } from "../../../../store/contexts/AppContext"; // Changed from useQuiz
 import { nextQuestionGame } from "../../../quiz/reducer/actions"; // Import quiz actions
-import { updatePendingProficiency } from "../../../../store/reducer/actions"; // Import updatePendingProficiency
+import {
+  updatePendingProficiency,
+  updateWordInNotebook,
+} from "../../../../store/reducer/actions"; // Import updatePendingProficiency
+import notebookService from "../../../../services/notebookService";
 import {
   CardContainer,
   HiraganaToggleContainer,
@@ -68,6 +72,20 @@ const ReadingCard = forwardRef(
 
     const currentProficiency =
       pendingProficiencyUpdates[question.id] || question.proficiency;
+    const currentNotebookId = state.shared.currentNotebookId;
+    const toggleBugFlag = async () => {
+      try {
+        const newVal = !q.word_bug;
+        await notebookService.updateWordInNotebook(currentNotebookId, q.id, {
+          word_bug: newVal,
+        });
+        dispatch(
+          updateWordInNotebook(currentNotebookId, q.id, { word_bug: newVal })
+        );
+      } catch (e) {
+        console.error("toggle bug flag failed", e);
+      }
+    };
 
     if (!q) {
       return null; // Don't render if there is no question
@@ -97,6 +115,14 @@ const ReadingCard = forwardRef(
             onClick={() => handleProficiencyChange(3)}
           >
             高
+          </ProficiencyButton>
+          {/* 錯誤分類 */}
+          <ProficiencyButton
+            className={q.word_bug ? "active" : ""}
+            onClick={toggleBugFlag}
+            title="標記為錯誤/取消"
+          >
+            錯
           </ProficiencyButton>
         </ProficiencyControlContainer>
 

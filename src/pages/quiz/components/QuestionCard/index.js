@@ -4,7 +4,11 @@ import {
   checkAnswer,
   nextQuestionGame,
 } from "../../../../pages/quiz/reducer/actions"; // Import quiz actions
-import { updatePendingProficiency } from "../../../../store/reducer/actions"; // Import updatePendingProficiency
+import {
+  updatePendingProficiency,
+  updateWordInNotebook,
+} from "../../../../store/reducer/actions"; // Import actions
+import notebookService from "../../../../services/notebookService";
 import {
   CardContainer,
   HiraganaToggleContainer,
@@ -60,6 +64,20 @@ export default function QuestionCard({
 
   const currentProficiency =
     pendingProficiencyUpdates[question.id] || question.proficiency;
+  const currentNotebookId = state.shared.currentNotebookId;
+  const toggleBugFlag = async () => {
+    try {
+      const newVal = !q.word_bug;
+      await notebookService.updateWordInNotebook(currentNotebookId, q.id, {
+        word_bug: newVal,
+      });
+      dispatch(
+        updateWordInNotebook(currentNotebookId, q.id, { word_bug: newVal })
+      );
+    } catch (e) {
+      console.error("toggle bug flag failed", e);
+    }
+  };
 
   return (
     <CardContainer>
@@ -82,6 +100,14 @@ export default function QuestionCard({
           onClick={() => handleProficiencyChange(3)}
         >
           高
+        </ProficiencyButton>
+        {/* 錯誤分類 */}
+        <ProficiencyButton
+          className={q.word_bug ? "active" : ""}
+          onClick={toggleBugFlag}
+          title="標記為錯誤/取消"
+        >
+          錯
         </ProficiencyButton>
       </ProficiencyControlContainer>
 

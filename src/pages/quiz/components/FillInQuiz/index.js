@@ -28,7 +28,10 @@ import readingProgressService from "../../../../services/readingProgressService"
 import fillinProgressService from "../../../../services/fillinProgressService";
 import StatisticsPage from "../StatisticsPage";
 import AudioRecorderPage from "../../../AudioRecorder";
-import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actions";
+import {
+  commitPendingProficiencyUpdates,
+  updateWordInNotebook,
+} from "../../../../store/reducer/actions";
 import notebookService from "../../../../services/notebookService";
 import { setCurrentNotebook } from "../../../../store/reducer/actions";
 import { updatePendingProficiency } from "../../../../store/reducer/actions"; // 新增：更新熟練度（pending）
@@ -304,6 +307,31 @@ function Content() {
                     }
                   >
                     高
+                  </StatProficiencyButton>
+                  <StatProficiencyButton
+                    className={question.word_bug ? "active" : ""}
+                    onClick={async () => {
+                      try {
+                        const newVal = !question.word_bug;
+                        await notebookService.updateWordInNotebook(
+                          state.shared.currentNotebookId,
+                          question.id,
+                          { word_bug: newVal }
+                        );
+                        dispatch(
+                          updateWordInNotebook(
+                            state.shared.currentNotebookId,
+                            question.id,
+                            { word_bug: newVal }
+                          )
+                        );
+                      } catch (e) {
+                        console.error("toggle bug flag failed", e);
+                      }
+                    }}
+                    title="標記為錯誤/取消"
+                  >
+                    錯
                   </StatProficiencyButton>
                 </StatProficiencyControlContainer>
               );
