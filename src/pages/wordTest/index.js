@@ -876,6 +876,11 @@ export default function WordTest() {
       </StageToggleWrap>
       <Progress>{progressText}</Progress>
 
+      {/* 錄音模組（置於卡片外左上，與 FillIn 一致） */}
+      <div style={{ display: "flex", justifyContent: "flex-start" }}>
+        <AudioRecorderPage triggerReset={currentId} />
+      </div>
+
       {currentWord ? (
         <CardContainer
           onClick={() => !isAnswerVisible && setIsAnswerVisible(true)}
@@ -938,9 +943,6 @@ export default function WordTest() {
               🔊
             </SpeakButton>
           </WordContainer>
-
-          {/* 錄音模組（與 Quiz 位置一致） */}
-          <AudioRecorderPage triggerReset={currentId} />
 
           {isAnswerVisible && (
             <ResultContainer>

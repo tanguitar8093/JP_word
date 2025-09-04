@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useApp } from "../../../../store/contexts/AppContext"; // Changed from QuizContext
 import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
 import QuestionCard from "../QuestionCard";
+import AudioRecorderPage from "../../../AudioRecorder";
 import SettingsPanel from "../../../../components/SettingsPanel";
 import StatisticsPage from "../StatisticsPage"; // Import StatisticsPage
 import Modal from "../../../../components/Modal"; // Import the new Modal component
@@ -175,6 +176,11 @@ function QuizContent() {
       <Progress>
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
+
+      {/* 錄音模組（置於卡片外左上，與 FillIn 一致） */}
+      <div style={{ display: "flex", justifyContent: "flex-start" }}>
+        <AudioRecorderPage triggerReset={currentQuestionIndex} />
+      </div>
 
       <QuestionCard
         speakManually={speakManually}

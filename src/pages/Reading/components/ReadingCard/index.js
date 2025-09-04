@@ -18,7 +18,6 @@ import {
   ProficiencyButton,
 } from "./styles";
 import ExampleSentence from "../ExampleSentence";
-import AudioRecorderPage from "../../../AudioRecorder";
 
 const ReadingCard = forwardRef(
   (
@@ -154,11 +153,6 @@ const ReadingCard = forwardRef(
             🔊
           </SpeakButton>
         </WordContainer>
-
-        <AudioRecorderPage
-          ref={studyMode === "auto" ? ref : undefined}
-          triggerReset={currentQuestionIndex}
-        />
 
         {isAnswerVisible && (
           <ResultContainer>

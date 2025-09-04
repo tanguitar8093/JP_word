@@ -23,7 +23,6 @@ import {
   ProficiencyButton,
 } from "./styles";
 import ExampleSentence from "../ExampleSentence";
-import AudioRecorderPage from "../../../AudioRecorder";
 
 export default function QuestionCard({
   speakManually,
@@ -139,7 +138,6 @@ export default function QuestionCard({
           🔊
         </SpeakButton>
       </WordContainer>
-      <AudioRecorderPage triggerReset={currentQuestionIndex} />
       {!result && (
         <OptionsContainer>
           {q.options.map((opt, i) => (

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useApp } from "../../../../store/contexts/AppContext"; // Changed from QuizContext
 import { useAnswerPlayback } from "../../../../hooks/useAnswerPlayback";
 import ReadingCard from "../ReadingCard";
+import AudioRecorderPage from "../../../AudioRecorder";
 import SettingsPanel from "../../../../components/SettingsPanel";
 import StatisticsPage from "../StatisticsPage"; // Import StatisticsPage
 import Modal from "../../../../components/Modal"; // Import the new Modal component
@@ -135,8 +136,12 @@ function QuizContent() {
     dispatch(commitPendingProficiencyUpdates()); // Commit changes before exiting
     dispatch(restartQuiz());
     setShowExitConfirmModal(false);
-  try { readingProgressService.clearProgress(); } catch {}
-  try { quizProgressService.clearProgress(); } catch {}
+    try {
+      readingProgressService.clearProgress();
+    } catch {}
+    try {
+      quizProgressService.clearProgress();
+    } catch {}
     navigate("/");
     window.location.reload();
   }, [dispatch, navigate]);
@@ -236,7 +241,9 @@ function QuizContent() {
           if (isCancelled) return;
 
           if (recorderRef.current && recorderRef.current.prime) {
-            try { await recorderRef.current.prime(); } catch {}
+            try {
+              await recorderRef.current.prime();
+            } catch {}
           }
           if (recorderRef.current) await recorderRef.current.play();
           if (isCancelled) return;
@@ -247,7 +254,8 @@ function QuizContent() {
           if (isCancelled) return;
         } else {
           await repeatPlayback(
-            () => playSequence(null, question, { jp: true }, { skipSound: true }),
+            () =>
+              playSequence(null, question, { jp: true }, { skipSound: true }),
             readingWordRecordTime * 1000
           );
           if (isCancelled) return;
@@ -287,7 +295,9 @@ function QuizContent() {
             if (isCancelled) return;
 
             if (recorderRef.current && recorderRef.current.prime) {
-              try { await recorderRef.current.prime(); } catch {}
+              try {
+                await recorderRef.current.prime();
+              } catch {}
             }
             if (recorderRef.current) await recorderRef.current.play();
             if (isCancelled) return;
@@ -299,7 +309,12 @@ function QuizContent() {
           } else {
             await repeatPlayback(
               () =>
-                playSequence(null, question, { jpEx: true }, { skipSound: true }),
+                playSequence(
+                  null,
+                  question,
+                  { jpEx: true },
+                  { skipSound: true }
+                ),
               readingSentenceRecordTime * 1000
             );
             if (isCancelled) return;
@@ -359,7 +374,9 @@ function QuizContent() {
 
   const handleStartAutoPlay = async () => {
     if (recorderRef.current && recorderRef.current.prime) {
-      try { await recorderRef.current.prime(); } catch {}
+      try {
+        await recorderRef.current.prime();
+      } catch {}
     }
     if (recorderRef.current && (readingRecordWord || readingRecordSentence)) {
       const stream = await recorderRef.current.getMicrophonePermission();
@@ -387,21 +404,17 @@ function QuizContent() {
 
   return (
     <AppContainer>
-  <IconContainer>
+      <IconContainer>
         <IconGroup>
           <SettingsToggle onClick={() => setShowSettings((s) => !s)}>
             ⚙️
           </SettingsToggle>
-          <HomeIcon
-    onClick={() => setShowExitConfirmModal(true)}
-          >
-            ↩️
-          </HomeIcon>
+          <HomeIcon onClick={() => setShowExitConfirmModal(true)}>↩️</HomeIcon>
           <InfoToggle onClick={() => setShowInfoModal(true)}>ℹ️</InfoToggle>
           <BackPage onClick={() => navigate("/")}>🏠</BackPage>
         </IconGroup>
       </IconContainer>
-  {showSettings && (
+      {showSettings && (
         <>
           <Overlay onClick={() => setShowSettings(false)} />
           <FloatingSettingsPanel>
@@ -414,6 +427,14 @@ function QuizContent() {
       <Progress>
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
+
+      {/* 錄音模組（置於卡片外左上，與 FillIn 一致） */}
+      <div style={{ display: "flex", justifyContent: "flex-start" }}>
+        <AudioRecorderPage
+          ref={readingStudyMode === "auto" ? recorderRef : undefined}
+          triggerReset={currentQuestionIndex}
+        />
+      </div>
 
       {readingStudyMode === "auto" && !isAutoPlayActive && (
         <MinimalistButton onClick={handleStartAutoPlay}>
@@ -433,7 +454,7 @@ function QuizContent() {
       )}
 
       <ReadingCard
-        ref={recorderRef}
+        ref={readingStudyMode === "auto" ? recorderRef : undefined}
         speakManually={speakManually}
         cancelPlayback={cancelPlayback}
         question={question}
@@ -450,7 +471,7 @@ function QuizContent() {
         isVisible={showExitConfirmModal}
       />
 
-  {/* Pause confirm removed with blocker */}
+      {/* Pause confirm removed with blocker */}
 
       <Modal
         message={
@@ -545,9 +566,14 @@ export default function Quiz() {
 
   useEffect(() => {
     if (!quizCompleted && !hydratedFromProgress) {
-  // If there is valid saved reading progress for an existing notebook, skip normal initialization to avoid race
-  const saved = readingProgressService.loadProgress();
-  if (saved && notebooks && notebooks.some((n) => n.id === saved.notebookId)) return;
+      // If there is valid saved reading progress for an existing notebook, skip normal initialization to avoid race
+      const saved = readingProgressService.loadProgress();
+      if (
+        saved &&
+        notebooks &&
+        notebooks.some((n) => n.id === saved.notebookId)
+      )
+        return;
       const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
       if (currentNotebook) {
         let questions = currentNotebook.context.filter((q) => {
@@ -573,8 +599,8 @@ export default function Quiz() {
   }, [
     currentNotebookId,
     dispatch,
-  quizCompleted,
-  hydratedFromProgress,
+    quizCompleted,
+    hydratedFromProgress,
     proficiencyFilter,
     notebooks,
     startQuestionIndex,
