@@ -342,7 +342,6 @@ function Content() {
             ch_ex={question.ch_ex_statement}
             speak={speakManually}
             jp_ex_context={question.jp_ex_statement_context}
-            wordType={state.systemSettings.wordType}
           />
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
             <button

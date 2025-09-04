@@ -950,7 +950,6 @@ export default function WordTest() {
                 ch_ex={currentWord.ch_ex_statement}
                 speak={speakManually}
                 jp_ex_context={currentWord.jp_ex_statement_context}
-                wordType={wordType}
               />
 
               <div style={{ display: "flex", gap: 8, marginTop: 8 }}>

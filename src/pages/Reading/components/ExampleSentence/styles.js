@@ -42,3 +42,21 @@ export const SpeakButton = styled.span`
     transform: scale(0.9);
   }
 `;
+
+export const ToggleRow = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+export const ToggleButton = styled.button`
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  &:hover {
+    background: #f0f0f0;
+  }
+`;
