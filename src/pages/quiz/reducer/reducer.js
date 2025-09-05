@@ -1,4 +1,4 @@
-import { sortQuestions } from "../../../utils/questionUtils";
+import { sortQuestions, shuffleOptionsForQuestions } from "../../../utils/questionUtils";
 
 const initialState = {
   questions: [], // Initialize with an empty array
@@ -13,20 +13,22 @@ const initialState = {
 function reducer(state = initialState, action) {
   switch (action.type) {
     case "quiz/LOAD_PROGRESS": {
-      const { questions, currentIndex, results } = action.payload;
+      const { questions: restoredQuestions, currentIndex, results } = action.payload;
+      // Shuffle options to avoid fixed correct answer position after refresh
+      const shuffledQuestions = shuffleOptionsForQuestions(restoredQuestions);
       const answered = results.map((isCorrect, i) => ({
-        question: questions[i],
+        question: shuffledQuestions[i],
         isCorrect,
       }));
       return {
         ...state,
-        questions,
+        questions: shuffledQuestions,
         currentQuestionIndex: currentIndex,
         selectedAnswer: "",
         result: null,
         correctAnswersCount: results.filter(Boolean).length,
         answeredQuestions: answered,
-        quizCompleted: currentIndex >= questions.length,
+        quizCompleted: currentIndex >= shuffledQuestions.length,
       };
     }
     case "quiz/START_QUIZ":
