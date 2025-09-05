@@ -1,12 +1,18 @@
 {
   "files": {
-    "main.js": "/JP_word/static/js/main.44dcb726.js",
-    "static/media/correct.mp3": "/JP_word/static/media/correct.d9f14319b1fc5862ad23.mp3",
-    "static/media/wrong.mp3": "/JP_word/static/media/wrong.859b710764013a298c14.mp3",
-    "index.html": "/JP_word/index.html",
-    "main.44dcb726.js.map": "/JP_word/static/js/main.44dcb726.js.map"
+    "main.js": "./static/js/main.3dff3c45.js",
+    "static/js/8.dd1862b8.chunk.js": "./static/js/8.dd1862b8.chunk.js",
+    "static/js/230.14e55885.chunk.js": "./static/js/230.14e55885.chunk.js",
+    "static/js/457.172f2740.chunk.js": "./static/js/457.172f2740.chunk.js",
+    "static/media/correct.mp3": "./static/media/correct.d9f14319b1fc5862ad23.mp3",
+    "static/media/wrong.mp3": "./static/media/wrong.859b710764013a298c14.mp3",
+    "index.html": "./index.html",
+    "main.3dff3c45.js.map": "./static/js/main.3dff3c45.js.map",
+    "8.dd1862b8.chunk.js.map": "./static/js/8.dd1862b8.chunk.js.map",
+    "230.14e55885.chunk.js.map": "./static/js/230.14e55885.chunk.js.map",
+    "457.172f2740.chunk.js.map": "./static/js/457.172f2740.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/main.44dcb726.js"
+    "static/js/main.3dff3c45.js"
   ]
 }
