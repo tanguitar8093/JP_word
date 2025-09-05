@@ -22,7 +22,6 @@ import {
   Overlay,
   BackPage,
 } from "../../../../components/App/styles";
-import styled from "styled-components";
 import {
   nextQuestionGame, // Changed from NEXT_QUESTION
   restartQuiz,
@@ -40,57 +39,15 @@ import {
   updateWordInNotebook,
 } from "../../../../store/reducer/actions";
 
-const IconContainer = styled.div`
-  position: absolute;
-  top: 10px;
-  right: 10px; /* Keep it on the right side */
-  z-index: 100;
-`;
-
-const IconGroup = styled.div`
-  display: flex;
-  gap: 10px; /* Adjust gap between icons */
-  flex-direction: row-reverse; /* Reverse the order to put HomeIcon on the right */
-`;
-
-const HomeIcon = styled(SettingsToggle)`
-  right: 5px;
-`;
-
-// Top bar: recorder (left) + controls (right)
-const TopBar = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-`;
-
-const RightPanel = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-`;
-
-const TinyButton = styled.button`
-  padding: 2px 6px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f0f0f0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 12px;
-  line-height: 1.4;
-
-  &:hover {
-    background-color: #e7e7e7;
-  }
-
-  &.active {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
-  }
-`;
+// Import moved styles
+import {
+  IconContainer,
+  IconGroup,
+  HomeIcon,
+  TopBar,
+  RightPanel,
+  TinyButton,
+} from "./styles";
 
 // The actual UI component that consumes the context
 // (imports moved to top to satisfy eslint import/first)
@@ -120,7 +77,7 @@ function QuizContent() {
     playbackOptions,
     playbackSpeed,
     autoProceed,
-  gameSoundEffects,
+    gameSoundEffects,
     proficiencyFilter,
     startQuestionIndex,
     wordRangeCount,
@@ -168,8 +125,8 @@ function QuizContent() {
     onNext: () => dispatch(nextQuestionGame()), // Changed dispatch type
     playbackOptions, // Now from global state
     rate: playbackSpeed, // Use playbackSpeed from global state
-  autoProceed, // Pass autoProceed from global state
-  gameSoundEffects,
+    autoProceed, // Pass autoProceed from global state
+    gameSoundEffects,
   });
 
   const speakManually = useCallback(

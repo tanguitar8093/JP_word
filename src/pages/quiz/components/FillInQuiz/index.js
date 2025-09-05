@@ -16,7 +16,6 @@ import {
   Overlay,
   BackPage,
 } from "../../../../components/App/styles";
-import styled from "styled-components";
 import {
   nextQuestionGame,
   restartQuiz,
@@ -40,55 +39,14 @@ import {
   ProficiencyButton as StatProficiencyButton,
 } from "../StatisticsPage/styles"; // 新增：沿用統計頁面的熟練度樣式（非絕對定位）
 
-const IconContainer = styled.div`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 100;
-`;
-const IconGroup = styled.div`
-  display: flex;
-  gap: 10px;
-  flex-direction: row-reverse;
-`;
-const HomeIcon = styled(SettingsToggle)`
-  right: 5px;
-`;
-
-// Top bar: recorder (left) + controls (right)
-const TopBar = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-`;
-
-const RightPanel = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-`;
-
-const TinyButton = styled.button`
-  padding: 2px 6px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f0f0f0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 12px;
-  line-height: 1.4;
-
-  &:hover {
-    background-color: #e7e7e7;
-  }
-
-  &.active {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
-  }
-`;
+import {
+  IconContainer,
+  IconGroup,
+  HomeIcon,
+  TopBar,
+  RightPanel,
+  TinyButton,
+} from "./styles";
 
 const proficiencyMap = { 1: "低", 2: "中", 3: "高" };
 const sortOrderMap = { random: "隨機", aiueo: "あいうえお", none: "預設" };
@@ -108,7 +66,7 @@ function Content() {
     playbackOptions,
     playbackSpeed,
     autoProceed,
-  gameSoundEffects,
+    gameSoundEffects,
     proficiencyFilter,
     startQuestionIndex,
     wordRangeCount,
@@ -148,7 +106,7 @@ function Content() {
     onNext: () => {},
     playbackOptions,
     rate: playbackSpeed,
-  gameSoundEffects,
+    gameSoundEffects,
   });
 
   const speakManually = useCallback(

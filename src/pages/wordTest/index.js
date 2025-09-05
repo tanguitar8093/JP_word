@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import {
   AppContainer,
@@ -37,6 +36,22 @@ import ExampleSentence from "../Reading/components/ExampleSentence";
 import AudioRecorderPage from "../AudioRecorder";
 // duplicate imports removed
 
+import {
+  GameBox,
+  StageToggleWrap,
+  StageBtn,
+  Btn,
+  Bar,
+  PanelGrid,
+  Panel,
+  PanelTitle,
+  List,
+  ListItem,
+  IconContainer,
+  IconGroup,
+  HomeIcon,
+} from "./styles";
+
 const defaultConfig = {
   slice_length: 5,
   max_word_study: 20,
@@ -45,102 +60,102 @@ const defaultConfig = {
   review_interval: 0.5, // hours; minimum 0.05
 };
 
-const GameBox = styled.div`
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 12px;
-  padding: 16px;
-  margin-top: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-`;
+// const GameBox = styled.div`
+//   background: #fff;
+//   border: 1px solid #eee;
+//   border-radius: 12px;
+//   padding: 16px;
+//   margin-top: 8px;
+//   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+// `;
 
-const StageToggleWrap = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin: 6px 0 10px;
-`;
+// const StageToggleWrap = styled.div`
+//   display: flex;
+//   justify-content: center;
+//   gap: 8px;
+//   margin: 6px 0 10px;
+// `;
 
-const StageBtn = styled.button`
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid ${(p) => (p.active ? "#4caf50" : "#ddd")};
-  color: ${(p) => (p.active ? "#fff" : "#333")};
-  background: ${(p) => (p.active ? "#4caf50" : "#f7f7f7")};
-  cursor: pointer;
-`;
+// const StageBtn = styled.button`
+//   padding: 6px 10px;
+//   border-radius: 8px;
+//   border: 1px solid ${(p) => (p.active ? "#4caf50" : "#ddd")};
+//   color: ${(p) => (p.active ? "#fff" : "#333")};
+//   background: ${(p) => (p.active ? "#4caf50" : "#f7f7f7")};
+//   cursor: pointer;
+// `;
 
-const Btn = styled.button`
-  padding: 5px 7px;
-  border: 1px solid #ddd;
-  background: ${(p) => (p.primary ? "#4caf50" : "#f7f7f7")};
-  color: ${(p) => (p.primary ? "#fff" : "#333")};
-  border-radius: 8px;
-  cursor: pointer;
-  &:hover {
-    filter: brightness(0.98);
-  }
-`;
+// const Btn = styled.button`
+//   padding: 5px 7px;
+//   border: 1px solid #ddd;
+//   background: ${(p) => (p.primary ? "#4caf50" : "#f7f7f7")};
+//   color: ${(p) => (p.primary ? "#fff" : "#333")};
+//   border-radius: 8px;
+//   cursor: pointer;
+//   &:hover {
+//     filter: brightness(0.98);
+//   }
+// `;
 
-const Bar = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
+// const Bar = styled.div`
+//   display: flex;
+//   justify-content: space-between;
+//   align-items: center;
+// `;
 
-const PanelGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-top: 12px;
+// const PanelGrid = styled.div`
+//   display: grid;
+//   grid-template-columns: repeat(2, 1fr);
+//   gap: 12px;
+//   margin-top: 12px;
 
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`;
+//   @media (max-width: 768px) {
+//     grid-template-columns: 1fr;
+//   }
+// `;
 
-const Panel = styled.div`
-  background: #fafafa;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  padding: 10px;
-`;
+// const Panel = styled.div`
+//   background: #fafafa;
+//   border: 1px solid #eee;
+//   border-radius: 8px;
+//   padding: 10px;
+// `;
 
-const PanelTitle = styled.div`
-  font-weight: 600;
-  color: #444;
-  margin-bottom: 8px;
-`;
+// const PanelTitle = styled.div`
+//   font-weight: 600;
+//   color: #444;
+//   margin-bottom: 8px;
+// `;
 
-const List = styled.ul`
-  margin: 0;
-  padding-left: 18px;
-  max-height: 180px;
-  overflow: auto;
-`;
+// const List = styled.ul`
+//   margin: 0;
+//   padding-left: 18px;
+//   max-height: 180px;
+//   overflow: auto;
+// `;
 
-const ListItem = styled.li`
-  color: #333;
-  margin: 2px 0;
-`;
+// const ListItem = styled.li`
+//   color: #333;
+//   margin: 2px 0;
+// `;
 
 // Consistent icon group (align with Reading/Quiz)
-const IconContainer = styled.div`
-  position: absolute;
-  top: 10px;
-  right: 10px; /* Keep it on the right side */
-  z-index: 100;
-`;
+// const IconContainer = styled.div`
+//   position: absolute;
+//   top: 10px;
+//   right: 10px; /* Keep it on the right side */
+//   z-index: 100;
+// `;
 
-const IconGroup = styled.div`
-  display: flex;
-  gap: 10px; /* Adjust gap between icons */
-  flex-direction: row-reverse; /* Put HomeIcon (↩️) on the far right */
-`;
+// const IconGroup = styled.div`
+//   display: flex;
+//   gap: 10px; /* Adjust gap between icons */
+//   flex-direction: row-reverse; /* Put HomeIcon (↩️) on the far right */
+// `;
 
-const HomeIcon = styled(SettingsToggle)`
-  right: 5px;
-`;
+// const HomeIcon = styled(SettingsToggle)`
+//   right: 5px;
+// `;
 
 function getStudyValue(w) {
   // Canonical field

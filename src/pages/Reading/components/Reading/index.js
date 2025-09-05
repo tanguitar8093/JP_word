@@ -18,7 +18,6 @@ import {
   Overlay,
   BackPage,
 } from "../../../../components/App/styles";
-import styled from "styled-components";
 import {
   nextQuestionGame, // Changed from NEXT_QUESTION
   restartQuiz,
@@ -33,94 +32,16 @@ import {
 import quizProgressService from "../../../../services/quizProgressService";
 import notebookService from "../../../../services/notebookService";
 
-const IconContainer = styled.div`
-  position: absolute;
-  top: 10px;
-  right: 10px; /* Keep it on the right side */
-  z-index: 100;
-`;
-
-const IconGroup = styled.div`
-  display: flex;
-  gap: 10px; /* Adjust gap between icons */
-  flex-direction: row-reverse; /* Reverse the order to put HomeIcon on the right */
-`;
-
-const HomeIcon = styled(SettingsToggle)`
-  right: 5px;
-`;
-
-// Top bar: recorder (left) + controls (right)
-const TopBar = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-`;
-
-const RightPanel = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-`;
-
-const TinyButton = styled.button`
-  padding: 2px 6px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f0f0f0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 12px;
-  line-height: 1.4;
-
-  &:hover {
-    background-color: #e7e7e7;
-  }
-
-  &.active {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
-  }
-`;
-
-const MinimalistButton = styled.button`
-  font-size: 12px;
-  padding: 10px 16px;
-  cursor: pointer;
-  border-radius: 18px;
-  border: 1.5px solid gray;
-  background-color: white;
-  // color: #007bff;
-  margin: 8px 0 8px 8px; /* 上 右 下 左 間距，與左上角保持微小間隔 */
-  // font-weight: 600;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  max-width: fit-content;
-
-  &:hover {
-    background-color: #f0f8ff;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 8px rgba(0, 123, 255, 0.15);
-  }
-
-  &:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 3px rgba(0, 123, 255, 0.15);
-  }
-
-  @media (max-width: 768px) {
-    font-size: 12px;
-    padding: 5px 10px;
-    margin: 6px 0 6px 6px;
-    border-radius: 14px;
-  }
-`;
+// Import moved styles
+import {
+  IconContainer,
+  IconGroup,
+  HomeIcon,
+  TopBar,
+  RightPanel,
+  TinyButton,
+  MinimalistButton,
+} from "./styles";
 
 const proficiencyMap = {
   1: "低",
@@ -204,7 +125,7 @@ function QuizContent() {
     onNext: () => dispatch(nextQuestionGame()), // Changed dispatch type
     playbackOptions, // Now from global state
     rate: playbackSpeed, // Use playbackSpeed from global state
-  gameSoundEffects: state.systemSettings?.gameSoundEffects,
+    gameSoundEffects: state.systemSettings?.gameSoundEffects,
   });
 
   const playBeep = () => {
