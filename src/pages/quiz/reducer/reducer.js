@@ -1,4 +1,5 @@
 import { sortQuestions, shuffleOptionsForQuestions } from "../../../utils/questionUtils";
+import { addDynamicOptionsToQuestions } from "../../../utils/smartOptionsGenerator";
 
 const initialState = {
   questions: [], // Initialize with an empty array
@@ -32,10 +33,24 @@ function reducer(state = initialState, action) {
       };
     }
     case "quiz/START_QUIZ":
-      const { questions, sortOrder } = action.payload;
+      const { questions, sortOrder, optionsContext = {} } = action.payload;
+      const { 
+        currentNotebookWords = [], 
+        allNotebookWords = [], 
+        strategy = {} 
+      } = optionsContext;
+      
+      // 為題目動態生成選項
+      const questionsWithSmartOptions = addDynamicOptionsToQuestions(
+        questions,
+        currentNotebookWords,
+        allNotebookWords,
+        strategy
+      );
+      
       return {
         ...state,
-        questions: sortQuestions(questions, sortOrder),
+        questions: sortQuestions(questionsWithSmartOptions, sortOrder),
         currentQuestionIndex: 0,
         selectedAnswer: "",
         result: null,

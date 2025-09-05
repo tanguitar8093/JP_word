@@ -4,9 +4,9 @@ export const NEXT_QUESTION_GAME = "quiz/NEXT_QUESTION_GAME";
 export const RESTART_QUIZ = "quiz/RESTART_QUIZ";
 export const RECORD_FILLIN_RESULT = "quiz/RECORD_FILLIN_RESULT";
 
-export const startQuiz = (questions, sortOrder) => ({
+export const startQuiz = (questions, sortOrder, optionsContext = {}) => ({
   type: START_QUIZ,
-  payload: { questions, sortOrder },
+  payload: { questions, sortOrder, optionsContext },
 });
 
 export const checkAnswer = (answer) => ({

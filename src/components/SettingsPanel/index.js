@@ -18,6 +18,8 @@ import {
   setReadingPlaybackRepeatCount,
   setFillInDifficulty,
   setGameSoundEffects,
+  setOptionsStrategy,
+  setMixedStrategyLocalRatio,
 } from "./reducer";
 
 export default function SettingsPanel({
@@ -45,6 +47,8 @@ export default function SettingsPanel({
     readingSentenceRecordTime,
     readingPlaybackRepeatCount,
     fillInDifficulty,
+    optionsStrategy,
+    mixedStrategyLocalRatio,
   } = systemSettings;
 
   const handleProficiencyChange = (level) => {
@@ -607,6 +611,67 @@ export default function SettingsPanel({
               }
             />
           </LabelGroup>
+        </>
+      )}
+
+      {!context && ( // Quiz options strategy settings
+        <>
+          <LabelGroup>
+            <SettingTitle>選項來源策略:</SettingTitle>
+            <div>
+              <label>
+                <input
+                  type="radio"
+                  name="optionsStrategy"
+                  value="local"
+                  checked={optionsStrategy === "local"}
+                  onChange={(e) => dispatch(setOptionsStrategy(e.target.value))}
+                />
+                本筆記本 (基礎學習)
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="optionsStrategy"
+                  value="global"
+                  checked={optionsStrategy === "global"}
+                  onChange={(e) => dispatch(setOptionsStrategy(e.target.value))}
+                />
+                全部筆記本 (進階挑戰)
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="optionsStrategy"
+                  value="mixed"
+                  checked={optionsStrategy === "mixed"}
+                  onChange={(e) => dispatch(setOptionsStrategy(e.target.value))}
+                />
+                智能混合 (推薦)
+              </label>
+            </div>
+          </LabelGroup>
+
+          {optionsStrategy === "mixed" && (
+            <LabelGroup>
+              <SettingTitle>
+                本筆記本比例: {Math.round(mixedStrategyLocalRatio * 100)}%
+              </SettingTitle>
+              <RangeInput
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={mixedStrategyLocalRatio}
+                onChange={(e) =>
+                  dispatch(setMixedStrategyLocalRatio(Number(e.target.value)))
+                }
+              />
+              <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                比例越高越著重本筆記本單字，越低挑戰性越大
+              </div>
+            </LabelGroup>
+          )}
         </>
       )}
     </PanelContainer>

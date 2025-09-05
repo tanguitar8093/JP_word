@@ -36,6 +36,10 @@ export const UPDATE_FILLIN_ADAPTIVE_STATS =
 export const RESET_FILLIN_ADAPTIVE_STATS =
   "systemSettings/RESET_FILLIN_ADAPTIVE_STATS";
 
+// Options source strategy actions
+export const SET_OPTIONS_STRATEGY = "systemSettings/SET_OPTIONS_STRATEGY";
+export const SET_MIXED_STRATEGY_LOCAL_RATIO = "systemSettings/SET_MIXED_STRATEGY_LOCAL_RATIO";
+
 export const setWordType = (wordType) => ({
   type: SET_JP_WORD_TYPE,
   payload: wordType,
@@ -151,4 +155,15 @@ export const updateFillInAdaptiveStats = (correct) => ({
 
 export const resetFillInAdaptiveStats = () => ({
   type: RESET_FILLIN_ADAPTIVE_STATS,
+});
+
+// Options source strategy action creators
+export const setOptionsStrategy = (strategy) => ({
+  type: SET_OPTIONS_STRATEGY,
+  payload: strategy,
+});
+
+export const setMixedStrategyLocalRatio = (ratio) => ({
+  type: SET_MIXED_STRATEGY_LOCAL_RATIO,
+  payload: ratio,
 });

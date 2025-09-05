@@ -65,6 +65,10 @@ export const initialState = {
     windowSize: 12, // last N questions
     history: [], // boolean array
   },
+
+  // Quiz options source strategy
+  optionsStrategy: "mixed", // 'local' | 'global' | 'mixed'
+  mixedStrategyLocalRatio: 0.8, // 80% from current notebook, 20% from global
 };
 
 function reducer(state = initialState, action) {
@@ -163,6 +167,12 @@ function reducer(state = initialState, action) {
         ...state,
         fillInAdaptive: { ...state.fillInAdaptive, history: [] },
       };
+
+    // Options source strategy settings
+    case "systemSettings/SET_OPTIONS_STRATEGY":
+      return { ...state, optionsStrategy: action.payload };
+    case "systemSettings/SET_MIXED_STRATEGY_LOCAL_RATIO":
+      return { ...state, mixedStrategyLocalRatio: action.payload };
 
     default:
       return state;

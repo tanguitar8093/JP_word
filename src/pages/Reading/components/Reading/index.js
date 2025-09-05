@@ -644,7 +644,16 @@ export default function Quiz() {
         );
         questions = questions.slice(startIndex, endIndex);
         if (questions.length > 0) {
-          dispatch(startQuiz(questions, sortOrder));
+          // 準備選項生成的上下文資料
+          const optionsContext = {
+            currentNotebookWords: currentNotebook.context || [],
+            allNotebookWords: notebooks.flatMap(nb => nb.context || []),
+            strategy: {
+              optionsStrategy: state.systemSettings.optionsStrategy || "mixed",
+              mixedStrategyLocalRatio: state.systemSettings.mixedStrategyLocalRatio || 0.8,
+            }
+          };
+          dispatch(startQuiz(questions, sortOrder, optionsContext));
         } else {
           // Handle case where notebook is empty or no questions match filter
           setEmptyAlert(true);
