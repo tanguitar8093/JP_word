@@ -67,7 +67,7 @@ export const initialState = {
   },
 
   // Quiz options source strategy
-  optionsStrategy: "mixed", // 'local' | 'global' | 'mixed'
+  optionsStrategy: "original", // 'original' | 'default' | 'local' | 'global' | 'mixed'
   mixedStrategyLocalRatio: 0.8, // 80% from current notebook, 20% from global
 };
 

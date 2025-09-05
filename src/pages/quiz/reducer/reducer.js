@@ -1,4 +1,7 @@
-import { sortQuestions, shuffleOptionsForQuestions } from "../../../utils/questionUtils";
+import {
+  sortQuestions,
+  shuffleOptionsForQuestions,
+} from "../../../utils/questionUtils";
 import { addDynamicOptionsToQuestions } from "../../../utils/smartOptionsGenerator";
 
 const initialState = {
@@ -14,7 +17,11 @@ const initialState = {
 function reducer(state = initialState, action) {
   switch (action.type) {
     case "quiz/LOAD_PROGRESS": {
-      const { questions: restoredQuestions, currentIndex, results } = action.payload;
+      const {
+        questions: restoredQuestions,
+        currentIndex,
+        results,
+      } = action.payload;
       // Shuffle options to avoid fixed correct answer position after refresh
       const shuffledQuestions = shuffleOptionsForQuestions(restoredQuestions);
       const answered = results.map((isCorrect, i) => ({
@@ -34,12 +41,12 @@ function reducer(state = initialState, action) {
     }
     case "quiz/START_QUIZ":
       const { questions, sortOrder, optionsContext = {} } = action.payload;
-      const { 
-        currentNotebookWords = [], 
-        allNotebookWords = [], 
-        strategy = {} 
+      const {
+        currentNotebookWords = [],
+        allNotebookWords = [],
+        strategy = {},
       } = optionsContext;
-      
+
       // 為題目動態生成選項
       const questionsWithSmartOptions = addDynamicOptionsToQuestions(
         questions,
@@ -47,7 +54,7 @@ function reducer(state = initialState, action) {
         allNotebookWords,
         strategy
       );
-      
+
       return {
         ...state,
         questions: sortQuestions(questionsWithSmartOptions, sortOrder),

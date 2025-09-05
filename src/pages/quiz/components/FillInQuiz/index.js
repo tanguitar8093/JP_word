@@ -539,11 +539,12 @@ export default function FillInQuiz() {
           // 準備選項生成的上下文資料
           const optionsContext = {
             currentNotebookWords: currentNotebook.context || [],
-            allNotebookWords: notebooks.flatMap(nb => nb.context || []),
+            allNotebookWords: notebooks.flatMap((nb) => nb.context || []),
             strategy: {
               optionsStrategy: state.systemSettings.optionsStrategy || "mixed",
-              mixedStrategyLocalRatio: state.systemSettings.mixedStrategyLocalRatio || 0.8,
-            }
+              mixedStrategyLocalRatio:
+                state.systemSettings.mixedStrategyLocalRatio || 0.8,
+            },
           };
           dispatch(startQuiz(questions, sortOrder, optionsContext));
         } else {

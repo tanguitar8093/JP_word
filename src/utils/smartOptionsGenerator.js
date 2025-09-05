@@ -15,10 +15,16 @@ export function generateSmartOptions(
   allNotebookWords = [],
   strategy = {}
 ) {
-  const {
-    optionsStrategy = "mixed",
-    mixedStrategyLocalRatio = 0.8,
-  } = strategy;
+  const { optionsStrategy = "mixed", mixedStrategyLocalRatio = 0.8 } = strategy;
+
+  // 如果選擇使用原始選項且選項存在，直接返回原始選項
+  if (
+    optionsStrategy === "original" &&
+    correctWord.options &&
+    Array.isArray(correctWord.options)
+  ) {
+    return shuffleArray([...correctWord.options]);
+  }
 
   const correctAnswer = correctWord.ch_word;
   const correctType = correctWord.type;
@@ -30,38 +36,50 @@ export function generateSmartOptions(
   // 從當前筆記本建立候選池
   if (currentNotebookWords.length > 0) {
     localCandidates = currentNotebookWords
-      .filter(word => 
-        word.ch_word !== correctAnswer && // 排除正確答案
-        word.type === correctType && // 同類型
-        word.ch_word && word.ch_word.trim() // 有效答案
+      .filter(
+        (word) =>
+          word.ch_word !== correctAnswer && // 排除正確答案
+          word.type === correctType && // 同類型
+          word.ch_word &&
+          word.ch_word.trim() // 有效答案
       )
-      .map(word => word.ch_word);
+      .map((word) => word.ch_word);
   }
 
   // 從所有筆記本建立候選池
   if (allNotebookWords.length > 0) {
     globalCandidates = allNotebookWords
-      .filter(word => 
-        word.ch_word !== correctAnswer && // 排除正確答案
-        word.type === correctType && // 同類型
-        word.ch_word && word.ch_word.trim() && // 有效答案
-        !localCandidates.includes(word.ch_word) // 避免與本地重複
+      .filter(
+        (word) =>
+          word.ch_word !== correctAnswer && // 排除正確答案
+          word.type === correctType && // 同類型
+          word.ch_word &&
+          word.ch_word.trim() && // 有效答案
+          !localCandidates.includes(word.ch_word) // 避免與本地重複
       )
-      .map(word => word.ch_word);
+      .map((word) => word.ch_word);
   }
 
   // 根據策略選擇錯誤選項
   let wrongOptions = [];
 
   switch (optionsStrategy) {
+    case "default":
+      // 使用原本的固定選項池
+      wrongOptions = generateDefaultOptions(correctAnswer, correctType);
+      break;
+
     case "local":
       wrongOptions = selectFromPool(localCandidates, 3);
       break;
-    
+
     case "global":
-      wrongOptions = selectFromPool([...localCandidates, ...globalCandidates], 3);
+      wrongOptions = selectFromPool(
+        [...localCandidates, ...globalCandidates],
+        3
+      );
       break;
-    
+
     case "mixed":
     default:
       wrongOptions = selectMixedOptions(
@@ -72,9 +90,13 @@ export function generateSmartOptions(
       break;
   }
 
-  // 如果沒有足夠的選項，使用後備策略
-  if (wrongOptions.length < 3) {
-    wrongOptions = fillWithFallbackOptions(wrongOptions, correctAnswer, correctType);
+  // 如果沒有足夠的選項，使用後備策略（預設模式除外，因為已經保證有足夠選項）
+  if (optionsStrategy !== "default" && wrongOptions.length < 3) {
+    wrongOptions = fillWithFallbackOptions(
+      wrongOptions,
+      correctAnswer,
+      correctType
+    );
   }
 
   // 組合並洗牌
@@ -87,7 +109,7 @@ export function generateSmartOptions(
  */
 function selectFromPool(candidates, count) {
   if (candidates.length === 0) return [];
-  
+
   const shuffled = shuffleArray([...candidates]);
   return shuffled.slice(0, count);
 }
@@ -107,8 +129,9 @@ function selectMixedOptions(localCandidates, globalCandidates, localRatio) {
   const combined = [...localOptions, ...globalOptions];
   if (combined.length < totalNeeded) {
     const remaining = totalNeeded - combined.length;
-    const allRemaining = [...localCandidates, ...globalCandidates]
-      .filter(option => !combined.includes(option));
+    const allRemaining = [...localCandidates, ...globalCandidates].filter(
+      (option) => !combined.includes(option)
+    );
     const additional = selectFromPool(allRemaining, remaining);
     combined.push(...additional);
   }
@@ -121,20 +144,19 @@ function selectMixedOptions(localCandidates, globalCandidates, localRatio) {
  */
 function fillWithFallbackOptions(existingOptions, correctAnswer, type) {
   const fallbackBanks = {
-    "名詞": ["書本", "手機", "電腦", "學校", "公園", "醫院", "車站", "商店"],
-    "動詞": ["學習", "工作", "休息", "運動", "旅遊", "購物", "聊天", "思考"],
-    "形容詞": ["美麗", "困難", "簡單", "有趣", "重要", "特別", "普通", "新的"],
-    "副詞": ["很", "非常", "完全", "幾乎", "總是", "從來", "經常", "偶爾"],
-    "其他": ["的", "是", "在", "有", "了", "和", "也", "但是"]
+    名詞: ["書本", "手機", "電腦", "學校", "公園", "醫院", "車站", "商店"],
+    動詞: ["學習", "工作", "休息", "運動", "旅遊", "購物", "聊天", "思考"],
+    形容詞: ["美麗", "困難", "簡單", "有趣", "重要", "特別", "普通", "新的"],
+    副詞: ["很", "非常", "完全", "幾乎", "總是", "從來", "經常", "偶爾"],
+    其他: ["的", "是", "在", "有", "了", "和", "也", "但是"],
   };
 
   const bank = fallbackBanks[type] || fallbackBanks["其他"];
   const needed = 3 - existingOptions.length;
-  
+
   const fallbackOptions = bank
-    .filter(option => 
-      option !== correctAnswer && 
-      !existingOptions.includes(option)
+    .filter(
+      (option) => option !== correctAnswer && !existingOptions.includes(option)
     )
     .slice(0, needed);
 
@@ -142,14 +164,66 @@ function fillWithFallbackOptions(existingOptions, correctAnswer, type) {
 }
 
 /**
+ * 生成預設選項（使用原本的固定選項池）
+ */
+function generateDefaultOptions(correctAnswer, type) {
+  const confusionBank = {
+    名詞: [
+      "英文",
+      "韓文",
+      "數學",
+      "書本",
+      "手機",
+      "電腦",
+      "學校",
+      "公園",
+      "醫院",
+      "車站",
+      "商店",
+    ],
+    動詞: [
+      "喝",
+      "看",
+      "寫",
+      "走路",
+      "飛",
+      "游泳",
+      "聽",
+      "學習",
+      "工作",
+      "休息",
+      "運動",
+    ],
+    形容詞: ["美麗", "困難", "簡單", "有趣", "重要", "特別", "普通", "新的"],
+    副詞: ["很", "非常", "完全", "幾乎", "總是", "從來", "經常", "偶爾"],
+    其他: ["的", "是", "在", "有", "了", "和", "也", "但是"],
+  };
+
+  let pool = confusionBank[type] || confusionBank["其他"];
+  let shuffled = shuffleArray([...pool]);
+
+  // 過濾掉正確答案，選 3 個混淆詞
+  let wrongOptions = shuffled
+    .filter((opt) => opt !== correctAnswer)
+    .slice(0, 3);
+
+  return wrongOptions;
+}
+
+/**
  * 為單字動態生成選項 - 主要入口函數
  * @param {Object} word - 要生成選項的單字
  * @param {Array} currentNotebookWords - 當前筆記本單字
- * @param {Array} allNotebookWords - 所有筆記本單字 
+ * @param {Array} allNotebookWords - 所有筆記本單字
  * @param {Object} strategy - 策略設定
  * @returns {Object} 返回帶有 options 的單字物件
  */
-export function addDynamicOptions(word, currentNotebookWords, allNotebookWords, strategy) {
+export function addDynamicOptions(
+  word,
+  currentNotebookWords,
+  allNotebookWords,
+  strategy
+) {
   if (!word || !word.ch_word) return word;
 
   const options = generateSmartOptions(
@@ -161,7 +235,7 @@ export function addDynamicOptions(word, currentNotebookWords, allNotebookWords, 
 
   return {
     ...word,
-    options
+    options,
   };
 }
 
@@ -174,7 +248,12 @@ export function addDynamicOptionsToQuestions(
   allNotebookWords,
   strategy
 ) {
-  return questions.map(question => 
-    addDynamicOptions(question, currentNotebookWords, allNotebookWords, strategy)
+  return questions.map((question) =>
+    addDynamicOptions(
+      question,
+      currentNotebookWords,
+      allNotebookWords,
+      strategy
+    )
   );
 }

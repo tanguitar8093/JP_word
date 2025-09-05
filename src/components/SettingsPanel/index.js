@@ -33,7 +33,7 @@ export default function SettingsPanel({
     playbackOptions,
     playbackSpeed,
     autoProceed,
-  gameSoundEffects,
+    gameSoundEffects,
     proficiencyFilter,
     startQuestionIndex,
     wordRangeCount,
@@ -623,6 +623,26 @@ export default function SettingsPanel({
                 <input
                   type="radio"
                   name="optionsStrategy"
+                  value="original"
+                  checked={optionsStrategy === "original"}
+                  onChange={(e) => dispatch(setOptionsStrategy(e.target.value))}
+                />
+                使用原始選項 (資料中的 options)
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="optionsStrategy"
+                  value="default"
+                  checked={optionsStrategy === "default"}
+                  onChange={(e) => dispatch(setOptionsStrategy(e.target.value))}
+                />
+                預設選項池 (固定干擾選項)
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="optionsStrategy"
                   value="local"
                   checked={optionsStrategy === "local"}
                   onChange={(e) => dispatch(setOptionsStrategy(e.target.value))}
@@ -667,7 +687,9 @@ export default function SettingsPanel({
                   dispatch(setMixedStrategyLocalRatio(Number(e.target.value)))
                 }
               />
-              <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+              <div
+                style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}
+              >
                 比例越高越著重本筆記本單字，越低挑戰性越大
               </div>
             </LabelGroup>

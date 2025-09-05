@@ -38,7 +38,8 @@ export const RESET_FILLIN_ADAPTIVE_STATS =
 
 // Options source strategy actions
 export const SET_OPTIONS_STRATEGY = "systemSettings/SET_OPTIONS_STRATEGY";
-export const SET_MIXED_STRATEGY_LOCAL_RATIO = "systemSettings/SET_MIXED_STRATEGY_LOCAL_RATIO";
+export const SET_MIXED_STRATEGY_LOCAL_RATIO =
+  "systemSettings/SET_MIXED_STRATEGY_LOCAL_RATIO";
 
 export const setWordType = (wordType) => ({
   type: SET_JP_WORD_TYPE,
