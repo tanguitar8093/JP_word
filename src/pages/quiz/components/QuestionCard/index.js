@@ -23,6 +23,8 @@ import {
   AnswerText,
   NextButton,
   SubCard,
+  ProficiencyControlsContainer,
+  TinyButton,
 } from "./styles";
 import ExampleSentence from "../ExampleSentence";
 
@@ -39,6 +41,13 @@ export default function QuestionCard({
   const q = questions[currentQuestionIndex];
 
   const [showHiragana, setShowHiragana] = useState(false);
+  const [isBug, setIsBug] = useState(() =>
+    question ? !!question.word_bug : false
+  );
+
+  useEffect(() => {
+    setIsBug(question ? !!question.word_bug : false);
+  }, [question?.id, question?.word_bug]);
 
   useEffect(() => {
     setShowHiragana(false);
@@ -66,7 +75,81 @@ export default function QuestionCard({
 
   return (
     <CardContainer>
-      {/* controls moved to top bar outside of card */}
+      {/* 熟練度控制 - 左上角 */}
+      {question && (
+        <ProficiencyControlsContainer>
+          <TinyButton
+            className={
+              (state.shared.pendingProficiencyUpdates[question.id] ||
+                question.proficiency) === 1
+                ? "active"
+                : ""
+            }
+            onClick={(e) => {
+              e.stopPropagation();
+              dispatch(updatePendingProficiency(question.id, 1));
+            }}
+            title="設為低熟練度"
+          >
+            低
+          </TinyButton>
+          <TinyButton
+            className={
+              (state.shared.pendingProficiencyUpdates[question.id] ||
+                question.proficiency) === 2
+                ? "active"
+                : ""
+            }
+            onClick={(e) => {
+              e.stopPropagation();
+              dispatch(updatePendingProficiency(question.id, 2));
+            }}
+            title="設為中熟練度"
+          >
+            中
+          </TinyButton>
+          <TinyButton
+            className={
+              (state.shared.pendingProficiencyUpdates[question.id] ||
+                question.proficiency) === 3
+                ? "active"
+                : ""
+            }
+            onClick={(e) => {
+              e.stopPropagation();
+              dispatch(updatePendingProficiency(question.id, 3));
+            }}
+            title="設為高熟練度"
+          >
+            高
+          </TinyButton>
+          <TinyButton
+            className={isBug ? "active" : ""}
+            onClick={async (e) => {
+              e.stopPropagation();
+              try {
+                const nbId = state.shared.currentNotebookId;
+                const newVal = !isBug;
+                setIsBug(newVal); // optimistic
+                await notebookService.updateWordInNotebook(nbId, question.id, {
+                  word_bug: newVal,
+                });
+                dispatch(
+                  updateWordInNotebook(nbId, question.id, {
+                    word_bug: newVal,
+                  })
+                );
+              } catch (e) {
+                console.error("toggle bug (QuestionCard) failed", e);
+                setIsBug((prev) => !prev); // revert on failure
+              }
+            }}
+            title="標記為錯誤/取消"
+          >
+            錯
+          </TinyButton>
+        </ProficiencyControlsContainer>
+      )}
 
       {wordType == "jp_word" && (
         <>

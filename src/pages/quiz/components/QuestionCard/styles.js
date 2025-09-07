@@ -17,6 +17,37 @@ export const CardContainer = styled.div`
   box-shadow: rgba(0, 0, 0, 0.08) 0px 8px 24px;
 `;
 
+export const ProficiencyControlsContainer = styled.div`
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  gap: 4px;
+  z-index: 10;
+`;
+
+export const TinyButton = styled.button`
+  padding: 2px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 11px;
+  line-height: 1.2;
+  min-width: 22px;
+
+  &:hover {
+    background-color: #e7e7e7;
+  }
+
+  &.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+  }
+`;
+
 export const ProficiencyBadge = styled.div`
   position: absolute;
   top: 8px;

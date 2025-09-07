@@ -1,4 +1,4 @@
-import styled, { keyframes, css } from 'styled-components';
+import styled, { keyframes, css } from "styled-components";
 
 export const ButtonContainer = styled.div`
   display: flex;
@@ -6,7 +6,7 @@ export const ButtonContainer = styled.div`
   gap: 0.5rem;
   width: 100%;
   max-width: 400px;
-  margin:5px;
+  margin: 5px;
 `;
 
 export const IconButton = styled.button`
@@ -19,8 +19,8 @@ export const IconButton = styled.button`
   cursor: pointer;
   user-select: none;
 
-  border: ${(props) => (props.round ? '2px solid #333' : '2px solid #333')};
-  border-radius: ${(props) => (props.round ? '50%' : '4px')};
+  border: ${(props) => (props.round ? "2px solid #333" : "2px solid #333")};
+  border-radius: ${(props) => (props.round ? "50%" : "4px")};
 
   background: #fff;
   transition: background-color 0.2s, transform 0.1s;

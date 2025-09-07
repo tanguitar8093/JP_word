@@ -34,20 +34,9 @@ import notebookService from "../../../../services/notebookService";
 import { setCurrentNotebook } from "../../../../store/reducer/actions";
 
 import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actions"; // Import commitPendingProficiencyUpdates
-import {
-  updatePendingProficiency,
-  updateWordInNotebook,
-} from "../../../../store/reducer/actions";
 
 // Import moved styles
-import {
-  IconContainer,
-  IconGroup,
-  HomeIcon,
-  TopBar,
-  RightPanel,
-  TinyButton,
-} from "./styles";
+import { IconContainer, IconGroup, HomeIcon } from "./styles";
 
 // The actual UI component that consumes the context
 // (imports moved to top to satisfy eslint import/first)
@@ -85,14 +74,6 @@ function QuizContent() {
   } = state.systemSettings;
   const { notebooks, currentNotebookId } = state.shared;
   const question = questions[currentQuestionIndex];
-
-  // Local bug flag for optimistic UI
-  const [isBug, setIsBug] = useState(() =>
-    question ? !!question.word_bug : false
-  );
-  useEffect(() => {
-    setIsBug(question ? !!question.word_bug : false);
-  }, [question?.id, question?.word_bug]);
 
   const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
   const notebookName = currentNotebook ? currentNotebook.name : "";
@@ -183,93 +164,16 @@ function QuizContent() {
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
 
-      {/* Top bar: left recorder, right proficiency/bug panel */}
-      <TopBar>
-        <div style={{ display: "flex", justifyContent: "flex-start" }}>
-          <AudioRecorderPage triggerReset={currentQuestionIndex} />
-        </div>
-        {/* Right-side controls for current question */}
-        {question && (
-          <RightPanel>
-            {/* Proficiency */}
-            <TinyButton
-              className={
-                (state.shared.pendingProficiencyUpdates[question.id] ||
-                  question.proficiency) === 1
-                  ? "active"
-                  : ""
-              }
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch(updatePendingProficiency(question.id, 1));
-              }}
-              title="設為低熟練度"
-            >
-              低
-            </TinyButton>
-            <TinyButton
-              className={
-                (state.shared.pendingProficiencyUpdates[question.id] ||
-                  question.proficiency) === 2
-                  ? "active"
-                  : ""
-              }
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch(updatePendingProficiency(question.id, 2));
-              }}
-              title="設為中熟練度"
-            >
-              中
-            </TinyButton>
-            <TinyButton
-              className={
-                (state.shared.pendingProficiencyUpdates[question.id] ||
-                  question.proficiency) === 3
-                  ? "active"
-                  : ""
-              }
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch(updatePendingProficiency(question.id, 3));
-              }}
-              title="設為高熟練度"
-            >
-              高
-            </TinyButton>
-            {/* Bug toggle */}
-            <TinyButton
-              className={isBug ? "active" : ""}
-              onClick={async (e) => {
-                e.stopPropagation();
-                try {
-                  const nbId = state.shared.currentNotebookId;
-                  const newVal = !isBug;
-                  setIsBug(newVal); // optimistic
-                  await notebookService.updateWordInNotebook(
-                    nbId,
-                    question.id,
-                    {
-                      word_bug: newVal,
-                    }
-                  );
-                  dispatch(
-                    updateWordInNotebook(nbId, question.id, {
-                      word_bug: newVal,
-                    })
-                  );
-                } catch (e) {
-                  console.error("toggle bug (Quiz) failed", e);
-                  setIsBug((prev) => !prev); // revert
-                }
-              }}
-              title="標記為錯誤/取消"
-            >
-              錯
-            </TinyButton>
-          </RightPanel>
-        )}
-      </TopBar>
+      {/* 錄音元件 - 靠左 */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-start",
+          marginBottom: "12px",
+        }}
+      >
+        <AudioRecorderPage triggerReset={currentQuestionIndex} />
+      </div>
 
       <QuestionCard
         speakManually={speakManually}

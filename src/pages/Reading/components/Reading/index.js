@@ -24,24 +24,11 @@ import {
   startQuiz,
 } from "../../../quiz/reducer/actions"; // Import quiz actions
 
-import {
-  commitPendingProficiencyUpdates,
-  updatePendingProficiency,
-  updateWordInNotebook,
-} from "../../../../store/reducer/actions"; // actions for proficiency and word updates
+import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actions"; // actions for proficiency and word updates
 import quizProgressService from "../../../../services/quizProgressService";
-import notebookService from "../../../../services/notebookService";
 
 // Import moved styles
-import {
-  IconContainer,
-  IconGroup,
-  HomeIcon,
-  TopBar,
-  RightPanel,
-  TinyButton,
-  MinimalistButton,
-} from "./styles";
+import { IconContainer, IconGroup, HomeIcon, MinimalistButton } from "./styles";
 
 const proficiencyMap = {
   1: "低",
@@ -84,14 +71,6 @@ function QuizContent() {
   } = state.systemSettings;
   const { notebooks, currentNotebookId } = state.shared;
   const question = questions[currentQuestionIndex];
-
-  // Local bug flag for optimistic UI
-  const [isBug, setIsBug] = useState(() =>
-    question ? !!question.word_bug : false
-  );
-  useEffect(() => {
-    setIsBug(question ? !!question.word_bug : false);
-  }, [question?.id, question?.word_bug]);
 
   const currentNotebook = notebooks.find((n) => n.id === currentNotebookId);
   const notebookName = currentNotebook ? currentNotebook.name : "";
@@ -398,96 +377,19 @@ function QuizContent() {
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
 
-      {/* Top bar: left recorder, right proficiency/bug panel */}
-      <TopBar>
-        <div style={{ display: "flex", justifyContent: "flex-start" }}>
-          <AudioRecorderPage
-            ref={readingStudyMode === "auto" ? recorderRef : undefined}
-            triggerReset={currentQuestionIndex}
-          />
-        </div>
-        {/* Right-side controls for current question */}
-        {question && (
-          <RightPanel>
-            {/* Proficiency */}
-            <TinyButton
-              className={
-                (state.shared.pendingProficiencyUpdates[question.id] ||
-                  question.proficiency) === 1
-                  ? "active"
-                  : ""
-              }
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch(updatePendingProficiency(question.id, 1));
-              }}
-              title="設為低熟練度"
-            >
-              低
-            </TinyButton>
-            <TinyButton
-              className={
-                (state.shared.pendingProficiencyUpdates[question.id] ||
-                  question.proficiency) === 2
-                  ? "active"
-                  : ""
-              }
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch(updatePendingProficiency(question.id, 2));
-              }}
-              title="設為中熟練度"
-            >
-              中
-            </TinyButton>
-            <TinyButton
-              className={
-                (state.shared.pendingProficiencyUpdates[question.id] ||
-                  question.proficiency) === 3
-                  ? "active"
-                  : ""
-              }
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch(updatePendingProficiency(question.id, 3));
-              }}
-              title="設為高熟練度"
-            >
-              高
-            </TinyButton>
-            {/* Bug toggle */}
-            <TinyButton
-              className={isBug ? "active" : ""}
-              onClick={async (e) => {
-                e.stopPropagation();
-                try {
-                  const nbId = state.shared.currentNotebookId;
-                  const newVal = !isBug;
-                  setIsBug(newVal); // optimistic
-                  await notebookService.updateWordInNotebook(
-                    nbId,
-                    question.id,
-                    {
-                      word_bug: newVal,
-                    }
-                  );
-                  dispatch(
-                    updateWordInNotebook(nbId, question.id, {
-                      word_bug: newVal,
-                    })
-                  );
-                } catch (e) {
-                  console.error("toggle bug (Reading) failed", e);
-                  setIsBug((prev) => !prev); // revert on failure
-                }
-              }}
-              title="標記為錯誤/取消"
-            >
-              錯
-            </TinyButton>
-          </RightPanel>
-        )}
-      </TopBar>
+      {/* 錄音元件 - 靠左 */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-start",
+          marginBottom: "12px",
+        }}
+      >
+        <AudioRecorderPage
+          ref={readingStudyMode === "auto" ? recorderRef : undefined}
+          triggerReset={currentQuestionIndex}
+        />
+      </div>
 
       {readingStudyMode === "auto" && !isAutoPlayActive && (
         <MinimalistButton onClick={handleStartAutoPlay}>

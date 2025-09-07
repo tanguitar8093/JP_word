@@ -27,26 +27,11 @@ import readingProgressService from "../../../../services/readingProgressService"
 import fillinProgressService from "../../../../services/fillinProgressService";
 import StatisticsPage from "../StatisticsPage";
 import AudioRecorderPage from "../../../AudioRecorder";
-import {
-  commitPendingProficiencyUpdates,
-  updateWordInNotebook,
-} from "../../../../store/reducer/actions";
+import { commitPendingProficiencyUpdates } from "../../../../store/reducer/actions";
 import notebookService from "../../../../services/notebookService";
 import { setCurrentNotebook } from "../../../../store/reducer/actions";
-import { updatePendingProficiency } from "../../../../store/reducer/actions"; // 新增：更新熟練度（pending）
-import {
-  ProficiencyControlContainer as StatProficiencyControlContainer,
-  ProficiencyButton as StatProficiencyButton,
-} from "../StatisticsPage/styles"; // 新增：沿用統計頁面的熟練度樣式（非絕對定位）
 
-import {
-  IconContainer,
-  IconGroup,
-  HomeIcon,
-  TopBar,
-  RightPanel,
-  TinyButton,
-} from "./styles";
+import { IconContainer, IconGroup, HomeIcon } from "./styles";
 
 const proficiencyMap = { 1: "低", 2: "中", 3: "高" };
 const sortOrderMap = { random: "隨機", aiueo: "あいうえお", none: "預設" };
@@ -58,7 +43,6 @@ function Content() {
   const navigate = useNavigate();
   const [result, setResult] = useState(null); // '⭕' | '❌' | null
   const [selectedAnswer, setSelectedAnswer] = useState("");
-  const [isBug, setIsBug] = useState(false);
 
   const { state, dispatch } = useApp();
   const { questions, currentQuestionIndex } = state.quiz;
@@ -129,10 +113,6 @@ function Content() {
       speakManually(question.jp_word, "ja");
     }
   }, [question, speakManually]);
-
-  useEffect(() => {
-    setIsBug(question ? !!question.word_bug : false);
-  }, [question?.id, question?.word_bug]);
 
   // 清理狀態於題目切換
   useEffect(() => {
@@ -254,79 +234,16 @@ function Content() {
         第 {currentQuestionIndex + 1} 題 / 共 {questions.length} 題
       </Progress>
 
-      {/* Top bar: left recorder, right proficiency/bug panel */}
-      <TopBar>
-        <div style={{ display: "flex", justifyContent: "flex-start" }}>
-          <AudioRecorderPage triggerReset={currentQuestionIndex} />
-        </div>
-        {question && (
-          <RightPanel>
-            <TinyButton
-              className={
-                (state.shared.pendingProficiencyUpdates[question.id] ||
-                  question.proficiency) === 1
-                  ? "active"
-                  : ""
-              }
-              onClick={() => dispatch(updatePendingProficiency(question.id, 1))}
-              title="設為低熟練度"
-            >
-              低
-            </TinyButton>
-            <TinyButton
-              className={
-                (state.shared.pendingProficiencyUpdates[question.id] ||
-                  question.proficiency) === 2
-                  ? "active"
-                  : ""
-              }
-              onClick={() => dispatch(updatePendingProficiency(question.id, 2))}
-              title="設為中熟練度"
-            >
-              中
-            </TinyButton>
-            <TinyButton
-              className={
-                (state.shared.pendingProficiencyUpdates[question.id] ||
-                  question.proficiency) === 3
-                  ? "active"
-                  : ""
-              }
-              onClick={() => dispatch(updatePendingProficiency(question.id, 3))}
-              title="設為高熟練度"
-            >
-              高
-            </TinyButton>
-            <TinyButton
-              className={isBug ? "active" : ""}
-              onClick={async () => {
-                try {
-                  const newVal = !isBug;
-                  setIsBug(newVal);
-                  await notebookService.updateWordInNotebook(
-                    state.shared.currentNotebookId,
-                    question.id,
-                    { word_bug: newVal }
-                  );
-                  dispatch(
-                    updateWordInNotebook(
-                      state.shared.currentNotebookId,
-                      question.id,
-                      { word_bug: newVal }
-                    )
-                  );
-                } catch (e) {
-                  console.error("toggle bug (FillIn top bar) failed", e);
-                  setIsBug((prev) => !prev);
-                }
-              }}
-              title="標記為錯誤/取消"
-            >
-              錯
-            </TinyButton>
-          </RightPanel>
-        )}
-      </TopBar>
+      {/* 錄音元件 - 靠左 */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-start",
+          marginBottom: "12px",
+        }}
+      >
+        <AudioRecorderPage triggerReset={currentQuestionIndex} />
+      </div>
 
       {!result && (
         <FillInQuestionCard
