@@ -299,6 +299,8 @@ export default function WordTest() {
     });
     const uniqStudied = uniqueByWordKey(studiedItems);
     if (uniqStudied.length <= config.max_word_study) return uniqStudied;
+
+    // 按學習度分組，從最低學習度開始選，不夠的話繼續往上找
     const groups = new Map();
     for (const w of uniqStudied) {
       const s = getStudyValue(w);
@@ -307,14 +309,20 @@ export default function WordTest() {
     }
     const keys = Array.from(groups.keys()).sort((a, b) => a - b);
     const picked = [];
+
+    // 從最低學習度開始，逐個學習度遍歷，直到湊滿 max_word_study 或遍歷完所有學習度
     for (const k of keys) {
       const arr = shuffleArray(groups.get(k));
       for (const w of arr) {
         picked.push(w);
-        if (picked.length >= config.max_word_study) return picked;
+        if (picked.length >= config.max_word_study) {
+          return picked; // 湊滿了就返回
+        }
       }
+      // 當前學習度的單字用完了，繼續下一個學習度
     }
-    return picked;
+
+    return picked; // 所有學習度遍歷完畢，返回所有找到的單字
   }, [
     currentNotebook,
     config.max_word_study,
