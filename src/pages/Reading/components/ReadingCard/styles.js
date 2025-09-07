@@ -102,7 +102,7 @@ export const WordContainer = styled.div`
   gap: 8px;
   font-size: 30px;
   justify-content: center;
-  margin-top: 10px;
+  margin-top: 20px;
 `;
 
 export const SpeakButton = styled.span`
