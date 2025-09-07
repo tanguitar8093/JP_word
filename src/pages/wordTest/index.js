@@ -209,25 +209,67 @@ export default function WordTest() {
 
   const [config, setConfig] = useState(defaultConfig);
   // Stage: 'new' | 'review' | 'test' | 'wrong'
-  const [stage, setStage] = useState("new");
-  const [restored, setRestored] = useState(false);
-  const [attemptedRestore, setAttemptedRestore] = useState(false);
+  // 統一狀態管理 - 合併所有分散的狀態到一個結構中
+  const [testState, setTestState] = useState({
+    stage: "new",
+    restored: false,
+    attemptedRestore: false,
+    sessionPool: new Set(),
+    wrongSet: new Set(),
+    round: 0,
+    wordIndex: 0,
+    sliceIds: [],
+    currentQueue: [],
+    queueIdx: 0,
+    memorySet: new Set(),
+    visitedSet: new Set(),
+    sessionDone: false,
+    isAnswerVisible: false,
+    showHiragana: false,
+  });
 
   const currentNotebook = useMemo(
     () => notebooks.find((n) => n.id === currentNotebookId),
     [notebooks, currentNotebookId]
   );
 
-  // Pools for Stage 3/4
-  const [sessionPool, setSessionPool] = useState(() => new Set()); // union of learned ids in stage 1+2
-  const [wrongSet, setWrongSet] = useState(() => new Set()); // wrong ids collected in Stage 3
+  // 狀態更新函數 - 確保同步更新並保存到 localStorage
+  const updateTestState = useCallback(
+    (updates) => {
+      setTestState((prev) => {
+        const newState = { ...prev, ...updates };
+        // 自動保存到 localStorage (但排除一些瞬時狀態)
+        const stateToSave = {
+          ...newState,
+          sessionPool: Array.from(newState.sessionPool),
+          wrongSet: Array.from(newState.wrongSet),
+          memorySet: Array.from(newState.memorySet),
+          visitedSet: Array.from(newState.visitedSet),
+        };
+        if (currentNotebookId && !newState.sessionDone) {
+          try {
+            notebookService.updateNotebookWordTest(currentNotebookId, {
+              ...stateToSave,
+              config,
+              schemaVersion: 4,
+              savedAt: Date.now(),
+            });
+          } catch (e) {
+            console.warn("Failed to save word test state:", e);
+          }
+        }
+        return newState;
+      });
+    },
+    [currentNotebookId, config]
+  );
 
   const eligibleWords = useMemo(() => {
     const ctx =
       currentNotebook && Array.isArray(currentNotebook.context)
         ? currentNotebook.context
         : [];
-    if (stage === "new") {
+    if (testState.stage === "new") {
       const filtered = ctx.filter((w) => {
         if (!w || !w.jp_word) return false;
         return getStudyValue(w) === 0; // treat null/undefined/NaN as 0
@@ -268,35 +310,40 @@ export default function WordTest() {
       }
     }
     return picked;
-  }, [currentNotebook, config.max_word_study, config.review_interval, stage]);
+  }, [
+    currentNotebook,
+    config.max_word_study,
+    config.review_interval,
+    testState.stage,
+  ]);
 
   const testWords = useMemo(() => {
-    if (stage !== "test") return [];
+    if (testState.stage !== "test") return [];
     const ctx =
       currentNotebook && Array.isArray(currentNotebook.context)
         ? currentNotebook.context
         : [];
-    const allowed = new Set(sessionPool);
+    const allowed = new Set(testState.sessionPool);
     const arr = ctx.filter((w) => allowed.has(w.id));
     return uniqueByWordKey(arr).slice();
-  }, [stage, sessionPool, currentNotebook]);
+  }, [testState.stage, testState.sessionPool, currentNotebook]);
 
   const wrongWords = useMemo(() => {
-    if (stage !== "wrong") return [];
+    if (testState.stage !== "wrong") return [];
     const ctx =
       currentNotebook && Array.isArray(currentNotebook.context)
         ? currentNotebook.context
         : [];
-    const allowed = new Set(wrongSet);
+    const allowed = new Set(testState.wrongSet);
     const arr = ctx.filter((w) => allowed.has(w.id));
     return uniqueByWordKey(arr).slice();
-  }, [stage, wrongSet, currentNotebook]);
+  }, [testState.stage, testState.wrongSet, currentNotebook]);
 
   // Build a map for lookup and a default order
   const pageWords =
-    stage === "test"
+    testState.stage === "test"
       ? testWords
-      : stage === "wrong"
+      : testState.stage === "wrong"
       ? wrongWords
       : eligibleWords;
   const byId = useMemo(
@@ -326,8 +373,6 @@ export default function WordTest() {
     }
   }, [overrideAllIds, allIds.length, defaultAllIds.length]);
 
-  const [round, setRound] = useState(0);
-  const [wordIndex, setWordIndex] = useState(0);
   const slicesCount = useMemo(
     () => Math.ceil(allIds.length / Math.max(1, config.slice_length)),
     [allIds.length, config.slice_length]
@@ -336,15 +381,10 @@ export default function WordTest() {
     () =>
       allIds.length === 0
         ? 0
-        : Math.floor(wordIndex / Math.max(1, config.slice_length)) + 1,
-    [wordIndex, allIds.length, config.slice_length]
+        : Math.floor(testState.wordIndex / Math.max(1, config.slice_length)) +
+          1,
+    [testState.wordIndex, allIds.length, config.slice_length]
   );
-
-  const [sliceIds, setSliceIds] = useState([]);
-  const [currentQueue, setCurrentQueue] = useState([]);
-  const [queueIdx, setQueueIdx] = useState(0);
-  const [memorySet, setMemorySet] = useState(() => new Set());
-  const [visitedSet, setVisitedSet] = useState(() => new Set());
 
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
@@ -356,28 +396,29 @@ export default function WordTest() {
   const [draftConfig, setDraftConfig] = useState(defaultConfig);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [clearing, setClearing] = useState(false);
-  const [showHiragana, setShowHiragana] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [isAnswerVisible, setIsAnswerVisible] = useState(false);
-  // Prevent re-triggering end-of-session logic once finished
-  const [sessionDone, setSessionDone] = useState(false);
 
   // switch stage helper (reset state and re-attempt restore)
-  const switchStage = useCallback((nextStage) => {
-    setStage(nextStage);
-    setRestored(false);
-    setAttemptedRestore(false);
-    setRound(0);
-    setWordIndex(0);
-    setSliceIds([]);
-    setCurrentQueue([]);
-    setQueueIdx(0);
-    setMemorySet(new Set());
-    setVisitedSet(new Set());
-    setOverrideAllIds(null);
-    setIsAnswerVisible(false);
-    setSessionDone(false);
-  }, []);
+  const switchStage = useCallback(
+    (nextStage) => {
+      updateTestState({
+        stage: nextStage,
+        restored: false,
+        attemptedRestore: false,
+        round: 0,
+        wordIndex: 0,
+        sliceIds: [],
+        currentQueue: [],
+        queueIdx: 0,
+        memorySet: new Set(),
+        visitedSet: new Set(),
+        isAnswerVisible: false,
+        sessionDone: false,
+      });
+      setOverrideAllIds(null);
+    },
+    [updateTestState]
+  );
 
   const handleClearAllStudy = useCallback(async () => {
     if (!currentNotebookId || !currentNotebook) return;
@@ -414,34 +455,49 @@ export default function WordTest() {
         start + Math.max(1, config.slice_length)
       );
       const ids = Array.from(new Set(idsOrder.slice(start, end)));
-      setSliceIds(ids);
-      setMemorySet(new Set());
-      setCurrentQueue(shuffleArray(ids));
-      setQueueIdx(0);
+      updateTestState({
+        sliceIds: ids,
+        memorySet: new Set(),
+        currentQueue: shuffleArray(ids),
+        queueIdx: 0,
+      });
     },
-    [allIds, config.slice_length]
+    [allIds, config.slice_length, updateTestState]
   );
 
   useEffect(() => {
-    if (!attemptedRestore) return; // wait until restore attempt completes
-    if (restored) return; // skip auto-reset if we've restored a session
-    setRound(0);
-    setWordIndex(0);
-    setVisitedSet(new Set());
+    if (!testState.attemptedRestore) return; // wait until restore attempt completes
+    if (testState.restored) return; // skip auto-reset if we've restored a session
+    updateTestState({
+      round: 0,
+      wordIndex: 0,
+      visitedSet: new Set(),
+    });
     loadSlice(0, allIds);
-  }, [allIds, loadSlice, restored, attemptedRestore]);
+  }, [
+    allIds,
+    loadSlice,
+    testState.restored,
+    testState.attemptedRestore,
+    updateTestState,
+  ]);
 
   useEffect(() => {
     if (
       allIds.length > 0 &&
-      sliceIds.length === 0 &&
-      currentQueue.length === 0
+      testState.sliceIds.length === 0 &&
+      testState.currentQueue.length === 0
     ) {
       loadSlice(0, allIds);
     }
-  }, [allIds, sliceIds.length, currentQueue.length, loadSlice]);
+  }, [
+    allIds,
+    testState.sliceIds.length,
+    testState.currentQueue.length,
+    loadSlice,
+  ]);
 
-  const currentId = currentQueue[queueIdx];
+  const currentId = testState.currentQueue[testState.queueIdx];
   const currentWord = byId.get(currentId);
 
   const { playSequence } = useAnswerPlayback({
@@ -474,63 +530,85 @@ export default function WordTest() {
 
   const onRemember = useCallback(() => {
     if (!currentId) return;
-    setIsAnswerVisible(false);
-    setVisitedSet((prev) => new Set(prev).add(currentId));
-    if (stage === "new" || stage === "review") {
-      setMemorySet((prev) => new Set(prev).add(currentId));
-    } else if (stage === "wrong") {
+
+    const newVisitedSet = new Set(testState.visitedSet).add(currentId);
+    let newMemorySet = new Set(testState.memorySet);
+    let newWrongSet = new Set(testState.wrongSet);
+
+    if (testState.stage === "new" || testState.stage === "review") {
+      newMemorySet.add(currentId);
+    } else if (testState.stage === "wrong") {
       // mark learned and remove from wrong set
-      setMemorySet((prev) => new Set(prev).add(currentId));
-      setWrongSet((prev) => {
-        const n = new Set(prev);
-        n.delete(currentId);
-        return n;
-      });
-    } else {
-      // test: only record answered
+      newMemorySet.add(currentId);
+      newWrongSet.delete(currentId);
     }
-    setQueueIdx((i) => i + 1);
-  }, [currentId, stage]);
+
+    updateTestState({
+      isAnswerVisible: false,
+      visitedSet: newVisitedSet,
+      memorySet: newMemorySet,
+      wrongSet: newWrongSet,
+      queueIdx: testState.queueIdx + 1,
+    });
+  }, [currentId, testState, updateTestState]);
 
   const onNotYet = useCallback(() => {
     if (!currentId) return;
-    setIsAnswerVisible(false);
-    setVisitedSet((prev) => new Set(prev).add(currentId));
-    if (stage === "test") {
-      setWrongSet((prev) => new Set(prev).add(currentId));
+
+    const newVisitedSet = new Set(testState.visitedSet).add(currentId);
+    let newWrongSet = new Set(testState.wrongSet);
+
+    if (testState.stage === "test") {
+      newWrongSet.add(currentId);
     }
-    setQueueIdx((i) => i + 1);
-  }, [currentId, stage]);
+
+    updateTestState({
+      isAnswerVisible: false,
+      visitedSet: newVisitedSet,
+      wrongSet: newWrongSet,
+      queueIdx: testState.queueIdx + 1,
+    });
+  }, [currentId, testState, updateTestState]);
 
   // After revealing the answer, speak according to settings (same as Reading page)
   useEffect(() => {
-    if (!isAnswerVisible) return;
+    if (!testState.isAnswerVisible) return;
     if (!currentWord) return;
     playSequence(null, currentWord, playbackOptions, { skipSound: true });
-  }, [isAnswerVisible, currentId, currentWord, playSequence, playbackOptions]);
+  }, [
+    testState.isAnswerVisible,
+    currentId,
+    currentWord,
+    playSequence,
+    playbackOptions,
+  ]);
 
   useEffect(() => {
     // Stop any further progression once the session is finished
-    if (sessionDone) return;
-    if (queueIdx < currentQueue.length) return;
-    if (currentQueue.length === 0 && sliceIds.length === 0) return;
+    if (testState.sessionDone) return;
+    if (testState.queueIdx < testState.currentQueue.length) return;
+    if (testState.currentQueue.length === 0 && testState.sliceIds.length === 0)
+      return;
 
-    if (stage === "test") {
+    if (testState.stage === "test") {
       // Present each exactly once; go to next slice or switch to wrong/finish
-      const hasNextSlice = wordIndex + config.slice_length < allIds.length;
+      const hasNextSlice =
+        testState.wordIndex + config.slice_length < allIds.length;
       if (hasNextSlice) {
-        const nextStart = wordIndex + config.slice_length;
-        setWordIndex(nextStart);
+        const nextStart = testState.wordIndex + config.slice_length;
+        updateTestState({ wordIndex: nextStart });
         loadSlice(nextStart, allIds);
       } else {
-        if (wrongSet.size > 0) {
+        if (testState.wrongSet.size > 0) {
           // move to wrong practice
           switchStage("wrong");
         } else {
-          setSessionDone(true);
-          setSliceIds([]);
-          setCurrentQueue([]);
-          setQueueIdx(0);
+          updateTestState({
+            sessionDone: true,
+            sliceIds: [],
+            currentQueue: [],
+            queueIdx: 0,
+          });
           setFinishMessage("測試完成！全部記住了。返回首頁？");
           setShowFinishModal(true);
         }
@@ -539,60 +617,78 @@ export default function WordTest() {
     }
 
     // Wrong practice: repeat until all wrong remembered; then finish
-    if (stage === "wrong") {
-      const allCoveredWrong = sliceIds.every((id) => memorySet.has(id));
+    if (testState.stage === "wrong") {
+      const allCoveredWrong = testState.sliceIds.every((id) =>
+        testState.memorySet.has(id)
+      );
       if (allCoveredWrong) {
-        const hasNextSlice = wordIndex + config.slice_length < allIds.length;
+        const hasNextSlice =
+          testState.wordIndex + config.slice_length < allIds.length;
         if (hasNextSlice) {
-          const nextStart = wordIndex + config.slice_length;
-          setWordIndex(nextStart);
+          const nextStart = testState.wordIndex + config.slice_length;
+          updateTestState({ wordIndex: nextStart });
           loadSlice(nextStart, allIds);
         } else {
           // If wrongSet still has items (shouldn't if remembered), just reshuffle remaining
-          if (wrongSet.size > 0) {
-            const remaining = allIds.filter((id) => !memorySet.has(id));
+          if (testState.wrongSet.size > 0) {
+            const remaining = allIds.filter(
+              (id) => !testState.memorySet.has(id)
+            );
             if (remaining.length > 0) {
-              setSliceIds(remaining);
-              setCurrentQueue(remaining);
-              setQueueIdx(0);
+              updateTestState({
+                sliceIds: remaining,
+                currentQueue: remaining,
+                queueIdx: 0,
+              });
               return;
             }
           }
-          setSessionDone(true);
-          setSliceIds([]);
-          setCurrentQueue([]);
-          setQueueIdx(0);
+          updateTestState({
+            sessionDone: true,
+            sliceIds: [],
+            currentQueue: [],
+            queueIdx: 0,
+          });
           setFinishMessage("錯題練習完成！測試全對。返回首頁？");
           setShowFinishModal(true);
         }
       } else {
-        const pending = sliceIds.filter((id) => !memorySet.has(id));
-        setCurrentQueue(pending);
-        setQueueIdx(0);
+        const pending = testState.sliceIds.filter(
+          (id) => !testState.memorySet.has(id)
+        );
+        updateTestState({
+          currentQueue: pending,
+          queueIdx: 0,
+        });
       }
       return;
     }
 
-    const allCovered = sliceIds.every((id) => memorySet.has(id));
+    const allCovered = testState.sliceIds.every((id) =>
+      testState.memorySet.has(id)
+    );
     if (allCovered) {
-      const hasNextSlice = wordIndex + config.slice_length < allIds.length;
+      const hasNextSlice =
+        testState.wordIndex + config.slice_length < allIds.length;
       if (hasNextSlice) {
-        const nextStart = wordIndex + config.slice_length;
-        setWordIndex(nextStart);
+        const nextStart = testState.wordIndex + config.slice_length;
+        updateTestState({ wordIndex: nextStart });
         loadSlice(nextStart, allIds);
       } else {
-        const nextRound = round + 1;
-        setRound(nextRound);
+        const nextRound = testState.round + 1;
+        updateTestState({ round: nextRound });
         if (nextRound >= config.round_count) {
           // Mark as finished and clear queues to avoid the effect firing again
-          setSessionDone(true);
-          setSliceIds([]);
-          setCurrentQueue([]);
-          setQueueIdx(0);
+          updateTestState({
+            sessionDone: true,
+            sliceIds: [],
+            currentQueue: [],
+            queueIdx: 0,
+          });
           (async () => {
             try {
               const nbId = currentNotebookId;
-              for (const id of Array.from(visitedSet)) {
+              for (const id of Array.from(testState.visitedSet)) {
                 const word = byId.get(id);
                 if (!word) continue;
                 const base = getStudyValue(word);
@@ -610,11 +706,11 @@ export default function WordTest() {
                 );
               }
               // add visited words to session pool for Stage 3 testing
-              setSessionPool((prev) => {
-                const n = new Set(prev);
-                for (const id of Array.from(visitedSet)) n.add(id);
-                return n;
-              });
+              const newSessionPool = new Set(testState.sessionPool);
+              for (const id of Array.from(testState.visitedSet))
+                newSessionPool.add(id);
+              updateTestState({ sessionPool: newSessionPool });
+
               setFinishMessage("完成！本次有作答的單字已 +1。返回首頁？");
               setShowFinishModal(true);
             } catch (e) {
@@ -626,53 +722,60 @@ export default function WordTest() {
           const reshuffled = shuffleArray(allIds);
           // Ensure the entire new round uses the same order for all slices
           setOverrideAllIds(reshuffled);
-          setWordIndex(0);
-          setSliceIds([]);
-          setCurrentQueue([]);
-          setQueueIdx(0);
-          setMemorySet(new Set());
+          updateTestState({
+            wordIndex: 0,
+            sliceIds: [],
+            currentQueue: [],
+            queueIdx: 0,
+            memorySet: new Set(),
+          });
           setTimeout(() => loadSlice(0, reshuffled), 0);
         }
       }
       return;
     }
 
-    const pending = sliceIds.filter((id) => !memorySet.has(id));
-    setCurrentQueue(pending);
-    setQueueIdx(0);
+    const pending = testState.sliceIds.filter(
+      (id) => !testState.memorySet.has(id)
+    );
+    updateTestState({
+      currentQueue: pending,
+      queueIdx: 0,
+    });
   }, [
-    queueIdx,
-    currentQueue.length,
-    sliceIds,
-    memorySet,
-    wordIndex,
+    testState.queueIdx,
+    testState.currentQueue.length,
+    testState.sliceIds,
+    testState.memorySet,
+    testState.wordIndex,
     allIds,
     config.slice_length,
-    round,
+    testState.round,
     config.round_count,
     currentNotebookId,
     byId,
     dispatch,
     loadSlice,
-    visitedSet,
-    sessionDone,
-    stage,
-    wrongSet,
+    testState.visitedSet,
+    testState.sessionDone,
+    testState.stage,
+    testState.wrongSet,
     switchStage,
+    updateTestState,
   ]);
 
   const progressText = useMemo(() => {
-    const inSliceTotal = sliceIds.length;
-    const inSliceDone = Math.min(queueIdx, inSliceTotal);
+    const inSliceTotal = testState.sliceIds.length;
+    const inSliceDone = Math.min(testState.queueIdx, inSliceTotal);
     return `第 ${currentSliceNo}/${slicesCount} 片 · 題目 ${inSliceDone}/${inSliceTotal} · 輪次 ${
-      round + 1
+      testState.round + 1
     }/${config.round_count}`;
   }, [
-    queueIdx,
-    sliceIds.length,
+    testState.queueIdx,
+    testState.sliceIds.length,
     currentSliceNo,
     slicesCount,
-    round,
+    testState.round,
     config.round_count,
   ]);
 
@@ -690,106 +793,69 @@ export default function WordTest() {
       }
     } catch (_) {}
     setShowFinishModal(false);
-    setSessionDone(false);
     navigate("/");
   }, [currentNotebookId, navigate]);
 
   // Attempt to restore saved WordTest progress from the notebook
   useEffect(() => {
     if (!currentNotebookId) return;
-    if (attemptedRestore || restored) return;
+    if (testState.attemptedRestore || testState.restored) return;
     try {
       const nb = notebookService.getNotebook(currentNotebookId);
       const saved = nb && nb.word_test;
       if (!saved || typeof saved !== "object") {
-        setAttemptedRestore(true);
+        updateTestState({ attemptedRestore: true });
         return;
       }
-      if (
-        saved.schemaVersion !== 1 &&
-        saved.schemaVersion !== 2 &&
-        saved.schemaVersion !== 3
-      ) {
-        setAttemptedRestore(true);
+      if (saved.schemaVersion !== 4) {
+        // 舊版本格式，清理後重新開始
+        try {
+          notebookService.updateNotebookWordTest(currentNotebookId, null);
+        } catch (_) {}
+        updateTestState({ attemptedRestore: true });
         return;
       }
       const savedStage = saved.stage || "new";
-      if (savedStage !== stage) {
-        setAttemptedRestore(true);
+      if (savedStage !== testState.stage) {
+        updateTestState({ attemptedRestore: true });
         return;
       }
-      // Align config if needed, and honor saved order to avoid shuffle mismatches
+
+      // 恢復配置和順序
       if (saved.config) setConfig(saved.config);
       if (Array.isArray(saved.allIds) && saved.allIds.length > 0) {
         setOverrideAllIds(saved.allIds);
       }
-      if (Array.isArray(saved.sessionPool))
-        setSessionPool(new Set(saved.sessionPool));
-      if (Array.isArray(saved.wrongSet)) setWrongSet(new Set(saved.wrongSet));
-      setRound(saved.round || 0);
-      setWordIndex(saved.wordIndex || 0);
-      setSliceIds(saved.sliceIds || []);
-      setCurrentQueue(saved.currentQueue || []);
-      setQueueIdx(saved.queueIdx || 0);
-      setMemorySet(new Set(saved.memorySet || []));
-      setVisitedSet(new Set(saved.visitedSet || []));
-      setShowHiragana(!!saved.showHiragana);
-      if (typeof saved.isAnswerVisible === "boolean") {
-        setIsAnswerVisible(saved.isAnswerVisible);
-      }
-      setRestored(true);
-      setAttemptedRestore(true);
-    } catch (e) {
-      // ignore restore errors
-      setAttemptedRestore(true);
-    }
-  }, [currentNotebookId, attemptedRestore, restored, stage]);
 
-  // Auto-save WordTest progress to the notebook's word_test field
-  useEffect(() => {
-    if (!currentNotebookId) return;
-    if (allIds.length === 0) return;
-    try {
-      const payload = {
-        schemaVersion: 3,
-        notebookId: currentNotebookId,
-        stage,
-        allIds,
-        config,
-        round,
-        wordIndex,
-        sliceIds,
-        currentQueue,
-        queueIdx,
-        memorySet: Array.from(memorySet),
-        visitedSet: Array.from(visitedSet),
-        sessionPool: Array.from(sessionPool),
-        wrongSet: Array.from(wrongSet),
-        showHiragana,
-        isAnswerVisible,
-        savedAt: Date.now(),
-      };
-      notebookService.updateNotebookWordTest(currentNotebookId, payload);
+      // 恢復狀態
+      updateTestState({
+        sessionPool: new Set(saved.sessionPool || []),
+        wrongSet: new Set(saved.wrongSet || []),
+        round: saved.round || 0,
+        wordIndex: saved.wordIndex || 0,
+        sliceIds: saved.sliceIds || [],
+        currentQueue: saved.currentQueue || [],
+        queueIdx: saved.queueIdx || 0,
+        memorySet: new Set(saved.memorySet || []),
+        visitedSet: new Set(saved.visitedSet || []),
+        showHiragana: !!saved.showHiragana,
+        isAnswerVisible: !!saved.isAnswerVisible,
+        restored: true,
+        attemptedRestore: true,
+      });
     } catch (e) {
-      // noop
+      console.warn("Failed to restore word test state:", e);
+      updateTestState({ attemptedRestore: true });
     }
   }, [
     currentNotebookId,
-    stage,
-    allIds,
-    config,
-    round,
-    wordIndex,
-    sliceIds,
-    currentQueue,
-    queueIdx,
-    memorySet,
-    visitedSet,
-    sessionPool,
-    wrongSet,
-    showHiragana,
-    isAnswerVisible,
+    testState.attemptedRestore,
+    testState.restored,
+    testState.stage,
+    updateTestState,
   ]);
+
+  // 自動保存功能已經整合到 updateTestState 中，移除舊的自動保存邏輯
 
   if (!currentNotebookId || !currentNotebook) {
     return (
@@ -817,34 +883,37 @@ export default function WordTest() {
         </IconContainer>
         <Title>單字挑戰</Title>
         <StageToggleWrap>
-          <StageBtn active={stage === "new"} onClick={() => switchStage("new")}>
+          <StageBtn
+            active={testState.stage === "new"}
+            onClick={() => switchStage("new")}
+          >
             新卡
           </StageBtn>
           <StageBtn
-            active={stage === "review"}
+            active={testState.stage === "review"}
             onClick={() => switchStage("review")}
           >
             複習
           </StageBtn>
           <StageBtn
-            active={stage === "test"}
+            active={testState.stage === "test"}
             onClick={() => switchStage("test")}
           >
             測試
           </StageBtn>
           <StageBtn
-            active={stage === "wrong"}
+            active={testState.stage === "wrong"}
             onClick={() => switchStage("wrong")}
           >
             錯題
           </StageBtn>
         </StageToggleWrap>
         <div>
-          {stage === "new"
+          {testState.stage === "new"
             ? "沒有可學的新卡（studied == 0）。請到「筆記本」匯入或調整資料。"
-            : stage === "review"
+            : testState.stage === "review"
             ? "沒有可複習的單字（studied > 0）。"
-            : stage === "test"
+            : testState.stage === "test"
             ? "沒有可測試的單字（需先完成新卡或複習）。"
             : "沒有需要練習的錯題。"}
         </div>
@@ -872,20 +941,26 @@ export default function WordTest() {
       </IconContainer>
       <Title>單字練習</Title>
       <StageToggleWrap>
-        <StageBtn active={stage === "new"} onClick={() => switchStage("new")}>
+        <StageBtn
+          active={testState.stage === "new"}
+          onClick={() => switchStage("new")}
+        >
           新卡
         </StageBtn>
         <StageBtn
-          active={stage === "review"}
+          active={testState.stage === "review"}
           onClick={() => switchStage("review")}
         >
           複習
         </StageBtn>
-        <StageBtn active={stage === "test"} onClick={() => switchStage("test")}>
+        <StageBtn
+          active={testState.stage === "test"}
+          onClick={() => switchStage("test")}
+        >
           測試
         </StageBtn>
         <StageBtn
-          active={stage === "wrong"}
+          active={testState.stage === "wrong"}
           onClick={() => switchStage("wrong")}
         >
           錯題
@@ -900,16 +975,23 @@ export default function WordTest() {
 
       {currentWord ? (
         <CardContainer
-          onClick={() => !isAnswerVisible && setIsAnswerVisible(true)}
+          onClick={() =>
+            !testState.isAnswerVisible &&
+            updateTestState({ isAnswerVisible: true })
+          }
         >
           {wordType === "jp_word" && (
             <>
               <HiraganaToggleContainer>
-                <ToggleButton onClick={() => setShowHiragana((v) => !v)}>
-                  {showHiragana ? "🔽漢" : "▶️漢"}
+                <ToggleButton
+                  onClick={() =>
+                    updateTestState({ showHiragana: !testState.showHiragana })
+                  }
+                >
+                  {testState.showHiragana ? "🔽漢" : "▶️漢"}
                 </ToggleButton>
               </HiraganaToggleContainer>
-              {showHiragana && (
+              {testState.showHiragana && (
                 <HiraganaTextContainer>
                   <HiraganaText>{currentWord.kanji_jp_word}</HiraganaText>
                 </HiraganaTextContainer>
@@ -920,11 +1002,15 @@ export default function WordTest() {
           {currentWord.kanji_jp_word && wordType === "kanji_jp_word" && (
             <>
               <HiraganaToggleContainer>
-                <ToggleButton onClick={() => setShowHiragana((v) => !v)}>
-                  {showHiragana ? "🔽平/片" : "▶️平/片"}
+                <ToggleButton
+                  onClick={() =>
+                    updateTestState({ showHiragana: !testState.showHiragana })
+                  }
+                >
+                  {testState.showHiragana ? "🔽平/片" : "▶️平/片"}
                 </ToggleButton>
               </HiraganaToggleContainer>
-              {showHiragana && (
+              {testState.showHiragana && (
                 <HiraganaTextContainer>
                   <HiraganaText>{currentWord.jp_word}</HiraganaText>
                 </HiraganaTextContainer>
@@ -961,7 +1047,7 @@ export default function WordTest() {
             </SpeakButton>
           </WordContainer>
 
-          {isAnswerVisible && (
+          {testState.isAnswerVisible && (
             <ResultContainer>
               <SubCard>
                 <AnswerText correct>
@@ -1042,7 +1128,7 @@ export default function WordTest() {
           <Panel>
             <PanelTitle>current_queue（剩餘）</PanelTitle>
             <List>
-              {currentQueue.slice(queueIdx).map((id) => {
+              {testState.currentQueue.slice(testState.queueIdx).map((id) => {
                 const w = byId.get(id);
                 return (
                   <ListItem key={id}>
@@ -1055,8 +1141,8 @@ export default function WordTest() {
           <Panel>
             <PanelTitle>memory_queue（已記住，本片）</PanelTitle>
             <List>
-              {sliceIds
-                .filter((id) => memorySet.has(id))
+              {testState.sliceIds
+                .filter((id) => testState.memorySet.has(id))
                 .map((id) => {
                   const w = byId.get(id);
                   return (
@@ -1115,14 +1201,16 @@ export default function WordTest() {
                   primary
                   onClick={() => {
                     setConfig(draftConfig);
-                    setRound(0);
-                    setWordIndex(0);
-                    setSliceIds([]);
-                    setCurrentQueue([]);
-                    setQueueIdx(0);
-                    setMemorySet(new Set());
-                    setVisitedSet(new Set());
-                    setSessionDone(false);
+                    updateTestState({
+                      round: 0,
+                      wordIndex: 0,
+                      sliceIds: [],
+                      currentQueue: [],
+                      queueIdx: 0,
+                      memorySet: new Set(),
+                      visitedSet: new Set(),
+                      sessionDone: false,
+                    });
                     setOverrideAllIds(null); // recalc order for new settings
                     setTimeout(() => {
                       const start = 0;
@@ -1134,10 +1222,12 @@ export default function WordTest() {
                       const ids = Array.from(
                         new Set(sourceIds.slice(start, end))
                       );
-                      setSliceIds(ids);
-                      setMemorySet(new Set());
-                      setCurrentQueue(shuffleArray(ids));
-                      setQueueIdx(0);
+                      updateTestState({
+                        sliceIds: ids,
+                        memorySet: new Set(),
+                        currentQueue: shuffleArray(ids),
+                        queueIdx: 0,
+                      });
                     }, 0);
                     setShowSettings(false);
                     setShowLocalSettings(false);
