@@ -14,7 +14,10 @@ import {
 import Modal from "../../components/Modal";
 import { useApp } from "../../store/contexts/AppContext";
 import notebookService from "../../services/notebookService";
-import { updateWordInNotebook } from "../../store/reducer/actions";
+import {
+  updateWordInNotebook,
+  updatePendingProficiency,
+} from "../../store/reducer/actions";
 import { shuffleArray } from "../../utils/questionUtils";
 import { useAnswerPlayback } from "../../hooks/useAnswerPlayback";
 import SettingsPanel from "../../components/SettingsPanel";
@@ -31,6 +34,8 @@ import {
   SubCard,
   NextButton,
   ProficiencyButton,
+  ProficiencyControlsContainer,
+  TinyButton,
 } from "../Reading/components/ReadingCard/styles";
 import ExampleSentence from "../Reading/components/ExampleSentence";
 import AudioRecorderPage from "../AudioRecorder";
@@ -397,6 +402,7 @@ export default function WordTest() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [isBug, setIsBug] = useState(false);
 
   // switch stage helper (reset state and re-attempt restore)
   const switchStage = useCallback(
@@ -499,6 +505,11 @@ export default function WordTest() {
 
   const currentId = testState.currentQueue[testState.queueIdx];
   const currentWord = byId.get(currentId);
+
+  // Sync bug state with current word
+  useEffect(() => {
+    setIsBug(currentWord ? !!currentWord.word_bug : false);
+  }, [currentWord?.id, currentWord?.word_bug]);
 
   const { playSequence } = useAnswerPlayback({
     result: null,
@@ -980,6 +991,84 @@ export default function WordTest() {
             updateTestState({ isAnswerVisible: true })
           }
         >
+          {/* 熟練度控制 - 左上角 */}
+          <ProficiencyControlsContainer>
+            <TinyButton
+              className={
+                (state.shared.pendingProficiencyUpdates[currentWord.id] ||
+                  currentWord.proficiency) === 1
+                  ? "active"
+                  : ""
+              }
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(updatePendingProficiency(currentWord.id, 1));
+              }}
+              title="設為低熟練度"
+            >
+              低
+            </TinyButton>
+            <TinyButton
+              className={
+                (state.shared.pendingProficiencyUpdates[currentWord.id] ||
+                  currentWord.proficiency) === 2
+                  ? "active"
+                  : ""
+              }
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(updatePendingProficiency(currentWord.id, 2));
+              }}
+              title="設為中熟練度"
+            >
+              中
+            </TinyButton>
+            <TinyButton
+              className={
+                (state.shared.pendingProficiencyUpdates[currentWord.id] ||
+                  currentWord.proficiency) === 3
+                  ? "active"
+                  : ""
+              }
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(updatePendingProficiency(currentWord.id, 3));
+              }}
+              title="設為高熟練度"
+            >
+              高
+            </TinyButton>
+            <TinyButton
+              className={isBug ? "active" : ""}
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  const nbId = state.shared.currentNotebookId;
+                  const newVal = !isBug;
+                  setIsBug(newVal); // optimistic
+                  await notebookService.updateWordInNotebook(
+                    nbId,
+                    currentWord.id,
+                    {
+                      word_bug: newVal,
+                    }
+                  );
+                  dispatch(
+                    updateWordInNotebook(nbId, currentWord.id, {
+                      word_bug: newVal,
+                    })
+                  );
+                } catch (e) {
+                  console.error("toggle bug (WordTest) failed", e);
+                  setIsBug((prev) => !prev); // revert on failure
+                }
+              }}
+              title="標記為錯誤/取消"
+            >
+              錯
+            </TinyButton>
+          </ProficiencyControlsContainer>
+
           {wordType === "jp_word" && (
             <>
               <HiraganaToggleContainer>

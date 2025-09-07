@@ -62,6 +62,7 @@ export const ProficiencyBadge = styled.div`
 
 // 平假名 toggle 容器
 export const HiraganaToggleContainer = styled.div`
+  margin-top: 15px;
   margin-bottom: 8px;
   display: flex;
   justify-content: center; /* 水平置中 */
@@ -81,7 +82,7 @@ export const ToggleButton = styled.button`
   cursor: pointer;
   border: none;
   background: none;
-  padding: 0;
+  padding: 0 !important;
 
   &:hover {
     opacity: 0.8;
@@ -101,7 +102,7 @@ export const WordContainer = styled.div`
   gap: 8px;
   font-size: 30px;
   justify-content: center;
-  margin-top: 17px;
+  margin-top: 10px;
 `;
 
 export const SpeakButton = styled.span`
