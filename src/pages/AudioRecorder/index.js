@@ -381,7 +381,7 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
         <>
           <IconButton onClick={stopRecording}>⏹ 停止</IconButton>
           <RecordIcon recording={true} />
-          <Status>錄音中... </Status>
+          <Status>錄音中</Status>
         </>
       )}
 

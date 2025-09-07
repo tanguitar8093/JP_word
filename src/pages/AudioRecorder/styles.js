@@ -12,7 +12,7 @@ export const ButtonContainer = styled.div`
 export const IconButton = styled.button`
   height: 28px;
   padding-left: 5px;
-  font-size: 14px;
+  font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
