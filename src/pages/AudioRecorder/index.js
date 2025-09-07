@@ -365,22 +365,21 @@ const AudioRecorderPage = forwardRef(({ triggerReset }, ref) => {
       {/* 未取得權限 - 只在權限被拒絕時顯示（簡化提示文字） */}
       {!permission && (
         <InfoButton onClick={getMicrophonePermission}>
-          🎤 點擊允許錄音功能
+          🎤 取得錄音權限
         </InfoButton>
       )}
 
       {/* 已取得權限且目前非錄音中：顯示開始/重新錄音按鈕（不會因為已有錄音而消失） */}
       {permission && !isRecording && (
         <InfoButton onClick={startRecording}>
-          <RecordIcon recording={false} />{" "}
-          {audioURL ? "重新錄音" : "點擊開始錄音"}
+          <RecordIcon recording={false} /> {audioURL ? "重錄" : "錄音"}
         </InfoButton>
       )}
 
       {/* 錄音中 */}
       {permission && isRecording && (
         <>
-          <IconButton onClick={stopRecording}> ⏹ 點擊停止錄音</IconButton>
+          <IconButton onClick={stopRecording}>⏹ 停止</IconButton>
           <RecordIcon recording={true} />
           <Status>錄音中... </Status>
         </>
